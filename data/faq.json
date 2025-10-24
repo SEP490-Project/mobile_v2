@@ -1,0 +1,91 @@
+[
+  {
+    "category": "Account & Login",
+    "items": [
+      {
+        "question": "How do I create an account?",
+        "answer": "Simply click 'Sign Up', enter your email, password, and confirm the OTP sent to your email. You can then log in and start shopping."
+      },
+      {
+        "question": "What should I do if I forget my password?",
+        "answer": "Select 'Forgot Password' on the login screen, enter your email address to receive a link to reset your password."
+      },
+      {
+        "question": "Can I change the email address associated with my account?",
+        "answer": "For security reasons, you cannot directly change the email address yourself. Please contact Customer Support with your old and new email addresses for assistance."
+      },
+      {
+        "question": "Is my personal information secure?",
+        "answer": "Yes, we use advanced encryption and security measures to protect your personal data and ensure your privacy."
+      }
+    ]
+  },
+  {
+    "category": "Orders & Shipping",
+    "items": [
+      {
+        "question": "How can I place an order?",
+        "answer": "Browse our products, add items to your cart, proceed to checkout, fill in your shipping details, and follow the instructions to complete the payment."
+      },
+      {
+        "question": "How long does shipping usually take?",
+        "answer": "Standard shipping typically takes 3-7 business days, depending on your location. You can track your order using the link provided in your shipping confirmation email."
+      },
+      {
+        "question": "Can I cancel or modify my order after placing it?",
+        "answer": "You can cancel or modify your order within 1 hour of placement. After this time, the order processing begins, and changes may not be possible. Please contact support immediately."
+      },
+      {
+        "question": "How can I track my order?",
+        "answer": "Once your order is shipped, you will receive a confirmation email with a tracking number and a link to monitor its progress."
+      }
+    ]
+  },
+  {
+    "category": "Payment & Security",
+    "items": [
+      {
+        "question": "What payment methods are accepted?",
+        "answer": "We accept various payment methods. You can pay securely through our partner PayOS by scanning the QR code or saving the image to pay via your preferred e-wallet/banking app."
+      },
+      {
+        "question": "Is the payment process secure?",
+        "answer": "Yes, all transactions are processed securely through our payment partner, PayOS, which complies with the highest industry security standards to protect your financial information."
+      }
+    ]
+  },
+  {
+    "category": "Returns & Warranty",
+    "items": [
+      {
+        "question": "What is your return policy?",
+        "answer": "We accept returns for unused items in their original packaging within 14 days of delivery. Please review our full 'Returns Policy' page for detailed conditions and instructions."
+      },
+      {
+        "question": "How do I initiate a return?",
+        "answer": "Log in to your account, go to 'Order History', select the order, and follow the steps to submit a return request. You will receive instructions on how to ship the item back."
+      },
+      {
+        "question": "Do your products come with a warranty?",
+        "answer": "Most of our products come with a manufacturer's warranty. The specific warranty period is mentioned on the product page. Please keep your proof of purchase."
+      }
+    ]
+  },
+  {
+    "category": "Blog & Community",
+    "items": [
+      {
+        "question": "How can I comment on a blog post?",
+        "answer": "You can leave a comment on any blog post after logging into your account. We encourage constructive discussions and community exchange."
+      },
+      {
+        "question": "Can I share a blog post with my friends?",
+        "answer": "Yes, each blog post has dedicated share buttons for various social media platforms, making it easy for you to share content with your network."
+      },
+      {
+        "question": "How often is the blog updated?",
+        "answer": "We aim to publish new and engaging content weekly. Subscribe to our newsletter to get the latest updates directly in your inbox."
+      }
+    ]
+  }
+]
