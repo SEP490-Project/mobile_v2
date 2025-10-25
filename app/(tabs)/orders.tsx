@@ -72,9 +72,7 @@ export default function OrdersScreen() {
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
       <View className="px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
-        <Text className="text-2xl font-extrabold text-gray-900">
-          My Orders
-        </Text>
+        <Text className="text-2xl font-extrabold text-gray-900">My Orders</Text>
         <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
           <MaterialIcons name="shopping-bag" size={22} color="#4B5563" />
         </TouchableOpacity>
@@ -90,12 +88,8 @@ export default function OrdersScreen() {
           <View className="bg-white mb-4 rounded-xl shadow-sm border border-gray-100 p-4">
             {/* Header đơn hàng */}
             <View className="flex-row justify-between items-center mb-2">
-              <Text className="font-semibold text-gray-800">
-                Order ID: {item.id}
-              </Text>
-              <Text className={`font-medium ${getStatusColor(item.status)}`}>
-                {item.status}
-              </Text>
+              <Text className="font-semibold text-gray-800">Order ID: {item.id}</Text>
+              <Text className={`font-medium ${getStatusColor(item.status)}`}>{item.status}</Text>
             </View>
 
             <Text className="text-gray-500 text-sm mb-3">{item.date}</Text>
@@ -114,15 +108,10 @@ export default function OrdersScreen() {
             {/* Footer */}
             <View className="flex-row justify-between items-center mt-4">
               <Text className="text-gray-700 font-medium">
-                Total:{" "}
-                <Text className="text-rose-600 font-bold">
-                  ${item.total.toFixed(2)}
-                </Text>
+                Total: <Text className="text-rose-600 font-bold">${item.total.toFixed(2)}</Text>
               </Text>
               <TouchableOpacity className="flex-row items-center">
-                <Text className="text-rose-500 font-medium mr-1">
-                  View Details
-                </Text>
+                <Text className="text-rose-500 font-medium mr-1">View Details</Text>
                 <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
               </TouchableOpacity>
             </View>

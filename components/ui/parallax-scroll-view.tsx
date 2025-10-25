@@ -24,29 +24,19 @@ export function ParallaxScrollView({ children, headerImage }: Props) {
           translateY: interpolate(
             scrollOffset.value,
             [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
-            [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75]
+            [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75],
           ),
         },
         {
-          scale: interpolate(
-            scrollOffset.value,
-            [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
-            [2, 1, 1]
-          ),
+          scale: interpolate(scrollOffset.value, [-HEADER_HEIGHT, 0, HEADER_HEIGHT], [2, 1, 1]),
         },
       ],
     };
   });
 
   return (
-    <Animated.ScrollView
-      ref={scrollRef}
-      style={{ flex: 1 }}
-      scrollEventThrottle={16}
-    >
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
-        {headerImage}
-      </Animated.View>
+    <Animated.ScrollView ref={scrollRef} style={{ flex: 1 }} scrollEventThrottle={16}>
+      <Animated.View style={[styles.header, headerAnimatedStyle]}>{headerImage}</Animated.View>
       <View style={styles.content}>{children}</View>
     </Animated.ScrollView>
   );

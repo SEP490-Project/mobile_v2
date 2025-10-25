@@ -1,14 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import React from "react";
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // --- Dữ liệu ---
@@ -129,27 +122,17 @@ function Section({
             transition={{ delay: delay + index * 120, type: "timing" }}
             className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
           >
-            <Image
-              source={{ uri: item.image }}
-              className="w-full h-40 rounded-lg mb-3"
-            />
-            <Text
-              numberOfLines={2}
-              className="font-semibold text-gray-800 text-base"
-            >
+            <Image source={{ uri: item.image }} className="w-full h-40 rounded-lg mb-3" />
+            <Text numberOfLines={2} className="font-semibold text-gray-800 text-base">
               {item.name}
             </Text>
             {item.rating && (
               <View className="flex-row items-center my-1">
                 <MaterialIcons name="star" size={16} color="#F59E0B" />
-                <Text className="text-yellow-600 text-sm ml-1">
-                  {item.rating.toFixed(1)}
-                </Text>
+                <Text className="text-yellow-600 text-sm ml-1">{item.rating.toFixed(1)}</Text>
               </View>
             )}
-            <Text className="text-rose-600 font-bold text-lg mt-1">
-              ${item.price.toFixed(2)}
-            </Text>
+            <Text className="text-rose-600 font-bold text-lg mt-1">${item.price.toFixed(2)}</Text>
           </MotiView>
         )}
       />
@@ -188,24 +171,16 @@ export default function HomeScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
-        renderItem={({ item }) => (
-          <CategoryItem name={item.name} icon={item.icon} />
-        )}
+        renderItem={({ item }) => <CategoryItem name={item.name} icon={item.icon} />}
       />
 
       {/* Sections */}
       <Section title="Top Rated Products ✨" products={topRated} delay={100} />
-      <Section
-        title="Limited Edition ⏳"
-        products={limitedProducts}
-        delay={400}
-      />
+      <Section title="Limited Edition ⏳" products={limitedProducts} delay={400} />
 
       {/* Beauty Blog */}
       <View className="mt-6 px-4 pb-8">
-        <Text className="text-xl font-bold text-gray-800 mb-4">
-          Beauty Blog
-        </Text>
+        <Text className="text-xl font-bold text-gray-800 mb-4">Beauty Blog</Text>
         {blogPosts.map((post, i) => (
           <MotiView
             key={post.id}
@@ -214,26 +189,14 @@ export default function HomeScreen() {
             transition={{ delay: i * 150, type: "timing" }}
             className="flex-row items-center mb-4 bg-white rounded-xl p-3 border border-gray-100 shadow-sm"
           >
-            <Image
-              source={{ uri: post.image }}
-              className="w-24 h-24 rounded-lg mr-4"
-            />
+            <Image source={{ uri: post.image }} className="w-24 h-24 rounded-lg mr-4" />
             <View className="flex-1">
-              <Text
-                className="text-lg font-semibold text-gray-800 mb-1"
-                numberOfLines={2}
-              >
+              <Text className="text-lg font-semibold text-gray-800 mb-1" numberOfLines={2}>
                 {post.title}
               </Text>
               <TouchableOpacity className="flex-row items-center mt-1">
-                <Text className="text-sm text-rose-500 font-medium">
-                  Read More
-                </Text>
-                <MaterialIcons
-                  name="arrow-right-alt"
-                  size={18}
-                  color="#F43F5E"
-                />
+                <Text className="text-sm text-rose-500 font-medium">Read More</Text>
+                <MaterialIcons name="arrow-right-alt" size={18} color="#F43F5E" />
               </TouchableOpacity>
             </View>
           </MotiView>

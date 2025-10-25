@@ -13,10 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
 
 const ForgotPasswordSchema = yup.object().shape({
-  email: yup
-    .string()
-    .email("Please enter a valid email address")
-    .required("Email is required"),
+  email: yup.string().email("Please enter a valid email address").required("Email is required"),
 });
 
 export default function ForgotPasswordScreen() {
@@ -30,10 +27,7 @@ export default function ForgotPasswordScreen() {
     try {
       await ForgotPasswordSchema.validate({ email });
       console.log("Forgot password email:", email);
-      Alert.alert(
-        "Check your email",
-        "A password reset link has been sent to your inbox."
-      );
+      Alert.alert("Check your email", "A password reset link has been sent to your inbox.");
     } catch (err) {
       if (err instanceof yup.ValidationError) {
         setError(err.message);
@@ -43,11 +37,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior="height"
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={50}
-      >
+      <KeyboardAvoidingView behavior="height" style={{ flex: 1 }} keyboardVerticalOffset={50}>
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -59,12 +49,9 @@ export default function ForgotPasswordScreen() {
         >
           <View className="flex-1 justify-center">
             <View className="mb-12">
-              <Text className="text-3xl font-bold mb-2 text-gray-600">
-                Forgot your password?
-              </Text>
+              <Text className="text-3xl font-bold mb-2 text-gray-600">Forgot your password?</Text>
               <Text className="text-gray-500">
-                Enter your email address and we’ll send you instructions to
-                reset your password.
+                Enter your email address and we’ll send you instructions to reset your password.
               </Text>
             </View>
 
@@ -80,11 +67,7 @@ export default function ForgotPasswordScreen() {
             />
 
             <View className="pt-4">
-              <AuthButton
-                title="Send Reset Link"
-                onPress={handleResetPassword}
-                disabled={!email}
-              />
+              <AuthButton title="Send Reset Link" onPress={handleResetPassword} disabled={!email} />
             </View>
           </View>
 

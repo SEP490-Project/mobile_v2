@@ -1,14 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import {
-  Image,
-  ImageBackground,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const isAuthen = false;
 
@@ -56,9 +49,7 @@ export default function AccountScreen() {
               <Text className="text-gray-100 text-lg ml-1">{USER_EMAIL}</Text>
             </View>
           ) : (
-            <Text className="text-gray-100 text-base mt-1">
-              Sign in to manage your profile
-            </Text>
+            <Text className="text-gray-100 text-base mt-1">Sign in to manage your profile</Text>
           )}
         </View>
 
@@ -80,9 +71,7 @@ export default function AccountScreen() {
                 className="bg-primary py-4 rounded-2xl items-center shadow-lg mb-6"
                 onPress={handleAuthPress}
               >
-                <Text className="text-white font-bold text-lg">
-                  Sign In or Register
-                </Text>
+                <Text className="text-white font-bold text-lg">Sign In or Register</Text>
               </TouchableOpacity>
               <View className="mb-4 border-b border-gray-100"></View>
             </>
@@ -160,15 +149,7 @@ const commonMenuItems = [
 
 // ---------------- COMPONENTS ----------------
 
-const MenuItem = ({
-  iconName,
-  name,
-  route,
-  bgColor,
-  iconColor,
-  isLogout = false,
-  router,
-}: any) => (
+const MenuItem = ({ iconName, name, route, bgColor, iconColor, isLogout = false, router }: any) => (
   <TouchableOpacity
     className={`flex-row items-center justify-between p-4 rounded-xl mb-3 ${
       isLogout ? "bg-red-50 border border-red-100" : "bg-gray-50"
@@ -182,17 +163,11 @@ const MenuItem = ({
       >
         <MaterialIcons name={iconName} size={24} color={iconColor} />
       </View>
-      <Text
-        className={`text-base font-semibold ${
-          isLogout ? "text-red-600" : "text-gray-800"
-        }`}
-      >
+      <Text className={`text-base font-semibold ${isLogout ? "text-red-600" : "text-gray-800"}`}>
         {name}
       </Text>
     </View>
-    {!isLogout && (
-      <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
-    )}
+    {!isLogout && <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />}
   </TouchableOpacity>
 );
 
