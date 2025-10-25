@@ -1,14 +1,9 @@
 import { AuthButton, AuthInput } from "@/components/guest";
+import { useAppDispatch } from "@/libs/stores";
+import { login } from "@/libs/stores/authenManager/thunk";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, KeyboardAvoidingView, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
 
@@ -24,10 +19,9 @@ export default function LoginScreen() {
   const router = useRouter();
   const [login_identifier, setLoginIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({
-    login_identifier: "",
-    password: "",
-  });
+  const [errors, setErrors] = useState({ login_identifier: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
     const body = { login_identifier, password };
@@ -35,20 +29,26 @@ export default function LoginScreen() {
 
     try {
       await LoginSchema.validate(body, { abortEarly: false });
+      setLoading(true);
 
-      console.log("Login JSON:", body);
-      Alert.alert("Đăng nhập thành công!");
-    } catch (err) {
-      if (err instanceof yup.ValidationError) {
+      const user = await dispatch(login(body)).unwrap();
+      Alert.alert("Đăng nhập thành công!", `Xin chào ${user.name || "User"}`);
+
+      router.replace("/(tabs)");
+    } catch (err: any) {
+      if (err.name === "ValidationError") {
         let newErrors: any = { login_identifier: "", password: "" };
-        err.inner.forEach((error) => {
+        err.inner.forEach((error: any) => {
           if (error.path) {
-            newErrors[error.path as keyof typeof newErrors] = error.message;
+            newErrors[error.path] = error.message;
           }
         });
-
         setErrors(newErrors);
+      } else {
+        Alert.alert("Đăng nhập thất bại", err.response?.data?.message || err.message);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,9 +56,7 @@ export default function LoginScreen() {
     (setter: React.Dispatch<React.SetStateAction<string>>, field: keyof typeof errors) =>
     (text: string) => {
       setter(text);
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: "" }));
-      }
+      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
     };
 
   return (
@@ -76,6 +74,7 @@ export default function LoginScreen() {
               </Text>
               <Text className="text-gray-500">Enter your login information here</Text>
             </View>
+
             <View className="space-y-4">
               <AuthInput
                 label="Your Email or Username"
@@ -95,21 +94,12 @@ export default function LoginScreen() {
 
               <View className="pt-4">
                 <AuthButton
-                  title="Sign In"
+                  title={loading ? "Signing In..." : "Sign In"}
                   onPress={handleLogin}
-                  disabled={!login_identifier || !password}
+                  disabled={loading || !login_identifier || !password}
                 />
               </View>
             </View>
-          </View>
-
-          <View className="flex-row justify-between mt-8 mb-4">
-            <TouchableOpacity onPress={() => router.push("/(auth)/forgot")}>
-              <Text className="text-gray-500">Forgot Password</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-              <Text className="text-primary font-medium">Sign Up</Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

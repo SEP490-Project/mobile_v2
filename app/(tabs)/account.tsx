@@ -1,19 +1,48 @@
+import { useAuth } from "@/libs/hooks/useAuthen";
+import { useAppDispatch } from "@/libs/stores";
+import { logout } from "@/libs/stores/authenManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
-
-const isAuthen = false;
+import {
+  Alert,
+  Image,
+  ImageBackground,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function AccountScreen() {
   const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+  const dispatch = useAppDispatch();
 
   const handleAuthPress = () => {
     router.push("/(auth)");
   };
 
-  const USER_NAME = "User A";
-  const USER_EMAIL = "ahihi@gmail.com";
+  const handleLogout = async () => {
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await dispatch(logout()).unwrap();
+            Alert.alert("Logged out", "You have logged out of your account.");
+
+            router.replace("/(tabs)");
+          } catch (err) {
+            Alert.alert("Logout failed", "Please try again later.");
+          }
+        },
+      },
+    ]);
+  };
+
   const AUTH_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
 
   return (
@@ -28,7 +57,7 @@ export default function AccountScreen() {
       >
         {/* Header */}
         <View className="flex items-center justify-center pt-16 pb-8">
-          {isAuthen ? (
+          {isAuthenticated ? (
             <Image
               source={{ uri: AUTH_AVATAR }}
               className="w-32 h-32 rounded-full border-4 border-white shadow-xl"
@@ -40,13 +69,13 @@ export default function AccountScreen() {
           )}
 
           <Text className="text-4xl font-bold mt-3 text-white">
-            {isAuthen ? USER_NAME : "My Account"}
+            {isAuthenticated ? user.username : "My Account"}
           </Text>
 
-          {isAuthen ? (
+          {isAuthenticated ? (
             <View className="flex-row items-center mt-1">
               <MaterialIcons name="email" size={16} color="#F3F4F6" />
-              <Text className="text-gray-100 text-lg ml-1">{USER_EMAIL}</Text>
+              <Text className="text-gray-100 text-lg ml-1">{user.email}</Text>
             </View>
           ) : (
             <Text className="text-gray-100 text-base mt-1">Sign in to manage your profile</Text>
@@ -55,14 +84,14 @@ export default function AccountScreen() {
 
         {/* Content */}
         <View className="bg-white rounded-t-3xl p-6 shadow-xl">
-          {isAuthen ? (
+          {isAuthenticated ? (
             <>
               {accountMenuItems.map((item) => (
                 <MenuItem key={item.route} {...item} router={router} />
               ))}
 
               <View className="my-4 border-t border-gray-100 pt-4">
-                <LogoutButton router={router} />
+                <LogoutButton onLogout={handleLogout} />
               </View>
             </>
           ) : (
@@ -171,14 +200,19 @@ const MenuItem = ({ iconName, name, route, bgColor, iconColor, isLogout = false,
   </TouchableOpacity>
 );
 
-const LogoutButton = ({ router }: { router: any }) => (
-  <MenuItem
-    iconName="logout"
-    name="Log Out"
-    route="/logout"
-    bgColor="#FEE2E2"
-    iconColor="#EF4444"
-    isLogout
-    router={router}
-  />
+const LogoutButton = ({ onLogout }: { onLogout: () => void }) => (
+  <TouchableOpacity
+    className="flex-row items-center justify-between p-4 rounded-xl mb-3 bg-red-50 border border-red-100 shadow-sm"
+    onPress={onLogout}
+  >
+    <View className="flex-row items-center gap-3">
+      <View
+        className="w-10 h-10 rounded-full items-center justify-center"
+        style={{ backgroundColor: "#FEE2E2" }}
+      >
+        <MaterialIcons name="logout" size={24} color="#EF4444" />
+      </View>
+      <Text className="text-base font-semibold text-red-600">Log Out</Text>
+    </View>
+  </TouchableOpacity>
 );

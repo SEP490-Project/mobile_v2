@@ -1,3 +1,4 @@
+import ReduxProvider from "@/app/provider";
 import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
@@ -26,13 +27,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(general)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="dark" />
+      <ReduxProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(general)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="dark" />
+      </ReduxProvider>
     </SafeAreaProvider>
   );
 }
