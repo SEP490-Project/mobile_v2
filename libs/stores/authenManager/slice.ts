@@ -1,18 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, logout, refresh, register } from "./thunk";
+import { login, logout, refresh, register, restoreSession } from "./thunk";
 
 interface AuthState {
   loading: boolean;
   isAuthenticated: boolean;
   user: any | null;
-  role: string;
 }
 
 const initialState: AuthState = {
   loading: false,
   isAuthenticated: false,
   user: null,
-  role: "",
 };
 
 export const manageAuthenSlice = createSlice({
@@ -28,7 +26,6 @@ export const manageAuthenSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.role = action.payload.user?.role || "";
       })
       .addCase(login.rejected, (state) => {
         state.loading = false;
@@ -48,18 +45,29 @@ export const manageAuthenSlice = createSlice({
       .addCase(refresh.fulfilled, (state, action) => {
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.role = action.payload.user?.role || "";
       })
       .addCase(refresh.rejected, (state) => {
         state.isAuthenticated = false;
         state.user = null;
-        state.role = "";
       })
 
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.user = null;
-        state.role = "";
+      })
+
+      .addCase(restoreSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
       });
   },
 });

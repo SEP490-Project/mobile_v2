@@ -34,7 +34,7 @@ export const login = createAsyncThunk("auth/login", async (req: Login, { rejectW
     return data;
   } catch (error: unknown) {
     const err = error as AxiosError<{ message?: string }>;
-    return rejectWithValue(err.response?.data?.message || "Đăng nhập thất bại");
+    return rejectWithValue(err.response?.data?.message || "Login failed");
   }
 });
 
@@ -79,5 +79,22 @@ export const logout = createAsyncThunk("auth/logout", async () => {
     console.log("Logout failed:", error);
   } finally {
     await clearAuthData();
+  }
+});
+
+export const restoreSession = createAsyncThunk("auth/restore", async (_, { rejectWithValue }) => {
+  try {
+    const accessToken = await SecureStore.getItemAsync("access_token");
+    const userData = await SecureStore.getItemAsync("user");
+
+    if (!accessToken || !userData) {
+      throw new Error("No session found");
+    }
+
+    const user = JSON.parse(userData);
+    return { access_token: accessToken, user };
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    return rejectWithValue(err.response?.data?.message || "Không thể khôi phục phiên đăng nhập");
   }
 });
