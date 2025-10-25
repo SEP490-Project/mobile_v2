@@ -141,7 +141,7 @@ function Section({
 }
 
 // --- HomeScreen ---
-export default function HomeScreen() {
+function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   return (
@@ -205,3 +205,5 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
+
+export default HomeScreen;

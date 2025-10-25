@@ -15,7 +15,7 @@ const LoginSchema = yup.object().shape({
     .required("Password is required"),
 });
 
-export default function LoginScreen() {
+function LoginScreen() {
   const router = useRouter();
   const [login_identifier, setLoginIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +32,7 @@ export default function LoginScreen() {
       setLoading(true);
 
       const user = await dispatch(login(body)).unwrap();
-      Alert.alert("Đăng nhập thành công!", `Xin chào ${user.name || "User"}`);
-
+      Alert.alert("Login successful!", `Hello ${user.user?.name || "User"}`);
       router.replace("/(tabs)");
     } catch (err: any) {
       if (err.name === "ValidationError") {
@@ -45,7 +44,9 @@ export default function LoginScreen() {
         });
         setErrors(newErrors);
       } else {
-        Alert.alert("Đăng nhập thất bại", err.response?.data?.message || err.message);
+        const errorMsg =
+          typeof err === "string" ? err : err?.message || "Login failed. Please try again.";
+        Alert.alert("Login failed", errorMsg);
       }
     } finally {
       setLoading(false);
@@ -106,3 +107,5 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
+export default LoginScreen;

@@ -16,7 +16,7 @@ const ForgotPasswordSchema = yup.object().shape({
   email: yup.string().email("Please enter a valid email address").required("Email is required"),
 });
 
-export default function ForgotPasswordScreen() {
+function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -81,3 +81,5 @@ export default function ForgotPasswordScreen() {
     </SafeAreaView>
   );
 }
+
+export default ForgotPasswordScreen;

@@ -29,7 +29,7 @@ const newsData = [
 ];
 
 // --- Component ---
-export default function NewsScreen() {
+function NewsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
@@ -67,3 +67,5 @@ export default function NewsScreen() {
     </SafeAreaView>
   );
 }
+
+export default NewsScreen;

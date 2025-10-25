@@ -40,7 +40,7 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
   );
 };
 
-export default function FAQScreen() {
+function FAQScreen() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -98,3 +98,5 @@ export default function FAQScreen() {
     </SafeAreaView>
   );
 }
+
+export default FAQScreen;

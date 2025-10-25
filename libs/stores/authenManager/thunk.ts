@@ -22,7 +22,12 @@ export const login = createAsyncThunk("auth/login", async (req: Login, { rejectW
     const data = response.data?.data;
 
     if (!data?.access_token || !data?.refresh_token) {
-      throw new Error("Thiếu token đăng nhập");
+      throw new Error("Missing login token");
+    }
+
+    const role = data?.user?.role;
+    if (!role || role !== "CUSTOMER") {
+      throw new Error("Only users with CUSTOMER role are allowed to log in");
     }
 
     await saveAuthData(data);

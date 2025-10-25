@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-export default function AccountScreen() {
+function AccountScreen() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const dispatch = useAppDispatch();
@@ -216,3 +216,5 @@ const LogoutButton = ({ onLogout }: { onLogout: () => void }) => (
     </View>
   </TouchableOpacity>
 );
+
+export default AccountScreen;

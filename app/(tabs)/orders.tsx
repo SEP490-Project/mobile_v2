@@ -67,7 +67,7 @@ const getStatusColor = (status: string) => {
 };
 
 // --- Component ---
-export default function OrdersScreen() {
+function OrdersScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
@@ -121,3 +121,5 @@ export default function OrdersScreen() {
     </SafeAreaView>
   );
 }
+
+export default OrdersScreen;

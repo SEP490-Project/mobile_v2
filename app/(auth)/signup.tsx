@@ -27,7 +27,7 @@ const RegisterSchema = yup.object().shape({
     .required("Confirm password is required"),
 });
 
-export default function RegisterScreen() {
+function RegisterScreen() {
   const router = useRouter();
 
   const [full_name, setFullName] = useState("");
@@ -152,3 +152,5 @@ export default function RegisterScreen() {
     </SafeAreaView>
   );
 }
+
+export default RegisterScreen;
