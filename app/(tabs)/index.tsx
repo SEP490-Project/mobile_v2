@@ -1,61 +1,16 @@
+import { RootState, useAppDispatch } from "@/libs/stores";
+import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
+import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
+import { Category } from "@/libs/types/category";
+import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import React from "react";
+import React, { useEffect } from "react";
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
 
 // --- Dữ liệu ---
-const categories = [
-  { id: "1", name: "Skincare", icon: "spa" },
-  { id: "2", name: "Makeup", icon: "palette" },
-  { id: "3", name: "Haircare", icon: "content-cut" },
-  { id: "4", name: "Perfume", icon: "local-florist" },
-  { id: "5", name: "Tools", icon: "handyman" },
-];
-
-const topRated = [
-  {
-    id: "1",
-    name: "Hydrating Face Cream",
-    price: 29.99,
-    rating: 4.8,
-    image: "https://hoatuongvyspa.com/upload/product/beauty-25g-9579.png",
-  },
-  {
-    id: "2",
-    name: "Vitamin C Serum",
-    price: 35.0,
-    rating: 4.9,
-    image:
-      "https://product.hstatic.net/1000241635/product/obagi-medical-professional-c-serum-15-362032050522-product-cap-off_275cc86cb749406697f7d54cd8a1dcb7.jpg",
-  },
-  {
-    id: "3",
-    name: "Rose Toner Mist",
-    price: 22.5,
-    rating: 4.7,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgHKgzk3jN2B9w9K0zPe9CRxbUMzFD_3bGlg&s",
-  },
-];
-
-const limitedProducts = [
-  {
-    id: "1",
-    name: "Limited Edition Lipstick",
-    price: 42.0,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5i54dw_4-oEf5YjGzcWyKIxvj3KnPIsV5TA&s",
-  },
-  {
-    id: "2",
-    name: "Gold Glow Highlighter",
-    price: 49.5,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8neDixiU9MnHKnv2miq8o7qB-pV-ewVseVw&s",
-  },
-];
-
 const blogPosts = [
   {
     id: "1",
@@ -96,7 +51,7 @@ function Section({
   delay = 0,
 }: {
   title: string;
-  products: any[];
+  products: Product[];
   delay?: number;
 }) {
   return (
@@ -122,14 +77,17 @@ function Section({
             transition={{ delay: delay + index * 120, type: "timing" }}
             className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
           >
-            <Image source={{ uri: item.image }} className="w-full h-40 rounded-lg mb-3" />
+            <Image
+              source={{ uri: item.thumbnail_url?.[0] }}
+              className="w-full h-40 rounded-lg mb-3"
+            />
             <Text numberOfLines={2} className="font-semibold text-gray-800 text-base">
               {item.name}
             </Text>
-            {item.rating && (
+            {item.brand_name && (
               <View className="flex-row items-center my-1">
                 <MaterialIcons name="star" size={16} color="#F59E0B" />
-                <Text className="text-yellow-600 text-sm ml-1">{item.rating.toFixed(1)}</Text>
+                <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
               </View>
             )}
             <Text className="text-rose-600 font-bold text-lg mt-1">${item.price.toFixed(2)}</Text>
@@ -142,7 +100,23 @@ function Section({
 
 // --- HomeScreen ---
 function HomeScreen() {
+  const dispatch = useAppDispatch();
+  const products = useSelector(
+    (state: RootState) => state.manageProducts.products?.data || [],
+  ) as Product[];
+  const categories = useSelector(
+    (state: RootState) => state.manageCategories.categories?.data || [],
+  ) as Category[];
+  const parentCategories = categories.filter((item) => !item.parent_category);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    dispatch(getAllProductsThunk());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(getAllCategoriesThunk());
+  }, [dispatch]);
 
   return (
     <ScrollView
@@ -166,17 +140,25 @@ function HomeScreen() {
 
       {/* Categories */}
       <FlatList
-        data={categories}
+        data={parentCategories}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
-        renderItem={({ item }) => <CategoryItem name={item.name} icon={item.icon} />}
+        renderItem={({ item }) => <CategoryItem name={item.name} icon={item?.icon || "spa"} />}
       />
 
       {/* Sections */}
-      <Section title="Top Rated Products ✨" products={topRated} delay={100} />
-      <Section title="Limited Edition ⏳" products={limitedProducts} delay={400} />
+      <Section
+        title="Top Rated Products ✨"
+        products={products.filter((item) => item.type === "STANDARD")}
+        delay={100}
+      />
+      <Section
+        title="Limited Edition ⏳"
+        products={products.filter((item) => item.type === "LIMITED")}
+        delay={400}
+      />
 
       {/* Beauty Blog */}
       <View className="mt-6 px-4 pb-8">
