@@ -1,10 +1,11 @@
+import Header from "@/components/layout/Header";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { Category } from "@/libs/types/category";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import React, { useEffect } from "react";
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -50,20 +51,29 @@ function Section({
   title,
   products,
   delay = 0,
-  navigation,
+  router,
+  type,
 }: {
   title: string;
   products: Product[];
   delay?: number;
-  navigation: any;
+  router: any;
+  type: "STANDARD" | "LIMITED";
 }) {
+  // Get price from the first variant or default variant
+  const getProductPrice = (product: Product) => {
+    if (!product.variants || product.variants.length === 0) return 0;
+    const defaultVariant = product.variants.find((v) => v.is_default);
+    return defaultVariant?.price || product.variants[0].price;
+  };
+
   return (
     <View className="mt-6">
       <View className="flex-row justify-between items-center px-4 mb-3">
         <Text className="text-xl font-bold text-gray-800">{title}</Text>
         <TouchableOpacity
           className="flex-row items-center"
-          onPress={() => navigation.navigate("(product)")}
+          onPress={() => router.push({ pathname: "(product)", params: { type } })}
         >
           <Text className="text-rose-500 font-medium mr-1">See all</Text>
           <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
@@ -83,20 +93,28 @@ function Section({
             transition={{ delay: delay + index * 120, type: "timing" }}
             className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
           >
-            <Image
-              source={{ uri: item.thumbnail_url?.[0] }}
-              className="w-full h-40 rounded-lg mb-3"
-            />
-            <Text numberOfLines={2} className="font-semibold text-gray-800 text-base">
-              {item.name}
-            </Text>
-            {item.brand_name && (
-              <View className="flex-row items-center my-1">
-                <MaterialIcons name="star" size={16} color="#F59E0B" />
-                <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
-              </View>
-            )}
-            <Text className="text-rose-600 font-bold text-lg mt-1">${item.price.toFixed(2)}</Text>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({ pathname: "/(product)/[product]", params: { product: item.id } })
+              }
+            >
+              <Image
+                source={{ uri: item.thumbnail_url?.[0] }}
+                className="w-full h-40 rounded-lg mb-3"
+              />
+              <Text numberOfLines={2} className="font-semibold text-gray-800 text-base">
+                {item.name}
+              </Text>
+              {item.brand_name && (
+                <View className="flex-row items-center my-1">
+                  <MaterialIcons name="star" size={16} color="#F59E0B" />
+                  <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
+                </View>
+              )}
+              <Text className="text-rose-600 font-bold text-lg mt-1">
+                ${getProductPrice(item).toFixed(2)}
+              </Text>
+            </TouchableOpacity>
           </MotiView>
         )}
       />
@@ -106,7 +124,7 @@ function Section({
 
 // --- HomeScreen ---
 function HomeScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const products = useSelector(
     (state: RootState) => state.manageProducts.products?.data || [],
@@ -131,19 +149,7 @@ function HomeScreen() {
       style={{ paddingTop: insets.top + 10 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View className="px-4 pb-4 flex-row items-center justify-between">
-        <Text className="text-3xl font-extrabold text-primary">B-ShowSell</Text>
-        <View className="flex-row gap-2">
-          <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-            <MaterialIcons name="search" size={24} color="#4B5563" />
-          </TouchableOpacity>
-          <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-            <MaterialIcons name="shopping-cart" size={24} color="#4B5563" />
-            <View className="absolute top-1 right-1 bg-rose-500 w-2 h-2 rounded-full border-2 border-white" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Header />
 
       {/* Categories */}
       <FlatList
@@ -160,13 +166,15 @@ function HomeScreen() {
         title="Top Rated Products ✨"
         products={products.filter((item) => item.type === "STANDARD")}
         delay={100}
-        navigation={navigation}
+        router={router}
+        type="STANDARD"
       />
       <Section
         title="Limited Edition ⏳"
         products={products.filter((item) => item.type === "LIMITED")}
         delay={400}
-        navigation={navigation}
+        router={router}
+        type="LIMITED"
       />
 
       {/* Beauty Blog */}

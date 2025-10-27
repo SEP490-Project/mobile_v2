@@ -9,7 +9,6 @@ export interface Product {
   category: Category;
   description: string;
   name: string;
-  price: number;
   type: string;
   created_at: string;
   thumbnail_url?: string[];
@@ -24,8 +23,11 @@ export interface Variant {
   capacity_unit: string;
   container_type: string;
   dispenser_type: string;
+  manufacture_date: string;
   expiry_date: string;
   instructions: string;
+  uses?: string;
+  story?: string;
   created_at: string;
   updated_at: string;
   images?: Image[];
