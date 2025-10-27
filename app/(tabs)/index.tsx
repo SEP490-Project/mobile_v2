@@ -4,6 +4,7 @@ import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { Category } from "@/libs/types/category";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 import { MotiView } from "moti";
 import React, { useEffect } from "react";
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -49,16 +50,21 @@ function Section({
   title,
   products,
   delay = 0,
+  navigation,
 }: {
   title: string;
   products: Product[];
   delay?: number;
+  navigation: any;
 }) {
   return (
     <View className="mt-6">
       <View className="flex-row justify-between items-center px-4 mb-3">
         <Text className="text-xl font-bold text-gray-800">{title}</Text>
-        <TouchableOpacity className="flex-row items-center">
+        <TouchableOpacity
+          className="flex-row items-center"
+          onPress={() => navigation.navigate("(product)")}
+        >
           <Text className="text-rose-500 font-medium mr-1">See all</Text>
           <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
         </TouchableOpacity>
@@ -100,6 +106,7 @@ function Section({
 
 // --- HomeScreen ---
 function HomeScreen() {
+  const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const products = useSelector(
     (state: RootState) => state.manageProducts.products?.data || [],
@@ -153,11 +160,13 @@ function HomeScreen() {
         title="Top Rated Products ✨"
         products={products.filter((item) => item.type === "STANDARD")}
         delay={100}
+        navigation={navigation}
       />
       <Section
         title="Limited Edition ⏳"
         products={products.filter((item) => item.type === "LIMITED")}
         delay={400}
+        navigation={navigation}
       />
 
       {/* Beauty Blog */}
