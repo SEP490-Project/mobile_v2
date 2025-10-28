@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
 const { width } = Dimensions.get("window");
@@ -24,10 +24,11 @@ export default function ProductDetail() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { product: productId } = useLocalSearchParams();
-  const insets = useSafeAreaInsets();
 
   const productDetail = useSelector((state: RootState) => state.manageProducts.productDetail?.data);
   const loading = useSelector((state: RootState) => state.manageProducts.loading);
+  const cartItems = useSelector((state: RootState) => state.manageCart.items);
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -57,30 +58,25 @@ export default function ProductDetail() {
       }),
     );
 
-    Alert.alert(
-      "Added to Cart",
-      `${productDetail.name} (${quantity}x) has been added to your cart.`,
-      [
-        { text: "Continue Shopping", style: "cancel" },
-        { text: "View Cart", onPress: () => router.push("/(tabs)/orders") },
-      ],
-    );
+    Alert.alert("Success", `Added ${quantity} ${productDetail.name} to cart`, [
+      {
+        text: "Continue Shopping",
+        style: "cancel",
+      },
+      {
+        text: "View Cart",
+        onPress: () => router.push("/(cart)"),
+      },
+    ]);
   };
 
   const handleBuyNow = () => {
     if (!productDetail || !selectedVariant) return;
-
-    dispatch(
-      addToCart({
-        product: productDetail,
-        variant: selectedVariant,
-        quantity,
-      }),
-    );
-
-    Alert.alert("Buy Now", "Proceeding to checkout...", [
-      { text: "OK", onPress: () => router.push("/(tabs)/orders") },
-    ]);
+    console.log("Buy Now:", {
+      productId: productDetail.id,
+      variantId: selectedVariant.id,
+      quantity,
+    });
   };
 
   const incrementQuantity = () => {
@@ -115,7 +111,7 @@ export default function ProductDetail() {
   const isLimitedEdition = productDetail.type === "LIMITED";
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <TouchableOpacity
@@ -125,10 +121,25 @@ export default function ProductDetail() {
         >
           <MaterialIcons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-800">Product Details</Text>
-        <TouchableOpacity className="p-2 bg-gray-50 rounded-full" activeOpacity={0.7}>
-          <MaterialIcons name="share" size={24} color="#374151" />
-        </TouchableOpacity>
+        <View className="flex-row gap-3">
+          <TouchableOpacity className="p-2 bg-gray-50 rounded-full" activeOpacity={0.7}>
+            <MaterialIcons name="share" size={24} color="#374151" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="p-2 bg-gray-50 rounded-full"
+            activeOpacity={0.7}
+            onPress={() => router.push("/(cart)")}
+          >
+            <MaterialIcons name="shopping-cart" size={24} color="#374151" />
+            {cartItemCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
+                <Text className="text-white text-xs font-bold">
+                  {cartItemCount > 9 ? "9+" : cartItemCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -323,7 +334,7 @@ export default function ProductDetail() {
                 />
               )}
               {selectedVariant.instructions && (
-                <View className="mt-2 pt-2 border-t border-gray-200">
+                <View className="mt-2 pt-2 ">
                   <Text className="text-gray-700 text-sm font-medium mb-1">Instructions:</Text>
                   <Text className="text-gray-600 text-sm leading-5">
                     {selectedVariant.instructions}
@@ -342,7 +353,7 @@ export default function ProductDetail() {
             onPress={handleAddToCart}
             className="flex-1 bg-white border-2 border-rose-500 rounded-xl py-4 items-center justify-center"
             activeOpacity={0.7}
-            disabled={!selectedVariant || selectedVariant.current_stock === 0}
+            // disabled={!selectedVariant || selectedVariant.current_stock === 0}
           >
             <Text className="text-rose-500 font-bold text-base">Add to Cart</Text>
           </TouchableOpacity>
@@ -351,13 +362,13 @@ export default function ProductDetail() {
             onPress={handleBuyNow}
             className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
             activeOpacity={0.7}
-            disabled={!selectedVariant || selectedVariant.current_stock === 0}
+            // disabled={!selectedVariant || selectedVariant.current_stock === 0}
           >
             <Text className="text-white font-bold text-base">Buy Now</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

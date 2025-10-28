@@ -1,11 +1,10 @@
-import Header from "@/components/layout/Header";
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -14,6 +13,8 @@ const ProductScreen = () => {
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const products = useSelector((state: RootState) => state.manageProducts.products?.data || []);
+  const cartItems = useSelector((state: RootState) => state.manageCart.items);
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const { type } = useLocalSearchParams();
 
   const filteredProductsByType = products.filter((item) => item.type === type);
@@ -24,18 +25,37 @@ const ProductScreen = () => {
 
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 10 }}>
-      <Header />
-
-      {/* <View className="px-4 py-4 flex-row items-center justify-between border-b border-gray-100">
-        <View>
-          <Text className="text-2xl font-bold text-gray-800">{getTypeTitle()}</Text>
-          <Text className="text-sm text-gray-500 mt-1">
-            {filteredProductsByType.length}{" "}
-            {filteredProductsByType.length === 1 ? "product" : "products"}
-          </Text>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="p-2 bg-gray-50 rounded-full"
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#374151" />
+          </TouchableOpacity>
+          <Text className="text-3xl font-extrabold text-primary">B-ShowSell</Text>
         </View>
-        <MaterialIcons name="filter-list" size={24} color="#9CA3AF" />
-      </View> */}
+        <View className="flex-row gap-3">
+          <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
+            <MaterialIcons name="search" size={24} color="#4B5563" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="p-2 bg-gray-50 rounded-full"
+            activeOpacity={0.7}
+            onPress={() => router.push("/(cart)")}
+          >
+            <MaterialIcons name="shopping-cart" size={24} color="#374151" />
+            {cartItemCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
+                <Text className="text-white text-xs font-bold">
+                  {cartItemCount > 9 ? "9+" : cartItemCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <FlatList
         data={filteredProductsByType}
