@@ -125,9 +125,16 @@ const accountMenuItems = [
   {
     iconName: "person",
     name: "My Profile",
-    route: "/profile",
+    route: "/(user)/profile",
     bgColor: "#E9F3FF",
     iconColor: "#3B82F6",
+  },
+  {
+    iconName: "location-on",
+    name: "Shipping Addresses",
+    route: "/(user)/addresses",
+    bgColor: "#FEF3C7",
+    iconColor: "#F59E0B",
   },
   {
     iconName: "receipt-long",

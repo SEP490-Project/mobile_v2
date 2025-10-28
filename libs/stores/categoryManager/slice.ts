@@ -8,7 +8,7 @@ const categoryManagerSlice = createSlice({
   initialState: {
     categories: null as Response<Category[]> | null,
     loading: false,
-    error: null as any,
+    error: null as string | null,
   },
   reducers: {},
   extraReducers(builder) {
@@ -23,7 +23,7 @@ const categoryManagerSlice = createSlice({
       })
       .addCase(getAllCategoriesThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       });
   },
 });
