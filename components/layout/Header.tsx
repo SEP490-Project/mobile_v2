@@ -18,7 +18,7 @@ export default function Header() {
           <MaterialIcons name="search" size={24} color="#4B5563" />
         </TouchableOpacity>
         <TouchableOpacity
-          className="p-2 bg-gray-50 rounded-full"
+          className="p-2 bg-gray-100 rounded-full"
           activeOpacity={0.7}
           onPress={() => router.push("/(cart)")}
         >

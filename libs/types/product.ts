@@ -32,6 +32,10 @@ export interface Variant {
   updated_at: string;
   images?: Image[];
   is_default?: boolean;
+  weight: number;
+  height: number;
+  length: number;
+  width: number;
 }
 
 export interface Image {

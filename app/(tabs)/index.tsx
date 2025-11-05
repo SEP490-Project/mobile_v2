@@ -111,9 +111,7 @@ function Section({
                   <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
                 </View>
               )}
-              <Text className="text-rose-600 font-bold text-lg mt-1">
-                ${getProductPrice(item).toFixed(2)}
-              </Text>
+              <Text className="text-rose-600 font-bold text-lg mt-1">{getProductPrice(item)}đ</Text>
             </TouchableOpacity>
           </MotiView>
         )}

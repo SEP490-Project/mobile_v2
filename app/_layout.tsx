@@ -37,6 +37,9 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(user)" options={{ headerShown: false }} />
             <Stack.Screen name="(general)" options={{ headerShown: false }} />
+            <Stack.Screen name="(checkout)" options={{ headerShown: false }} />
+            <Stack.Screen name="(order)" options={{ headerShown: false }} />
+            <Stack.Screen name="(payment)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="dark" />

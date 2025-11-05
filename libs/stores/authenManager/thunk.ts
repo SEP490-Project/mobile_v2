@@ -26,6 +26,7 @@ export const login = createAsyncThunk("auth/login", async (req: Login, { rejectW
     }
 
     const role = data?.user?.role;
+
     if (!role || role !== "CUSTOMER") {
       throw new Error("Only users with CUSTOMER role are allowed to log in");
     }

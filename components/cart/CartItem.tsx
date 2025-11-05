@@ -1,3 +1,4 @@
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { useAppDispatch } from "@/libs/stores";
 import { removeFromCart, updateQuantity } from "@/libs/stores/cartManager/slice";
 import { CartItem as CartItemType } from "@/libs/types/cart";
@@ -119,8 +120,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
 
             {/* Price */}
             <View className="items-end">
-              <Text className="text-xs text-gray-500">${variant.price.toFixed(2)} each</Text>
-              <Text className="text-lg font-bold text-rose-600">${subtotal.toFixed(2)}</Text>
+              <Text className="text-xs text-gray-500">
+                {convertNumberToVND(variant.price)} each
+              </Text>
+              <Text className="text-lg font-bold text-rose-600">
+                {convertNumberToVND(subtotal)}
+              </Text>
             </View>
           </View>
         </View>

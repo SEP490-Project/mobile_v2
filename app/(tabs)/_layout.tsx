@@ -1,6 +1,5 @@
 import { HapticTab } from "@/components/ui";
 import TabBarBackground from "@/components/ui/tab-bar-background";
-import { Colors } from "@/constants/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -10,7 +9,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.tint,
+        tabBarActiveTintColor: "#ff9fb2",
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -28,9 +27,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="news"
+        name="blogs"
         options={{
-          title: "News",
+          title: "Blogs",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="newspaper" color={color} size={size} />
           ),
