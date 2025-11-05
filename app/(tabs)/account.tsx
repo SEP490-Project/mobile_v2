@@ -132,7 +132,7 @@ const accountMenuItems = [
   {
     iconName: "location-on",
     name: "Shipping Addresses",
-    route: "/(user)/addresses",
+    route: "/(user)/(address)/addresses",
     bgColor: "#FEF3C7",
     iconColor: "#F59E0B",
   },

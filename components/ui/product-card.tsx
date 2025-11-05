@@ -42,7 +42,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
         </View>
       )}
 
-      <Text className="text-rose-600 font-bold text-lg mt-1">${price.toFixed(2)}</Text>
+      <Text className="text-rose-600 font-bold text-lg mt-1">{price}đ</Text>
     </TouchableOpacity>
   );
 }

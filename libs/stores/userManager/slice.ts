@@ -4,7 +4,7 @@ import { getUserProfileThunk } from "./thunk";
 
 interface UserState {
   loading: boolean;
-  profile: UserProfile | null;
+  profile: UserProfile | null | undefined;
   error: string | null;
 }
 

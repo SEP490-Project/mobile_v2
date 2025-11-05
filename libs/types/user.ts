@@ -1,5 +1,6 @@
 export interface UserProfile {
   id: string;
+  avatar_url: string;
   username: string;
   email: string;
   role: string;

@@ -1,4 +1,5 @@
 import CartItem from "@/components/cart/CartItem";
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { clearCart } from "@/libs/stores/cartManager/slice";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -14,7 +15,6 @@ const CartScreen = () => {
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
 
   const totalCost = cartItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
-
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleClearCart = () => {
@@ -36,22 +36,12 @@ const CartScreen = () => {
 
     Alert.alert(
       "Make Order",
-      `You are about to order ${totalItems} item(s) for $${totalCost.toFixed(2)}`,
+      `You are about to order ${totalItems} item(s) for ${convertNumberToVND(totalCost)}`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Proceed",
-          onPress: () => {
-            console.log("Order placed:", {
-              items: cartItems.map((item) => ({
-                productId: item.product.id,
-                variantId: item.variant.id,
-                quantity: item.quantity,
-              })),
-              totalCost,
-            });
-            Alert.alert("Success", "Order functionality will be implemented with API");
-          },
+          onPress: () => router.push("/(checkout)"),
         },
       ],
     );
@@ -148,11 +138,13 @@ const CartScreen = () => {
         <View className="bg-gray-50 rounded-xl p-4 mb-4">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-gray-600">Subtotal ({totalItems} items)</Text>
-            <Text className="text-gray-800 font-semibold">${totalCost.toFixed(2)}</Text>
+            <Text className="text-gray-800 font-semibold">{convertNumberToVND(totalCost)}</Text>
           </View>
           <View className="flex-row justify-between items-center py-3 border-t border-gray-200">
             <Text className="text-lg font-bold text-gray-900">Total</Text>
-            <Text className="text-2xl font-bold text-rose-600">${totalCost.toFixed(2)}</Text>
+            <Text className="text-2xl font-bold text-rose-600">
+              {convertNumberToVND(totalCost)}
+            </Text>
           </View>
         </View>
 
@@ -173,7 +165,7 @@ const CartScreen = () => {
           >
             <View className="flex-row items-center">
               <MaterialIcons name="shopping-bag" size={20} color="white" />
-              <Text className="text-white font-bold text-base ml-2">Place Order</Text>
+              <Text className="text-white font-bold text-base ml-2">Checkout</Text>
             </View>
           </TouchableOpacity>
         </View>

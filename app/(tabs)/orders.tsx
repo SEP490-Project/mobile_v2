@@ -1,77 +1,103 @@
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
+import { RootState, useAppDispatch } from "@/libs/stores";
+import { getOrdersThunk } from "@/libs/stores/orderManager/thunk";
+import { OrderData } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import React, { useLayoutEffect } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// --- Dữ liệu mẫu ---
-const orders = [
-  {
-    id: "ORD12345",
-    status: "Delivered",
-    date: "Oct 22, 2025",
-    total: 82.5,
-    items: [
-      {
-        name: "Hydrating Face Cream",
-        image: "https://hoatuongvyspa.com/upload/product/beauty-25g-9579.png",
-      },
-      {
-        name: "Vitamin C Serum",
-        image:
-          "https://product.hstatic.net/1000241635/product/obagi-medical-professional-c-serum-15-362032050522-product-cap-off_275cc86cb749406697f7d54cd8a1dcb7.jpg",
-      },
-    ],
-  },
-  {
-    id: "ORD12346",
-    status: "In Transit",
-    date: "Oct 20, 2025",
-    total: 49.9,
-    items: [
-      {
-        name: "Limited Edition Lipstick",
-        image:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5i54dw_4-oEf5YjGzcWyKIxvj3KnPIsV5TA&s",
-      },
-    ],
-  },
-  {
-    id: "ORD12347",
-    status: "Processing",
-    date: "Oct 18, 2025",
-    total: 35.0,
-    items: [
-      {
-        name: "Gold Glow Highlighter",
-        image:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8neDixiU9MnHKnv2miq8o7qB-pV-ewVseVw&s",
-      },
-    ],
-  },
-];
+import { useSelector } from "react-redux";
 
 // --- Màu trạng thái ---
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Delivered":
+  switch (status.toLowerCase()) {
+    case "delivered":
+    case "completed":
       return "text-green-600";
-    case "In Transit":
+    case "in_transit":
+    case "shipping":
       return "text-yellow-600";
-    case "Processing":
+    case "processing":
+    case "pending":
       return "text-blue-600";
-    case "Cancelled":
+    case "cancelled":
       return "text-red-600";
     default:
       return "text-gray-600";
   }
 };
 
+const getStatusBgColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "delivered":
+    case "completed":
+      return "bg-green-100";
+    case "in_transit":
+    case "shipping":
+      return "bg-yellow-100";
+    case "processing":
+    case "pending":
+      return "bg-blue-100";
+    case "cancelled":
+      return "bg-red-100";
+    default:
+      return "bg-gray-100";
+  }
+};
+
+const getStatusText = (status: string) => {
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 // --- Component ---
 function OrdersScreen() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
+  const loading = useSelector((state: RootState) => state.manageOrder.loading);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  useLayoutEffect(() => {
+    dispatch(getOrdersThunk());
+  }, [dispatch]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(getOrdersThunk());
+    setRefreshing(false);
+  };
+
+  const handleOrderPress = (orderId: string) => {
+    router.push({
+      pathname: "/(order)/order-detail",
+      params: { orderId },
+    });
+  };
+
+  if (loading && !orderList) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text className="mt-4 text-gray-500">Loading orders...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
+      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
         <Text className="text-2xl font-extrabold text-gray-900">My Orders</Text>
         <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
           <MaterialIcons name="shopping-bag" size={22} color="#4B5563" />
@@ -79,45 +105,95 @@ function OrdersScreen() {
       </View>
 
       {/* Danh sách đơn hàng */}
-      <FlatList
-        data={orders}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View className="bg-white mb-4 rounded-xl shadow-sm border border-gray-100 p-4">
-            {/* Header đơn hàng */}
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="font-semibold text-gray-800">Order ID: {item.id}</Text>
-              <Text className={`font-medium ${getStatusColor(item.status)}`}>{item.status}</Text>
-            </View>
+      {orderList?.data && orderList.data.length > 0 ? (
+        <FlatList
+          data={orderList.data}
+          keyExtractor={(item: OrderData) => item.id}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          renderItem={({ item }: { item: OrderData }) => (
+            <TouchableOpacity
+              onPress={() => handleOrderPress(item.id)}
+              className="bg-white mb-4 rounded-xl shadow-sm border border-gray-100 p-4"
+              activeOpacity={0.7}
+            >
+              {/* Header đơn hàng */}
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="font-semibold text-gray-800" numberOfLines={1}>
+                  Order #{item.id.slice(0, 8)}
+                </Text>
+                <View className={`px-3 py-1 rounded-full ${getStatusBgColor(item.status)}`}>
+                  <Text className={`font-medium text-xs ${getStatusColor(item.status)}`}>
+                    {getStatusText(item.status)}
+                  </Text>
+                </View>
+              </View>
 
-            <Text className="text-gray-500 text-sm mb-3">{item.date}</Text>
-
-            {/* Danh sách sản phẩm */}
-            <View className="flex-row">
-              {item.items.map((p, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: p.image }}
-                  className="w-16 h-16 rounded-lg mr-2 border border-gray-100"
-                />
-              ))}
-            </View>
-
-            {/* Footer */}
-            <View className="flex-row justify-between items-center mt-4">
-              <Text className="text-gray-700 font-medium">
-                Total: <Text className="text-rose-600 font-bold">${item.total.toFixed(2)}</Text>
+              <Text className="text-gray-500 text-sm mb-3">
+                {new Date(item.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
               </Text>
-              <TouchableOpacity className="flex-row items-center">
-                <Text className="text-rose-500 font-medium mr-1">View Details</Text>
-                <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
+
+              {/* Order Items Summary */}
+              <View className="bg-gray-50 rounded-lg p-3 mb-3">
+                <View className="flex-row items-center">
+                  <MaterialIcons name="local-drink" size={20} color="#6b7280" />
+                  <Text className="text-gray-600 text-sm ml-2">
+                    {item.order_items.length} item(s) •{" "}
+                    {item.order_items.reduce((sum, orderItem) => sum + orderItem.quantity, 0)} total
+                    quantity
+                  </Text>
+                </View>
+                {item.order_items.length > 2 && (
+                  <Text className="text-gray-400 text-xs mt-1 ml-7">
+                    +{item.order_items.length - 2} more items
+                  </Text>
+                )}
+              </View>
+
+              {/* Delivery Address */}
+              <View className="flex-row items-start mb-3">
+                <MaterialIcons name="location-on" size={16} color="#6b7280" />
+                <Text className="text-gray-600 text-sm ml-1 flex-1" numberOfLines={1}>
+                  {item.street}, {item.ward_name}, {item.district_name}, {item.province_name}
+                </Text>
+              </View>
+
+              {/* Footer */}
+              <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
+                <View>
+                  <Text className="text-gray-500 text-xs mb-1">Total Amount</Text>
+                  <Text className="text-gray-900 font-bold text-lg">
+                    {convertNumberToVND(item.total_amount + item.shipping_fee)}
+                  </Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Text className="text-blue-500 font-medium mr-1">View Details</Text>
+                  <MaterialIcons name="chevron-right" size={20} color="#3b82f6" />
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
+        <View className="flex-1 items-center justify-center px-8">
+          <MaterialIcons name="shopping-bag" size={80} color="#d1d5db" />
+          <Text className="text-xl font-bold text-gray-800 mt-4">No Orders Yet</Text>
+          <Text className="text-gray-500 text-center mt-2">
+            You haven&apos;t placed any orders yet. Start shopping to see your orders here!
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/")}
+            className="bg-blue-500 rounded-lg px-6 py-3 mt-6"
+          >
+            <Text className="text-white font-semibold">Start Shopping</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

@@ -1,3 +1,4 @@
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { addToCart } from "@/libs/stores/cartManager/slice";
 import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
@@ -72,15 +73,25 @@ export default function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!productDetail || !selectedVariant) return;
-    console.log("Buy Now:", {
-      productId: productDetail.id,
-      variantId: selectedVariant.id,
-      quantity,
+
+    router.push({
+      pathname: "/(checkout)",
+      params: {
+        productId: productDetail.id,
+        variantId: selectedVariant.id,
+        quantity: quantity.toString(),
+      },
     });
   };
 
   const incrementQuantity = () => {
-    if (selectedVariant && quantity < selectedVariant.current_stock) {
+    if (
+      selectedVariant &&
+      quantity < selectedVariant.current_stock &&
+      productDetail?.type === "LIMITED"
+    ) {
+      setQuantity(quantity + 1);
+    } else if (quantity < 10) {
       setQuantity(quantity + 1);
     }
   };
@@ -212,7 +223,7 @@ export default function ProductDetail() {
               <View>
                 <Text className="text-gray-500 text-sm mb-1">Price</Text>
                 <Text className="text-3xl font-bold text-rose-600">
-                  ${selectedVariant.price.toFixed(2)}
+                  {convertNumberToVND(selectedVariant.price)}
                 </Text>
               </View>
               <View className="items-end">
@@ -262,7 +273,7 @@ export default function ProductDetail() {
                         selectedVariant?.id === variant.id ? "text-rose-600" : "text-gray-800"
                       }`}
                     >
-                      ${variant.price.toFixed(2)}
+                      {convertNumberToVND(variant.price)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -293,13 +304,17 @@ export default function ProductDetail() {
               <TouchableOpacity
                 onPress={incrementQuantity}
                 className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center"
-                disabled={!selectedVariant || quantity >= selectedVariant.current_stock}
+                disabled={
+                  !selectedVariant ||
+                  (quantity >= selectedVariant.current_stock && isLimitedEdition)
+                }
               >
                 <MaterialIcons
                   name="add"
                   size={24}
                   color={
-                    !selectedVariant || quantity >= selectedVariant.current_stock
+                    !selectedVariant ||
+                    (quantity >= selectedVariant.current_stock && isLimitedEdition)
                       ? "#D1D5DB"
                       : "#374151"
                   }

@@ -3,7 +3,7 @@ export interface Response<T> {
   status: string;
   status_code: number;
   message: string;
-  data: T;
+  data?: T;
   pagination?: Pagination;
 }
 

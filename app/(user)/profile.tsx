@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
+  Image,
   ImageBackground,
   RefreshControl,
   ScrollView,
@@ -100,7 +101,7 @@ const MyProfile = () => {
     </View>
   );
 
-  const defaultAddress = profile.shipping_address.find((addr) => addr.is_default);
+  // const defaultAddress = profile.shipping_address?.find((addr) => addr.is_default);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -128,9 +129,17 @@ const MyProfile = () => {
         >
           <View className="items-center">
             <View className="w-24 h-24 bg-white rounded-full items-center justify-center mb-4">
-              <Text className="text-4xl font-bold text-primary">
-                {profile.full_name?.charAt(0).toUpperCase() || "U"}
-              </Text>
+              {profile.avatar_url ? (
+                <Image
+                  source={{ uri: profile.avatar_url }}
+                  alt="Avatar"
+                  className="w-full h-full rounded-full"
+                />
+              ) : (
+                <Text className="text-4xl font-bold text-primary">
+                  {profile.full_name?.charAt(0).toUpperCase() || "U"}
+                </Text>
+              )}
             </View>
             <Text className="text-2xl font-bold text-white mb-1">{profile.full_name}</Text>
             <Text className="text-blue-100">@{profile.username}</Text>
@@ -148,64 +157,6 @@ const MyProfile = () => {
             value={formatDate(profile.date_of_birth)}
           />
         </View>
-
-        {/* {defaultAddress && (
-          <View className="bg-white mx-4 mt-4 rounded-lg p-4 shadow-sm">
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="location-outline" size={22} color="#3b82f6" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">Default Shipping Address</Text>
-            </View>
-            <View className="bg-gray-50 p-4 rounded-lg">
-              <Text className="text-base font-semibold text-gray-800 mb-2">
-                {defaultAddress.full_name}
-              </Text>
-              <Text className="text-sm text-gray-600 mb-1">{defaultAddress.phone_number}</Text>
-              <Text className="text-sm text-gray-600 mb-1">{defaultAddress.email}</Text>
-              <Text className="text-sm text-gray-600 mt-2">
-                {defaultAddress.street}
-                {defaultAddress.address_line_2 && `, ${defaultAddress.address_line_2}`}
-              </Text>
-              <Text className="text-sm text-gray-600">
-                {defaultAddress.city}, {defaultAddress.postal_code}
-              </Text>
-              <Text className="text-sm text-gray-600">{defaultAddress.country}</Text>
-            </View>
-          </View>
-        )} */}
-
-        {/* {profile.shipping_address.length > 0 && (
-          <View className="bg-white mx-4 mt-4 mb-6 rounded-lg p-4 shadow-sm">
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="list-outline" size={22} color="#3b82f6" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">
-                All Addresses ({profile.shipping_address.length})
-              </Text>
-            </View>
-            {profile.shipping_address.map((address, index) => (
-              <View
-                key={address.id}
-                className={`p-4 rounded-lg mb-3 ${
-                  address.is_default ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
-                }`}
-              >
-                <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-sm font-semibold text-gray-800">{address.type}</Text>
-                  {address.is_default && (
-                    <View className="bg-blue-500 px-2 py-1 rounded">
-                      <Text className="text-xs text-white font-semibold">DEFAULT</Text>
-                    </View>
-                  )}
-                </View>
-                <Text className="text-sm text-gray-700 font-medium">{address.full_name}</Text>
-                <Text className="text-sm text-gray-600">{address.phone_number}</Text>
-                <Text className="text-sm text-gray-600 mt-1">{address.street}</Text>
-                <Text className="text-sm text-gray-600">
-                  {address.city}, {address.postal_code}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )} */}
       </ScrollView>
     </SafeAreaView>
   );
