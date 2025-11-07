@@ -27,6 +27,45 @@ const getShippingAddressesThunk = createAsyncThunk(
   },
 );
 
+const getShippingAddressByIdThunk = createAsyncThunk(
+  "locationManager/getShippingAddressById",
+  async (addressId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageLocation.getShippingAddressById(addressId);
+      return response.data as Response<ShippingAddressData>;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch shipping address");
+    }
+  },
+);
+
+const updateShippingAddressThunk = createAsyncThunk(
+  "locationManager/updateShippingAddress",
+  async (
+    { addressId, data }: { addressId: string; data: CreateShippingAddressPayload },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await manageLocation.updateShippingAddress(addressId, data);
+      return response.data as Response<ShippingAddressData>;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to update shipping address");
+    }
+  },
+);
+
+const deleteShippingAddressThunk = createAsyncThunk(
+  "locationManager/deleteShippingAddress",
+  async (addressId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageLocation.deleteShippingAddress(addressId);
+      return response.data as Response<any>;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to delete shipping address");
+    }
+  },
+);
+
 const getProvincesThunk = createAsyncThunk(
   "locationManager/getProvinces",
   async (_, { rejectWithValue }) => {
@@ -63,10 +102,28 @@ const getWardsThunk = createAsyncThunk(
   },
 );
 
+const setDefaultShippingAddressThunk = createAsyncThunk(
+  "locationManager/setDefaultShippingAddress",
+  async (addressId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageLocation.setDefaultAddress(addressId);
+      return response.data as any;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to set default shipping address",
+      );
+    }
+  },
+);
+
 export {
   createShippingAddressThunk,
+  deleteShippingAddressThunk,
   getDistrictsThunk,
   getProvincesThunk,
+  getShippingAddressByIdThunk,
   getShippingAddressesThunk,
   getWardsThunk,
+  setDefaultShippingAddressThunk,
+  updateShippingAddressThunk,
 };

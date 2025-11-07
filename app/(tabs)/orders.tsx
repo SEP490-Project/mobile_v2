@@ -3,8 +3,8 @@ import { RootState, useAppDispatch } from "@/libs/stores";
 import { getOrdersThunk } from "@/libs/stores/orderManager/thunk";
 import { OrderData } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useLayoutEffect } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -68,9 +68,9 @@ function OrdersScreen() {
   const loading = useSelector((state: RootState) => state.manageOrder.loading);
   const [refreshing, setRefreshing] = React.useState(false);
 
-  useLayoutEffect(() => {
+  useFocusEffect(() => {
     dispatch(getOrdersThunk());
-  }, [dispatch]);
+  });
 
   const onRefresh = async () => {
     setRefreshing(true);

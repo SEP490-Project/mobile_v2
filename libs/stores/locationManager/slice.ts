@@ -3,10 +3,13 @@ import { District, Province, ShippingAddressData, Ward } from "@/libs/types/loca
 import { createSlice } from "@reduxjs/toolkit";
 import {
   createShippingAddressThunk,
+  deleteShippingAddressThunk,
   getDistrictsThunk,
   getProvincesThunk,
   getShippingAddressesThunk,
   getWardsThunk,
+  setDefaultShippingAddressThunk,
+  updateShippingAddressThunk,
 } from "./thunk";
 
 const locationSlice = createSlice({
@@ -91,6 +94,42 @@ const locationSlice = createSlice({
         state.errors = null;
       })
       .addCase(getWardsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.errors = action.payload as string;
+      })
+      .addCase(setDefaultShippingAddressThunk.pending, (state) => {
+        state.loading = true;
+        state.errors = null;
+      })
+      .addCase(setDefaultShippingAddressThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.errors = null;
+      })
+      .addCase(setDefaultShippingAddressThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.errors = action.payload as string;
+      })
+      .addCase(updateShippingAddressThunk.pending, (state) => {
+        state.loading = true;
+        state.errors = null;
+      })
+      .addCase(updateShippingAddressThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.errors = null;
+      })
+      .addCase(updateShippingAddressThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.errors = action.payload as string;
+      })
+      .addCase(deleteShippingAddressThunk.pending, (state) => {
+        state.loading = true;
+        state.errors = null;
+      })
+      .addCase(deleteShippingAddressThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.errors = null;
+      })
+      .addCase(deleteShippingAddressThunk.rejected, (state, action) => {
         state.loading = false;
         state.errors = action.payload as string;
       });

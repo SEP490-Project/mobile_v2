@@ -1,4 +1,5 @@
 import Header from "@/components/layout/Header";
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
@@ -111,7 +112,9 @@ function Section({
                   <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
                 </View>
               )}
-              <Text className="text-rose-600 font-bold text-lg mt-1">{getProductPrice(item)}đ</Text>
+              <Text className="text-rose-600 font-bold text-lg mt-1">
+                {convertNumberToVND(getProductPrice(item))}
+              </Text>
             </TouchableOpacity>
           </MotiView>
         )}

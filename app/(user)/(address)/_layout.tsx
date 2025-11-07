@@ -5,6 +5,7 @@ const AddressLayout = () => {
     <Stack>
       <Stack.Screen name="addresses" options={{ headerShown: false }} />
       <Stack.Screen name="add_address" options={{ headerShown: false }} />
+      <Stack.Screen name="[addressId]" options={{ headerShown: false }} />
     </Stack>
   );
 };
