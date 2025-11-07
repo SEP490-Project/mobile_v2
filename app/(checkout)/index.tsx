@@ -265,7 +265,7 @@ const CheckoutScreen = () => {
               </Text>
               {selectedAddress.is_default && (
                 <View className="mt-2">
-                  <Text className="text-xs text-green-600 font-medium">Default Address</Text>
+                  <Text className="text-xs text-primary font-medium">Default Address</Text>
                 </View>
               )}
             </View>

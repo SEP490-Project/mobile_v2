@@ -1,42 +1,60 @@
 import { RootState, useAppDispatch } from "@/libs/stores";
-import { getShippingAddressesThunk } from "@/libs/stores/locationManager/thunk";
+import {
+  getShippingAddressesThunk,
+  setDefaultShippingAddressThunk,
+} from "@/libs/stores/locationManager/thunk";
 import { ShippingAddressData } from "@/libs/types/location";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
-const ShippingAddressCard: React.FC<{ address: ShippingAddressData }> = ({ address }) => {
+const ShippingAddressCard: React.FC<{
+  address: ShippingAddressData;
+  onPress: () => void;
+  onSetDefault: () => void;
+}> = ({ address, onPress, onSetDefault }) => {
   return (
-    <TouchableOpacity className="bg-white p-4 rounded-lg shadow mb-4 mx-4">
-      <View className="flex flex-row items-center gap-1 mb-1">
-        <Text className="text-lg font-semibold">{address.full_name}</Text>
-        <Text className="text-lg text-gray-500"> | </Text>
-        <Text className="text-gray-600">{address.phone_number}</Text>
-      </View>
-      <Text className="text-gray-600">{address.email}</Text>
-      <Text className="text-gray-600">{address.street}</Text>
-      <Text className="text-gray-600">
-        {address.ward_name}, {address.district_name}, {address.province_name}, {address.country}
-      </Text>
-      <View className="flex-row mt-2 items-center">
-        {address.is_default && (
-          <Text className="text-sm text-primary border border-primary font-medium px-2 rounded-lg">
+    <View className="bg-white p-4 rounded-lg shadow mb-4 mx-4">
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        <View className="flex flex-row items-center justify-between mb-1">
+          <View className="flex flex-row items-center gap-1 flex-1">
+            <Text className="text-lg font-semibold">{address.full_name}</Text>
+            <Text className="text-lg text-gray-500"> | </Text>
+            <Text className="text-gray-600">{address.phone_number}</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
+        </View>
+        <Text className="text-gray-600">{address.email}</Text>
+        <Text className="text-gray-600">{address.street}</Text>
+        <Text className="text-gray-600">
+          {address.ward_name}, {address.district_name}, {address.province_name}, {address.country}
+        </Text>
+      </TouchableOpacity>
+      <View className="flex-row mt-3 items-center justify-between">
+        {address.is_default ? (
+          <Text className="text-sm text-primary border border-primary font-medium px-2 py-1 rounded-lg">
             Default
           </Text>
+        ) : (
+          <TouchableOpacity
+            onPress={onSetDefault}
+            className="bg-gray-100 px-3 py-1.5 rounded-lg"
+            activeOpacity={0.7}
+          >
+            <Text className="text-sm text-gray-700 font-medium">Set as Default</Text>
+          </TouchableOpacity>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const MyAddresses = () => {
   const dispatch = useAppDispatch();
-  const { shippingAddresses, loading, errors } = useSelector(
-    (state: RootState) => state.manageLocation,
-  );
+  const { shippingAddresses, errors } = useSelector((state: RootState) => state.manageLocation);
   const shippingAddressesData = shippingAddresses?.data || [];
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
@@ -46,6 +64,16 @@ const MyAddresses = () => {
     dispatch(getShippingAddressesThunk());
     setRefreshing(false);
   }, [dispatch]);
+
+  const handleSetDefault = async (addressId: string) => {
+    try {
+      await dispatch(setDefaultShippingAddressThunk(addressId)).unwrap();
+      Alert.alert("Success", "Default address updated successfully");
+      dispatch(getShippingAddressesThunk());
+    } catch (error: any) {
+      Alert.alert("Error", error || "Failed to set default address. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -68,12 +96,17 @@ const MyAddresses = () => {
         <View className="mt-4">
           {errors && <Text className="text-red-500 text-center mb-4 px-4">{errors}</Text>}
           {shippingAddressesData?.map((address) => (
-            <ShippingAddressCard key={address.id} address={address} />
+            <ShippingAddressCard
+              key={address.id}
+              address={address}
+              onPress={() => router.push(`/(user)/(address)/${address.id}`)}
+              onSetDefault={() => handleSetDefault(address.id)}
+            />
           ))}
         </View>
         <TouchableOpacity
           onPress={() => {
-            router.push("/add_address");
+            router.push("/(user)/(address)/new");
           }}
         >
           <View className="bg-primary mx-4 mb-6 rounded-lg p-4 items-center flex-row justify-center gap-2">
