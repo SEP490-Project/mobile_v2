@@ -306,7 +306,7 @@ const AddAddress = () => {
               activeOpacity={0.7}
             >
               {submitting ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#ff9fb2" />
               ) : (
                 <View className="flex-row items-center">
                   <MaterialIcons name="check" size={24} color="#fff" />

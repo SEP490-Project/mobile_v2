@@ -17,7 +17,7 @@ export function withAuthGuard<P extends object>(WrappedComponent: React.Componen
     if (loading) {
       return (
         <View className="flex-1 justify-center items-center bg-white">
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color="#ff9fb2" />
         </View>
       );
     }

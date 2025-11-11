@@ -1,14 +1,10 @@
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { clearCart } from "@/libs/stores/cartManager/slice";
-import {
-  caculateDeliveryFeeThunk,
-  getDeliveryServicesByDistrictThunk,
-} from "@/libs/stores/ghnServiceManager/thunk";
+import { caculateDeliveryFeeThunk } from "@/libs/stores/ghnServiceManager/thunk";
 import { getShippingAddressesThunk } from "@/libs/stores/locationManager/thunk";
 import { placeOrderAndPayThunk } from "@/libs/stores/orderManager/thunk";
 import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
-import { DeliveryService } from "@/libs/types/ghn";
 import { CreateOrderPayload, CreateOrderPayloadItem } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -35,20 +31,15 @@ const CheckoutScreen = () => {
   const isBuyNowCheckout = !!(productId && variantId && quantity);
 
   const productDetail = useSelector((state: RootState) => state.manageProducts.productDetail?.data);
-  const {
-    deliveryFee,
-    deliveryServices,
-    loading: ghnLoading,
-  } = useSelector((state: RootState) => state.manageGhnService);
+  const { deliveryFee, loading: ghnLoading } = useSelector(
+    (state: RootState) => state.manageGhnService,
+  );
   const shippingAddresses = useSelector(
     (state: RootState) => state.manageLocation.shippingAddresses,
   );
   const { loading: orderLoading } = useSelector((state: RootState) => state.manageOrder);
 
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
-  const [selectedDeliveryService, setSelectedDeliveryService] = useState<DeliveryService | null>(
-    null,
-  );
 
   // Determine checkout items based on checkout type
   const checkoutItems = useMemo(() => {
@@ -87,28 +78,10 @@ const CheckoutScreen = () => {
     }
   }, [shippingAddresses]);
 
-  useEffect(() => {
-    if (selectedAddress?.ghn_district_id) {
-      dispatch(getDeliveryServicesByDistrictThunk(selectedAddress.ghn_district_id.toString()));
-    }
-  }, [selectedAddress, dispatch]);
-
-  useEffect(() => {
-    if (
-      deliveryServices &&
-      Array.isArray((deliveryServices as any)?.data) &&
-      (deliveryServices as any).data.length > 0 &&
-      !selectedDeliveryService
-    ) {
-      setSelectedDeliveryService((deliveryServices as any).data[0]);
-    }
-  }, [deliveryServices, selectedDeliveryService]);
-
   // Calculate delivery fee based on checkout items
   useEffect(() => {
-    if (selectedDeliveryService && selectedAddress && checkoutItems.length > 0) {
+    if (selectedAddress && checkoutItems.length > 0) {
       const payload = {
-        delivery_service: selectedDeliveryService,
         items: checkoutItems.map((item) => ({
           height: item.variant.height || 0,
           length: item.variant.length || 0,
@@ -123,7 +96,7 @@ const CheckoutScreen = () => {
       };
       dispatch(caculateDeliveryFeeThunk(payload));
     }
-  }, [selectedDeliveryService, selectedAddress, checkoutItems, dispatch]);
+  }, [selectedAddress, checkoutItems, dispatch]);
 
   // Calculate totals
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
@@ -133,11 +106,6 @@ const CheckoutScreen = () => {
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       Alert.alert("Error", "Please select a delivery address");
-      return;
-    }
-
-    if (!selectedDeliveryService) {
-      Alert.alert("Error", "Please select a delivery service");
       return;
     }
 
@@ -156,7 +124,6 @@ const CheckoutScreen = () => {
     }));
 
     const payload: CreateOrderPayload = {
-      delivery_service: selectedDeliveryService,
       cancel_url: "payment-failed",
       success_url: "payment-success",
       order: {
@@ -210,7 +177,7 @@ const CheckoutScreen = () => {
   if (isBuyNowCheckout && !productDetail) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color="#ff9fb2" />
       </SafeAreaView>
     );
   }
@@ -223,6 +190,14 @@ const CheckoutScreen = () => {
         <TouchableOpacity onPress={() => router.back()} className="mt-4">
           <Text className="text-primary">Go Back</Text>
         </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (ghnLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#ff9fb2" />
       </SafeAreaView>
     );
   }
@@ -311,83 +286,27 @@ const CheckoutScreen = () => {
           ))}
         </View>
 
-        {/* Delivery Method Section */}
-        <View className="bg-white px-4 py-4 mb-2">
-          <Text className="text-lg font-bold text-gray-800 mb-3">Delivery Method</Text>
-          {ghnLoading ? (
-            <ActivityIndicator size="small" color="#3b82f6" />
-          ) : deliveryServices &&
-            (deliveryServices as any)?.data &&
-            Array.isArray((deliveryServices as any).data) &&
-            (deliveryServices as any).data.length > 0 ? (
-            (deliveryServices as any).data.map((service: any, index: number) => (
-              <TouchableOpacity
-                key={index}
-                className={`border rounded-lg p-3 mb-2 ${
-                  selectedDeliveryService?.service_id === service.service_id
-                    ? "border-primary bg-pink-50"
-                    : "border-gray-200"
-                }`}
-                onPress={() => setSelectedDeliveryService(service)}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text
-                      className={`font-semibold ${
-                        selectedDeliveryService?.service_id === service.service_id
-                          ? "text-primary"
-                          : "text-gray-800"
-                      }`}
-                    >
-                      {service.short_name}
-                    </Text>
-                  </View>
-                  <View
-                    className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-                      selectedDeliveryService?.service_id === service.service_id
-                        ? "border-primary"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {selectedDeliveryService?.service_id === service.service_id && (
-                      <View className="w-3 h-3 rounded-full bg-primary" />
-                    )}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text className="text-gray-500 text-center py-4">No delivery services available</Text>
-          )}
-        </View>
-
         {/* Order Summary Section */}
         <View className="bg-white px-4 py-4 mb-2">
           <Text className="text-lg font-bold text-gray-800 mb-3">Order Summary</Text>
-          {ghnLoading ? (
-            <ActivityIndicator size="small" color="#3b82f6" />
-          ) : (
-            <View className="space-y-2">
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">
-                  Subtotal ({checkoutItems.reduce((sum, item) => sum + item.quantity, 0)} items)
-                </Text>
-                <Text className="text-gray-800 font-medium">{convertNumberToVND(subtotal)}</Text>
-              </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Shipping Fee</Text>
-                <Text className="text-gray-800 font-medium">{convertNumberToVND(shippingFee)}</Text>
-              </View>
-              <View className="border-t border-gray-200 pt-2 mt-2">
-                <View className="flex-row justify-between">
-                  <Text className="text-lg font-bold text-gray-800">Total</Text>
-                  <Text className="text-lg font-bold text-gray-800">
-                    {convertNumberToVND(total)}
-                  </Text>
-                </View>
+          <View className="space-y-2">
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">
+                Subtotal ({checkoutItems.reduce((sum, item) => sum + item.quantity, 0)} items)
+              </Text>
+              <Text className="text-gray-800 font-medium">{convertNumberToVND(subtotal)}</Text>
+            </View>
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Shipping Fee</Text>
+              <Text className="text-gray-800 font-medium">{convertNumberToVND(shippingFee)}</Text>
+            </View>
+            <View className="border-t border-gray-200 pt-2 mt-2">
+              <View className="flex-row justify-between">
+                <Text className="text-lg font-bold text-gray-800">Total</Text>
+                <Text className="text-lg font-bold text-gray-800">{convertNumberToVND(total)}</Text>
               </View>
             </View>
-          )}
+          </View>
         </View>
       </ScrollView>
 
@@ -395,15 +314,13 @@ const CheckoutScreen = () => {
       <View className="bg-white px-4 py-3 border-t border-gray-200">
         <TouchableOpacity
           className={`rounded-lg py-4 items-center ${
-            orderLoading || !selectedAddress || !selectedDeliveryService
-              ? "bg-gray-300"
-              : "bg-primary"
+            orderLoading || !selectedAddress ? "bg-gray-300" : "bg-primary"
           }`}
           onPress={handlePlaceOrder}
-          disabled={orderLoading || !selectedAddress || !selectedDeliveryService}
+          disabled={orderLoading || !selectedAddress}
         >
           {orderLoading ? (
-            <ActivityIndicator size="small" color="#ffffff" />
+            <ActivityIndicator size="large" color="#ff9fb2" />
           ) : (
             <Text className="text-white font-bold text-lg">
               Place Order - {convertNumberToVND(total)}

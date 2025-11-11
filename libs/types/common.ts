@@ -19,5 +19,5 @@ export interface Pagination {
 export interface QueryParams {
   page?: number;
   limit?: number;
-  [key: string]: any;
+  search?: string;
 }
