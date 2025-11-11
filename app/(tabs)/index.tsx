@@ -6,10 +6,18 @@ import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { Category } from "@/libs/types/category";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { MotiView } from "moti";
-import React, { useEffect } from "react";
-import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -36,9 +44,24 @@ const blogPosts = [
 ];
 
 // --- Category Item ---
-function CategoryItem({ name, icon }: { name: string; icon: string }) {
+function CategoryItem({
+  name,
+  icon,
+  categoryId,
+  router,
+}: {
+  name: string;
+  icon: string;
+  categoryId: string;
+  router: any;
+}) {
   return (
-    <TouchableOpacity className="items-center mr-4">
+    <TouchableOpacity
+      className="items-center mr-4"
+      onPress={() => {
+        router.push({ pathname: "(product)", params: { category: categoryId } });
+      }}
+    >
       <View className="h-16 w-16 flex items-center justify-center bg-rose-50 border border-rose-100 p-3 rounded-full mb-1">
         <MaterialIcons name={icon as any} size={24} color="#F43F5E" />
       </View>
@@ -127,22 +150,35 @@ function Section({
 function HomeScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const products = useSelector(
-    (state: RootState) => state.manageProducts.products?.data || [],
-  ) as Product[];
-  const categories = useSelector(
-    (state: RootState) => state.manageCategories.categories?.data || [],
-  ) as Category[];
-  const parentCategories = categories.filter((item) => !item.parent_category);
+
+  const { loading: productsLoading, products } = useSelector(
+    (state: RootState) => state.manageProducts,
+  );
+  const { loading: categoriesLoading, categories } = useSelector(
+    (state: RootState) => state.manageCategories,
+  );
+
+  const productsData: Product[] = products?.data || [];
+  const categoriesData: Category[] = categories?.data || [];
+
+  const parentCategories = categoriesData.filter((item) => !item.parent_category);
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
+  useFocusEffect(() => {
     dispatch(getAllProductsThunk());
-  }, [dispatch]);
+  });
 
-  useEffect(() => {
+  useFocusEffect(() => {
     dispatch(getAllCategoriesThunk());
-  }, [dispatch]);
+  });
+
+  if (productsLoading && categoriesLoading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -159,20 +195,27 @@ function HomeScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
-        renderItem={({ item }) => <CategoryItem name={item.name} icon={item?.icon || "spa"} />}
+        renderItem={({ item }) => (
+          <CategoryItem
+            name={item.name}
+            icon={item?.icon || "spa"}
+            categoryId={item.id}
+            router={router}
+          />
+        )}
       />
 
       {/* Sections */}
       <Section
         title="Top Rated Products ✨"
-        products={products.filter((item) => item.type === "STANDARD")}
+        products={productsData.filter((item) => item.type === "STANDARD")}
         delay={100}
         router={router}
         type="STANDARD"
       />
       <Section
         title="Limited Edition ⏳"
-        products={products.filter((item) => item.type === "LIMITED")}
+        products={productsData.filter((item) => item.type === "LIMITED")}
         delay={400}
         router={router}
         type="LIMITED"

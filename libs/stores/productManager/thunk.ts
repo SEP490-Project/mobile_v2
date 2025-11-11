@@ -1,14 +1,14 @@
 import manageProducts from "@/libs/services/mangeProducts";
 import { Response } from "@/libs/types/common";
-import { Product } from "@/libs/types/product";
+import { Product, ProductFilter } from "@/libs/types/product";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
 const getAllProductsThunk = createAsyncThunk(
   "productManager/getAllProducts",
-  async (_, { rejectWithValue }) => {
+  async (params: ProductFilter | undefined, { rejectWithValue }) => {
     try {
-      const response = await manageProducts.getAllProducts();
+      const response = await manageProducts.getAllProducts(params || {});
       return response.data as Response<Product[]>;
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;

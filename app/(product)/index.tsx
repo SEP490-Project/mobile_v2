@@ -2,9 +2,8 @@ import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -12,16 +11,24 @@ const ProductScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const products = useSelector((state: RootState) => state.manageProducts.products?.data || []);
+  const { products, loading } = useSelector((state: RootState) => state.manageProducts || []);
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const { type } = useLocalSearchParams();
+  const { type, category } = useLocalSearchParams();
 
-  const filteredProductsByType = products.filter((item) => item.type === type);
+  const productData = products?.data || [];
 
-  useEffect(() => {
-    dispatch(getAllProductsThunk());
-  }, [dispatch]);
+  useFocusEffect(() => {
+    dispatch(getAllProductsThunk({ category_id: category as string, type: type as string }));
+  });
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 10 }}>
@@ -58,7 +65,7 @@ const ProductScreen = () => {
       </View>
 
       <FlatList
-        data={filteredProductsByType}
+        data={productData}
         keyExtractor={(item) => item.id}
         numColumns={2}
         showsVerticalScrollIndicator={false}

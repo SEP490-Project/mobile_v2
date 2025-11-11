@@ -34,6 +34,7 @@ const PaymentWebViewScreen = () => {
           <ActivityIndicator
             size={"large"}
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+            color="#ff9fb2"
           />
         )}
         onNavigationStateChange={(navState) => {

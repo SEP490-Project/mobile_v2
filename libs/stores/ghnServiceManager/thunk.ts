@@ -1,10 +1,6 @@
 import manageGhnService from "@/libs/services/manageGhn";
 import { Response } from "@/libs/types/common";
-import {
-  CaculateDeliveryFeePayload,
-  CaculateDeliveryFeeResponse,
-  DeliveryService,
-} from "@/libs/types/ghn";
+import { CaculateDeliveryFeePayload, CaculateDeliveryFeeResponse } from "@/libs/types/ghn";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 const caculateDeliveryFeeThunk = createAsyncThunk(
@@ -19,26 +15,11 @@ const caculateDeliveryFeeThunk = createAsyncThunk(
   },
 );
 
-const getDeliveryServicesByDistrictThunk = createAsyncThunk(
-  "ghnServiceManager/getDeliveryServicesByDistrict",
-  async (districtId: string, { rejectWithValue }) => {
-    try {
-      const response = await manageGhnService.getDeliveryServicesByDistrict(districtId);
-      return response.data as Response<DeliveryService>;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data);
-    }
-  },
-);
-
 const caculateDeliveryFeeForOrderThunk = createAsyncThunk(
   "ghnServiceManager/caculateDeliveryFeeForOrder",
-  async (
-    { orderId, payload }: { orderId: string; payload: DeliveryService },
-    { rejectWithValue },
-  ) => {
+  async ({ orderId }: { orderId: string }, { rejectWithValue }) => {
     try {
-      const response = await manageGhnService.caculateDeliveryFeeForOrder(orderId, payload);
+      const response = await manageGhnService.caculateDeliveryFeeForOrder(orderId);
       return response.data as Response<CaculateDeliveryFeeResponse>;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -46,21 +27,4 @@ const caculateDeliveryFeeForOrderThunk = createAsyncThunk(
   },
 );
 
-const getDeliveryServicesForOrderThunk = createAsyncThunk(
-  "ghnServiceManager/getDeliveryServicesForOrder",
-  async (orderId: string, { rejectWithValue }) => {
-    try {
-      const response = await manageGhnService.getDeliveryServicesForOrder(orderId);
-      return response.data as Response<DeliveryService>;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data);
-    }
-  },
-);
-
-export {
-  caculateDeliveryFeeForOrderThunk,
-  caculateDeliveryFeeThunk,
-  getDeliveryServicesByDistrictThunk,
-  getDeliveryServicesForOrderThunk,
-};
+export { caculateDeliveryFeeForOrderThunk, caculateDeliveryFeeThunk };

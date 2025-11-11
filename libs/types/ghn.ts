@@ -1,14 +1,7 @@
 export interface CaculateDeliveryFeePayload {
-  delivery_service: DeliveryService;
   items: Item[];
   to_district_id: number;
   to_ward_code: string;
-}
-
-export interface DeliveryService {
-  service_id: number;
-  service_type_id: number;
-  short_name: string;
 }
 
 export interface Item {

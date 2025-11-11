@@ -36,7 +36,7 @@ const MyProfile = () => {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#3b82f6" />
+          <ActivityIndicator size="large" color="#ff9fb2" />
           <Text className="mt-4 text-gray-600">Loading profile...</Text>
         </View>
       </SafeAreaView>

@@ -88,7 +88,7 @@ function OrdersScreen() {
   if (loading && !orderList) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color="#ff9fb2" />
         <Text className="mt-4 text-gray-500">Loading orders...</Text>
       </SafeAreaView>
     );

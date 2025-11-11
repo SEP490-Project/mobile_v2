@@ -1,4 +1,4 @@
-import { CaculateDeliveryFeeResponse, DeliveryService } from "./ghn";
+import { CaculateDeliveryFeeResponse } from "./ghn";
 
 export interface OrderData {
   id: string;
@@ -56,7 +56,6 @@ export interface AttributesDescription {
 }
 
 export interface CreateOrderPayload {
-  delivery_service: DeliveryService;
   order: CreateOrderPayloadOrder;
   cancel_url?: string;
   success_url?: string;

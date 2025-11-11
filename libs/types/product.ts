@@ -1,4 +1,5 @@
 import { Category } from "./category";
+import { QueryParams } from "./common";
 
 export interface Product {
   id: string;
@@ -46,4 +47,9 @@ export interface Image {
   is_primary: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProductFilter extends QueryParams {
+  category_id?: string;
+  type?: string;
 }
