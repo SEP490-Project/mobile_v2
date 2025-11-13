@@ -6,14 +6,17 @@ export interface Product {
   brand_id: string;
   brand_logo_url: string;
   brand_name: string;
+  thumbnail_url: string[];
   is_active: boolean;
   category: Category;
   description: string;
   name: string;
+  price: number;
   type: string;
+  variants: Variant[];
   created_at: string;
-  thumbnail_url?: string[];
-  variants?: Variant[];
+  limited_product: LimitedProduct;
+  concept: Concept;
 }
 
 export interface Variant {
@@ -37,6 +40,14 @@ export interface Variant {
   height: number;
   length: number;
   width: number;
+  attributes: Attribute[];
+}
+
+export interface Attribute {
+  ingredient: string;
+  description: string;
+  value: number;
+  unit: string;
 }
 
 export interface Image {
@@ -47,6 +58,26 @@ export interface Image {
   is_primary: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface LimitedProduct {
+  max_stock: number;
+  is_free_shipping: boolean;
+  bought_limit: number;
+  premiere_date: string;
+  availability_start_date: string;
+  availability_end_date: string;
+}
+
+export interface Concept {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  banner_url: string;
+  video_thumbnail: string;
+  limited_product: any;
 }
 
 export interface ProductFilter extends QueryParams {

@@ -3,7 +3,10 @@ import { RootState, useAppDispatch } from "@/libs/stores";
 import { clearCart } from "@/libs/stores/cartManager/slice";
 import { caculateDeliveryFeeThunk } from "@/libs/stores/ghnServiceManager/thunk";
 import { getShippingAddressesThunk } from "@/libs/stores/locationManager/thunk";
-import { placeOrderAndPayThunk } from "@/libs/stores/orderManager/thunk";
+import {
+  placeOrderAndPayForLimitedProductThunk,
+  placeOrderAndPayThunk,
+} from "@/libs/stores/orderManager/thunk";
 import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
 import { CreateOrderPayload, CreateOrderPayloadItem } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,6 +18,7 @@ import {
   Image,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -40,6 +44,8 @@ const CheckoutScreen = () => {
   const { loading: orderLoading } = useSelector((state: RootState) => state.manageOrder);
 
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [userNote, setUserNote] = useState<string>("");
+  const [isSelfPickup, setIsSelfPickup] = useState<boolean>(false);
 
   // Determine checkout items based on checkout type
   const checkoutItems = useMemo(() => {
@@ -127,13 +133,19 @@ const CheckoutScreen = () => {
       cancel_url: "payment-failed",
       success_url: "payment-success",
       order: {
+        is_self_pickup: isSelfPickup,
+        user_note: userNote,
         address_id: selectedAddress.id,
         items: orderItems,
       },
     };
 
     try {
-      const result = await dispatch(placeOrderAndPayThunk(payload)).unwrap();
+      const result = await dispatch(
+        productDetail?.type === "LIMITED"
+          ? placeOrderAndPayForLimitedProductThunk(payload)
+          : placeOrderAndPayThunk(payload),
+      ).unwrap();
 
       // Clear cart if this was a cart checkout
       if (!isBuyNowCheckout) {
@@ -141,8 +153,8 @@ const CheckoutScreen = () => {
       }
 
       // Check if payment URL exists in response
-      if (result?.data?.payment_tx?.gateway_ref) {
-        const paymentUrl = result.data.payment_tx.gateway_ref;
+      if (result?.data?.payment_tx?.checkoutUrl) {
+        const paymentUrl = result.data.payment_tx.checkoutUrl;
         Alert.alert(
           "Order Created!",
           "Your order has been created. You will be redirected to payment.",
@@ -286,6 +298,39 @@ const CheckoutScreen = () => {
           ))}
         </View>
 
+        {/*Selected self pickup*/}
+        <View className="bg-white px-4 py-4 mb-2">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-lg font-bold text-gray-800">Self Pickup</Text>
+            <TouchableOpacity
+              onPress={() => setIsSelfPickup((prev) => !prev)}
+              className={`w-6 h-6 rounded-full border-2 ${
+                isSelfPickup ? "border-primary bg-primary" : "border-gray-300 bg-white"
+              } items-center justify-center`}
+            >
+              {isSelfPickup && <View className="w-3 h-3 rounded-full bg-white" />}
+            </TouchableOpacity>
+          </View>
+          <Text className="text-gray-600">
+            Choose this option if you prefer to pick up your order yourself at our place.
+          </Text>
+        </View>
+
+        {/* User Note */}
+        <View className="bg-white px-4 py-4 mb-2">
+          <Text className="text-lg font-bold text-gray-800 mb-3">Order Note</Text>
+          <View className="border border-gray-300 rounded-lg p-3 bg-gray-50">
+            <TextInput
+              className="text-gray-600"
+              placeholder="Add a note to your order (e.g., delivery instructions)"
+              multiline
+              numberOfLines={4}
+              onChangeText={(text) => setUserNote(text)}
+              value={userNote}
+            />
+          </View>
+        </View>
+
         {/* Order Summary Section */}
         <View className="bg-white px-4 py-4 mb-2">
           <Text className="text-lg font-bold text-gray-800 mb-3">Order Summary</Text>
@@ -298,12 +343,20 @@ const CheckoutScreen = () => {
             </View>
             <View className="flex-row justify-between py-2">
               <Text className="text-gray-600">Shipping Fee</Text>
-              <Text className="text-gray-800 font-medium">{convertNumberToVND(shippingFee)}</Text>
+              <Text className="text-gray-800 font-medium">
+                {isSelfPickup || productDetail?.type === "LIMITED"
+                  ? convertNumberToVND(0)
+                  : convertNumberToVND(shippingFee)}
+              </Text>
             </View>
             <View className="border-t border-gray-200 pt-2 mt-2">
               <View className="flex-row justify-between">
                 <Text className="text-lg font-bold text-gray-800">Total</Text>
-                <Text className="text-lg font-bold text-gray-800">{convertNumberToVND(total)}</Text>
+                <Text className="text-lg font-bold text-gray-800">
+                  {isSelfPickup || productDetail?.type === "LIMITED"
+                    ? convertNumberToVND(total - shippingFee)
+                    : convertNumberToVND(total)}
+                </Text>
               </View>
             </View>
           </View>
@@ -323,7 +376,10 @@ const CheckoutScreen = () => {
             <ActivityIndicator size="large" color="#ff9fb2" />
           ) : (
             <Text className="text-white font-bold text-lg">
-              Place Order - {convertNumberToVND(total)}
+              Place Order -{" "}
+              {isSelfPickup || productDetail?.type === "LIMITED"
+                ? convertNumberToVND(total - shippingFee)
+                : convertNumberToVND(total)}
             </Text>
           )}
         </TouchableOpacity>

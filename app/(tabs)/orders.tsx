@@ -19,24 +19,32 @@ import { useSelector } from "react-redux";
 // --- Màu trạng thái ---
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
+    case "paid":
+      return "text-green-700";
     case "delivered":
     case "completed":
-      return "text-green-600";
+      return "text-green-700";
     case "in_transit":
     case "shipping":
-      return "text-yellow-600";
+      return "text-yellow-700";
     case "processing":
     case "pending":
-      return "text-blue-600";
+      return "text-blue-700";
     case "cancelled":
-      return "text-red-600";
+      return "text-red-700";
+    case "awaiting_pickup":
+      return "text-yellow-700";
+    case "received":
+      return "text-green-700";
     default:
-      return "text-gray-600";
+      return "text-gray-700";
   }
 };
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase()) {
+    case "paid":
+      return "bg-green-100";
     case "delivered":
     case "completed":
       return "bg-green-100";
@@ -48,6 +56,10 @@ const getStatusBgColor = (status: string) => {
       return "bg-blue-100";
     case "cancelled":
       return "bg-red-100";
+    case "awaiting_pickup":
+      return "bg-yellow-100 ";
+    case "received":
+      return "bg-green-100";
     default:
       return "bg-gray-100";
   }
@@ -95,7 +107,7 @@ function OrdersScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="bg-gray-50">
       {/* Header */}
       <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
         <Text className="text-2xl font-extrabold text-gray-900">My Orders</Text>
@@ -123,10 +135,19 @@ function OrdersScreen() {
                 <Text className="font-semibold text-gray-800" numberOfLines={1}>
                   Order #{item.id.slice(0, 8)}
                 </Text>
-                <View className={`px-3 py-1 rounded-full ${getStatusBgColor(item.status)}`}>
-                  <Text className={`font-medium text-xs ${getStatusColor(item.status)}`}>
-                    {getStatusText(item.status)}
-                  </Text>
+                <View className="flex-row gap-1">
+                  <View className={`px-3 py-1 rounded-full ${getStatusBgColor(item.status)}`}>
+                    <Text className={`font-medium text-xs ${getStatusColor(item.status)}`}>
+                      {getStatusText(item.status)}
+                    </Text>
+                  </View>
+                  <View className={`px-3 py-1 rounded-full`}>
+                    <Text
+                      className={`font-semibold text-xs ${item.order_type.toLowerCase() === "limited" ? "text-yellow-700" : "text-gray-700"}`}
+                    >
+                      {getStatusText(item.order_type)}
+                    </Text>
+                  </View>
                 </View>
               </View>
 

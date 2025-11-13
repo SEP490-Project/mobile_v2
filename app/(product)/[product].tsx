@@ -218,7 +218,7 @@ export default function ProductDetail() {
           )}
 
           {/* Price */}
-          {selectedVariant && productDetail.type === "LIMITED" && (
+          {selectedVariant && (
             <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-100">
               <View>
                 <Text className="text-gray-500 text-sm mb-1">Price</Text>
@@ -226,16 +226,18 @@ export default function ProductDetail() {
                   {convertNumberToVND(selectedVariant.price)}
                 </Text>
               </View>
-              <View className="items-end">
-                <Text className="text-gray-500 text-sm mb-1">Stock</Text>
-                <Text
-                  className={`text-lg font-semibold ${
-                    selectedVariant.current_stock > 10 ? "text-green-600" : "text-orange-600"
-                  }`}
-                >
-                  {selectedVariant.current_stock} available
-                </Text>
-              </View>
+              {isLimitedEdition && (
+                <View className="items-end">
+                  <Text className="text-gray-500 text-sm mb-1">Stock</Text>
+                  <Text
+                    className={`text-lg font-semibold ${
+                      selectedVariant.current_stock > 10 ? "text-green-600" : "text-orange-600"
+                    }`}
+                  >
+                    {selectedVariant.current_stock} available
+                  </Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -267,7 +269,9 @@ export default function ProductDetail() {
                     >
                       {variant.capacity} {variant.capacity_unit}
                     </Text>
-                    <Text className="text-gray-500 text-xs mt-1">{variant.container_type}</Text>
+                    <Text className="text-gray-500 text-xs mt-1">
+                      {variant.container_type} - {variant.dispenser_type}
+                    </Text>
                     <Text
                       className={`text-sm font-bold mt-1 ${
                         selectedVariant?.id === variant.id ? "text-rose-600" : "text-gray-800"
@@ -342,18 +346,65 @@ export default function ProductDetail() {
               />
               <DetailRow label="Container" value={selectedVariant.container_type} />
               <DetailRow label="Dispenser" value={selectedVariant.dispenser_type} />
+
+              {/* Dates */}
+              {selectedVariant.manufacture_date && (
+                <DetailRow
+                  label="Manufacture Date"
+                  value={new Date(selectedVariant.manufacture_date).toLocaleDateString()}
+                />
+              )}
               {selectedVariant.expiry_date && (
                 <DetailRow
                   label="Expiry Date"
                   value={new Date(selectedVariant.expiry_date).toLocaleDateString()}
                 />
               )}
+
+              {/* Dimensions */}
+              {(selectedVariant.weight ||
+                selectedVariant.height ||
+                selectedVariant.length ||
+                selectedVariant.width) && (
+                <>
+                  {selectedVariant.weight > 0 && (
+                    <DetailRow label="Weight" value={`${selectedVariant.weight} g`} />
+                  )}
+                  {selectedVariant.height > 0 && (
+                    <DetailRow label="Height" value={`${selectedVariant.height} cm`} />
+                  )}
+                  {selectedVariant.length > 0 && (
+                    <DetailRow label="Length" value={`${selectedVariant.length} cm`} />
+                  )}
+                  {selectedVariant.width > 0 && (
+                    <DetailRow label="Width" value={`${selectedVariant.width} cm`} />
+                  )}
+                </>
+              )}
+
+              {/* Instructions */}
               {selectedVariant.instructions && (
-                <View className="mt-2 pt-2 ">
+                <View className="mt-2 pt-2">
                   <Text className="text-gray-700 text-sm font-medium mb-1">Instructions:</Text>
                   <Text className="text-gray-600 text-sm leading-5">
                     {selectedVariant.instructions}
                   </Text>
+                </View>
+              )}
+
+              {/* Uses */}
+              {selectedVariant.uses && (
+                <View className="mt-2 pt-2 border-t border-gray-200">
+                  <Text className="text-gray-700 text-sm font-medium mb-1">Uses:</Text>
+                  <Text className="text-gray-600 text-sm leading-5">{selectedVariant.uses}</Text>
+                </View>
+              )}
+
+              {/* Story */}
+              {selectedVariant.story && (
+                <View className="mt-2 pt-2 border-t border-gray-200">
+                  <Text className="text-gray-700 text-sm font-medium mb-1">Story:</Text>
+                  <Text className="text-gray-600 text-sm leading-5">{selectedVariant.story}</Text>
                 </View>
               )}
             </View>
@@ -364,14 +415,15 @@ export default function ProductDetail() {
       {/* Action Buttons */}
       <View className="px-4 py-4 border-t border-gray-100 bg-white">
         <View className="flex-row gap-3">
-          <TouchableOpacity
-            onPress={handleAddToCart}
-            className="flex-1 bg-white border-2 border-rose-500 rounded-xl py-4 items-center justify-center"
-            activeOpacity={0.7}
-            // disabled={!selectedVariant || selectedVariant.current_stock === 0}
-          >
-            <Text className="text-rose-500 font-bold text-base">Add to Cart</Text>
-          </TouchableOpacity>
+          {!isLimitedEdition && (
+            <TouchableOpacity
+              onPress={handleAddToCart}
+              className="flex-1 bg-white border-2 border-rose-500 rounded-xl py-4 items-center justify-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-rose-500 font-bold text-base">Add to Cart</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={handleBuyNow}
@@ -379,7 +431,9 @@ export default function ProductDetail() {
             activeOpacity={0.7}
             // disabled={!selectedVariant || selectedVariant.current_stock === 0}
           >
-            <Text className="text-white font-bold text-base">Buy Now</Text>
+            <Text className="text-white font-bold text-base">
+              {isLimitedEdition ? "Buy Now" : "Checkout Now"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

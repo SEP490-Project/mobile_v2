@@ -20,6 +20,10 @@ export interface OrderData {
   shipping_fee: number;
   created_at: string;
   updated_at: string;
+  order_type: string;
+  is_self_picked_up: boolean;
+  user_note?: string;
+  ghn_order_code: any;
   order_items: OrderItem[];
 }
 
@@ -63,7 +67,9 @@ export interface CreateOrderPayload {
 
 export interface CreateOrderPayloadOrder {
   address_id: string;
+  is_self_pickup: boolean;
   items: CreateOrderPayloadItem[];
+  user_note?: string;
 }
 
 export interface CreateOrderPayloadItem {
@@ -82,15 +88,16 @@ export interface PlaceOrderAndPayResponse {
 }
 
 export interface PaymentTx {
+  bin: string;
+  accountNumber: string;
+  accountName: string;
+  currency: string;
+  paymentLinkId: string;
   amount: number;
-  gateway_id: string;
-  gateway_ref: string; // This is payment url
-  id: string;
-  method: string;
-  payos_metadata: any[];
-  reference_id: string;
-  reference_type: string;
+  description: string;
+  orderCode: number;
+  expiredAt: number;
   status: string;
-  transaction_date: string;
-  updated_at: string;
+  checkoutUrl: string;
+  qrCode: string;
 }

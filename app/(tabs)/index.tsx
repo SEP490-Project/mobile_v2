@@ -126,13 +126,13 @@ function Section({
                 source={{ uri: item.thumbnail_url?.[0] }}
                 className="w-full h-40 rounded-lg mb-3"
               />
-              <Text numberOfLines={2} className="font-semibold text-gray-800 text-base">
+              <Text numberOfLines={1} className="font-semibold text-gray-800 text-base">
                 {item.name}
               </Text>
               {item.brand_name && (
                 <View className="flex-row items-center my-1">
-                  <MaterialIcons name="star" size={16} color="#F59E0B" />
-                  <Text className="text-yellow-600 text-sm ml-1">{item.brand_name}</Text>
+                  <MaterialIcons name="business" size={18} color="#9CA3AF" />
+                  <Text className=" text-gray-600text-sm ml-1">{item.brand_name}</Text>
                 </View>
               )}
               <Text className="text-rose-600 font-bold text-lg mt-1">
@@ -207,14 +207,14 @@ function HomeScreen() {
 
       {/* Sections */}
       <Section
-        title="Top Rated Products ✨"
+        title="Latest Products"
         products={productsData.filter((item) => item.type === "STANDARD")}
         delay={100}
         router={router}
         type="STANDARD"
       />
       <Section
-        title="Limited Edition ⏳"
+        title="Limited Edition Products"
         products={productsData.filter((item) => item.type === "LIMITED")}
         delay={400}
         router={router}

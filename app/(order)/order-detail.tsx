@@ -1,5 +1,6 @@
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
-import { RootState } from "@/libs/stores";
+import { RootState, useAppDispatch } from "@/libs/stores";
+import { receiveOrderThunk } from "@/libs/stores/orderManager/thunk";
 import { OrderData, OrderItem } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,6 +11,8 @@ import { useSelector } from "react-redux";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
+    case "paid":
+      return "bg-green-100 text-green-700";
     case "delivered":
       return "bg-green-100 text-green-700";
     case "in_transit":
@@ -22,6 +25,8 @@ const getStatusColor = (status: string) => {
       return "bg-red-100 text-red-700";
     case "completed":
       return "bg-green-100 text-green-700";
+    case "awaiting_pickup":
+      return "bg-yellow-100 text-yellow-700";
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -35,6 +40,7 @@ const getStatusText = (status: string) => {
 };
 
 const OrderDetailScreen = () => {
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const { orderId } = useLocalSearchParams();
   const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
@@ -50,6 +56,16 @@ const OrderDetailScreen = () => {
       </SafeAreaView>
     );
   }
+
+  const handleReceiveOrder = async () => {
+    console.log("Receiving order:", order.id);
+    const result = await dispatch(receiveOrderThunk(order.id));
+    console.log("Receive order result:", result);
+    if (receiveOrderThunk.fulfilled.match(result)) {
+      alert("Order marked as received successfully.");
+    }
+    router.back();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -83,6 +99,12 @@ const OrderDetailScreen = () => {
                 {getStatusText(order.status)}
               </Text>
             </View>
+          </View>
+          <View className="flex-row justify-between items-center mt-2">
+            <Text className="text-sm text-gray-500">Picked Up</Text>
+            <Text className="text-sm text-gray-700">
+              {order.is_self_picked_up ? "At place" : "Shipping to address"}
+            </Text>
           </View>
           <View className="flex-row justify-between items-center mt-2">
             <Text className="text-sm text-gray-500">Order Date</Text>
@@ -189,20 +211,14 @@ const OrderDetailScreen = () => {
           </View>
         </View>
 
-        {/* Additional Info */}
-        {order.order_items.some((item) => item.instructions) && (
-          <View className="bg-white px-4 py-4 mb-2">
+        {/* User note */}
+        {order.user_note && (
+          <View className="bg-white px-4 py-4 mb-4">
             <View className="flex-row items-center mb-3">
-              <MaterialIcons name="info-outline" size={20} color="#ff9fb2" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">Additional Information</Text>
+              <MaterialIcons name="note" size={20} color="#ff9fb2" />
+              <Text className="text-lg font-bold text-gray-800 ml-2">Note</Text>
             </View>
-            {order.order_items
-              .filter((item) => item.instructions)
-              .map((item) => (
-                <View key={item.id} className="bg-gray-50 rounded-lg p-3 mb-2">
-                  <Text className="text-sm text-gray-600">{item.instructions}</Text>
-                </View>
-              ))}
+            <Text className="text-gray-700">{order.user_note}</Text>
           </View>
         )}
       </ScrollView>
@@ -215,6 +231,17 @@ const OrderDetailScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity className="bg-primary rounded-lg py-4 items-center flex-1">
             <Text className="text-white font-bold text-base">Pay Order</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {order.status.toLowerCase() === "delivered" && (
+        <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
+          <TouchableOpacity
+            className="rounded-lg py-4 items-center bg-primary flex-1"
+            onPress={handleReceiveOrder}
+          >
+            <Text className="text-white font-bold text-base">Received Order</Text>
           </TouchableOpacity>
         </View>
       )}
