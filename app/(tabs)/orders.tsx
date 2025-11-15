@@ -79,6 +79,18 @@ function OrdersScreen() {
   const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
   const loading = useSelector((state: RootState) => state.manageOrder.loading);
   const [refreshing, setRefreshing] = React.useState(false);
+  const statusList = [
+    "all",
+    "pending",
+    "paid",
+    "confirmed",
+    "awaiting_pickup",
+    "shipped",
+    "in_transit",
+    "delivered",
+    "received",
+    "cancelled",
+  ];
 
   useFocusEffect(() => {
     dispatch(getOrdersThunk());
@@ -107,7 +119,7 @@ function OrdersScreen() {
   }
 
   return (
-    <SafeAreaView className="bg-gray-50">
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
         <Text className="text-2xl font-extrabold text-gray-900">My Orders</Text>
@@ -115,6 +127,23 @@ function OrdersScreen() {
           <MaterialIcons name="shopping-bag" size={22} color="#4B5563" />
         </TouchableOpacity>
       </View>
+
+      {/* <FlatList
+        data={statusList}
+        keyExtractor={(item) => item}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        renderItem={({ item, index }) => {
+          return (
+            <TouchableOpacity className="bg-gray-200 px-4 py-2 mr-3 mt-4 h-full items-center">
+              <Text className="text-gray-700 font-medium">
+                {item === "all" ? "All" : getStatusText(item)}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+      /> */}
 
       {/* Danh sách đơn hàng */}
       {orderList?.data && orderList.data.length > 0 ? (
