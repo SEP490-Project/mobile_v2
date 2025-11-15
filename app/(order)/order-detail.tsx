@@ -226,9 +226,11 @@ const OrderDetailScreen = () => {
       {/* Action Buttons */}
       {order.status.toLowerCase() === "pending" && (
         <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
-          <TouchableOpacity className="rounded-lg py-4 items-center border border-primary flex-1">
-            <Text className="text-primary font-bold text-base">Cancel Order</Text>
-          </TouchableOpacity>
+          {order.status.toLowerCase() === "paid" && (
+            <TouchableOpacity className="rounded-lg py-4 items-center border border-primary flex-1">
+              <Text className="text-primary font-bold text-base">Cancel Order</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity className="bg-primary rounded-lg py-4 items-center flex-1">
             <Text className="text-white font-bold text-base">Pay Order</Text>
           </TouchableOpacity>

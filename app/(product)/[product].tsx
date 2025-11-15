@@ -5,6 +5,7 @@ import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
 import { Variant } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -34,6 +35,14 @@ export default function ProductDetail() {
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
+
+  // Setup video player for concept video
+  const conceptVideoUrl = productDetail?.concept?.video_thumbnail;
+  const videoPlayer = useVideoPlayer(conceptVideoUrl || "", (player) => {
+    player.loop = true;
+    player.muted = false;
+  });
 
   useEffect(() => {
     if (productId && typeof productId === "string") {
@@ -120,6 +129,11 @@ export default function ProductDetail() {
 
   const displayImages = getDisplayImages();
   const isLimitedEdition = productDetail.type === "LIMITED";
+  const hasConcept = isLimitedEdition && productDetail.concept;
+  const bannerImages =
+    hasConcept && productDetail.concept.banner_url
+      ? productDetail.concept.banner_url.split(",").map((url) => url.trim())
+      : [];
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -154,6 +168,111 @@ export default function ProductDetail() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Concept Section - Only for Limited Products with Concept */}
+        {hasConcept && (
+          <View className="bg-gradient-to-b from-rose-50 to-white px-4 py-6">
+            {/* Concept Header */}
+            <View className="mb-4">
+              <View className="flex-row items-center mb-2">
+                <MaterialIcons name="stars" size={24} color="#f43f5e" />
+                <Text className="text-2xl font-bold text-gray-900 ml-2">
+                  {productDetail.concept.name}
+                </Text>
+              </View>
+              {productDetail.concept.description && (
+                <Text className="text-gray-600 leading-6 text-base">
+                  {productDetail.concept.description}
+                </Text>
+              )}
+            </View>
+
+            {/* Concept Video */}
+            {conceptVideoUrl && (
+              <View className="mb-4">
+                <Text className="text-gray-800 font-semibold text-base mb-3">Concept Video</Text>
+                <View
+                  className="rounded-2xl overflow-hidden shadow-lg bg-black"
+                  style={{ height: 220 }}
+                >
+                  <VideoView
+                    player={videoPlayer}
+                    style={{ width: "100%", height: "100%" }}
+                    allowsFullscreen
+                    allowsPictureInPicture
+                    nativeControls
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Concept Banner Images */}
+            {bannerImages.length > 0 && (
+              <View className="mb-2">
+                <Text className="text-gray-800 font-semibold text-base mb-3">
+                  Concept Gallery ({bannerImages.length} images)
+                </Text>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => {
+                    const index = Math.round(e.nativeEvent.contentOffset.x / (width - 32));
+                    setSelectedBannerIndex(index);
+                  }}
+                >
+                  {bannerImages.map((imageUrl, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        width: width - 32,
+                        marginRight: index === bannerImages.length - 1 ? 0 : 0,
+                      }}
+                    >
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={{ width: width - 32, height: (width - 32) * 0.6 }}
+                        className="rounded-2xl"
+                        resizeMode="cover"
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+
+                {/* Banner Image Indicators */}
+                {bannerImages.length > 1 && (
+                  <View className="flex-row justify-center mt-3">
+                    {bannerImages.map((_, index) => (
+                      <View
+                        key={index}
+                        className={`h-2 w-2 rounded-full mx-1 ${
+                          index === selectedBannerIndex ? "bg-rose-500" : "bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Concept Dates */}
+            {productDetail.concept.created_at && (
+              <View className="mt-2 bg-white rounded-xl p-4 shadow-sm">
+                <View className="flex-row items-center">
+                  <MaterialIcons name="event" size={18} color="#9CA3AF" />
+                  <Text className="text-gray-600 text-sm ml-2">
+                    Launched:{" "}
+                    {new Date(productDetail.concept.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Image Gallery */}
         <View className="bg-gray-50">
           <ScrollView
@@ -192,7 +311,10 @@ export default function ProductDetail() {
           {/* Limited Edition Badge */}
           {isLimitedEdition && (
             <View className="absolute top-4 right-4 bg-rose-500 px-3 py-1 rounded-full">
-              <Text className="text-white text-xs font-bold">LIMITED EDITION</Text>
+              <Text className="text-white text-xs font-bold">
+                {/* {days <= 1 ? `${hours} hr ${minutes} min ${seconds} ` : `${days} days`} */}
+                LIMITED
+              </Text>
             </View>
           )}
         </View>
@@ -286,6 +408,7 @@ export default function ProductDetail() {
           )}
 
           {/* Quantity Selector */}
+          {/* {!isLimitedEdition && ( */}
           <View className="mb-6">
             <Text className="text-gray-800 font-semibold text-base mb-3">Quantity</Text>
             <View className="flex-row items-center">
@@ -326,6 +449,7 @@ export default function ProductDetail() {
               </TouchableOpacity>
             </View>
           </View>
+          {/* )} */}
 
           {/* Description */}
           {productDetail.description && (

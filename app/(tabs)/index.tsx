@@ -110,37 +110,45 @@ function Section({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
-        renderItem={({ item, index }) => (
-          <MotiView
-            from={{ opacity: 0, translateY: 15 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: delay + index * 120, type: "timing" }}
-            className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
-          >
-            <TouchableOpacity
-              onPress={() =>
-                router.push({ pathname: "/(product)/[product]", params: { product: item.id } })
-              }
+        renderItem={({ item, index }) => {
+          return (
+            <MotiView
+              from={{ opacity: 0, translateY: 15 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ delay: delay + index * 120, type: "timing" }}
+              className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
             >
-              <Image
-                source={{ uri: item.thumbnail_url?.[0] }}
-                className="w-full h-40 rounded-lg mb-3"
-              />
-              <Text numberOfLines={1} className="font-semibold text-gray-800 text-base">
-                {item.name}
-              </Text>
-              {item.brand_name && (
-                <View className="flex-row items-center my-1">
-                  <MaterialIcons name="business" size={18} color="#9CA3AF" />
-                  <Text className=" text-gray-600text-sm ml-1">{item.brand_name}</Text>
-                </View>
-              )}
-              <Text className="text-rose-600 font-bold text-lg mt-1">
-                {convertNumberToVND(getProductPrice(item))}
-              </Text>
-            </TouchableOpacity>
-          </MotiView>
-        )}
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: "/(product)/[product]", params: { product: item.id } })
+                }
+                className="relative"
+              >
+                <Image
+                  source={{ uri: item.thumbnail_url?.[0] }}
+                  className="w-full h-40 rounded-lg mb-3"
+                />
+                <Text numberOfLines={1} className="font-semibold text-gray-800 text-base">
+                  {item.name}
+                </Text>
+                {item.brand_name && (
+                  <View className="flex-row items-center my-1">
+                    <MaterialIcons name="business" size={18} color="#9CA3AF" />
+                    <Text className=" text-gray-600text-sm ml-1">{item.brand_name}</Text>
+                  </View>
+                )}
+                <Text className="text-rose-600 font-bold text-lg mt-1">
+                  {convertNumberToVND(getProductPrice(item))}
+                </Text>
+                {type === "LIMITED" && (
+                  <View className="absolute top-2 right-2 bg-rose-500 px-3 py-1 rounded-full">
+                    <Text className="text-white text-xs font-bold">LIMITED</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </MotiView>
+          );
+        }}
       />
     </View>
   );

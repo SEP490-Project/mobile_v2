@@ -1,3 +1,4 @@
+import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
@@ -42,7 +43,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
         </View>
       )}
 
-      <Text className="text-rose-600 font-bold text-lg mt-1">{price}đ</Text>
+      <Text className="text-rose-600 font-bold text-lg mt-1">{convertNumberToVND(price)}</Text>
     </TouchableOpacity>
   );
 }
