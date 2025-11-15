@@ -11,7 +11,6 @@ export interface Product {
   category: Category;
   description: string;
   name: string;
-  price: number;
   type: string;
   variants: Variant[];
   created_at: string;
