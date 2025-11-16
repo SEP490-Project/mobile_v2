@@ -12,21 +12,25 @@ import { useSelector } from "react-redux";
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "paid":
-      return "bg-green-100 text-green-700";
+      return "text-green-700 bg-green-100";
     case "delivered":
-      return "bg-green-100 text-green-700";
-    case "in_transit":
-    case "shipping":
-      return "bg-yellow-100 text-yellow-700";
-    case "processing":
-    case "pending":
-      return "bg-blue-100 text-blue-700";
-    case "cancelled":
-      return "bg-red-100 text-red-700";
+      return "text-green-700 bg-green-100";
+    case "confirmed":
+      return "text-blue-700 bg-blue-100";
     case "completed":
-      return "bg-green-100 text-green-700";
+      return "text-green-700 bg-green-100";
+    case "in_transit":
+      return "text-yellow-700 bg-yellow-100";
+    case "shipping":
+      return "text-yellow-700 bg-yellow-100";
+    case "pending":
+      return "text-blue-700 bg-blue-100";
+    case "cancelled":
+      return "text-red-700 bg-red-100";
     case "awaiting_pickup":
-      return "bg-yellow-100 text-yellow-700";
+      return "text-yellow-700 bg-yellow-100";
+    case "received":
+      return "text-green-700 bg-green-100";
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -91,10 +95,10 @@ const OrderDetailScreen = () => {
           <View className="flex-row justify-between items-center">
             <Text className="text-sm text-gray-500">Status</Text>
             <View
-              className={`px-3 py-1 rounded-full ${getStatusColor(order.status).split(" ")[0]}`}
+              className={`px-3 py-1 rounded-full ${getStatusColor(order.status).split(" ")[1]}`}
             >
               <Text
-                className={`text-xs font-semibold ${getStatusColor(order.status).split(" ")[1]}`}
+                className={`text-xs font-semibold ${getStatusColor(order.status).split(" ")[0]}`}
               >
                 {getStatusText(order.status)}
               </Text>
@@ -137,6 +141,17 @@ const OrderDetailScreen = () => {
             <Text className="text-gray-600">{order.province_name}</Text>
           </View>
         </View>
+
+        {/* User note */}
+        {order.user_note && (
+          <View className="bg-white px-4 py-4 mb-2">
+            <View className="flex-row items-center mb-3">
+              <MaterialIcons name="note" size={20} color="#ff9fb2" />
+              <Text className="text-lg font-bold text-gray-800 ml-2">Note</Text>
+            </View>
+            <Text className="text-gray-700">{order.user_note}</Text>
+          </View>
+        )}
 
         {/* Order Items */}
         <View className="bg-white px-4 py-4 mb-2">
@@ -211,31 +226,80 @@ const OrderDetailScreen = () => {
           </View>
         </View>
 
-        {/* User note */}
-        {order.user_note && (
-          <View className="bg-white px-4 py-4 mb-4">
-            <View className="flex-row items-center mb-3">
-              <MaterialIcons name="note" size={20} color="#ff9fb2" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">Note</Text>
-            </View>
-            <Text className="text-gray-700">{order.user_note}</Text>
+        {/* Payment Transaction */}
+        <View className="bg-white px-4 py-4 mb-4">
+          <View className="flex-row items-center mb-3">
+            <MaterialIcons name="payment" size={20} color="#ff9fb2" />
+            <Text className="text-lg font-bold text-gray-800 ml-2">Payment Information</Text>
           </View>
-        )}
+          <View className="space-y-2">
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Payment Method</Text>
+              <Text className="text-gray-800 font-medium capitalize">
+                {order.payment_transaction.method}
+              </Text>
+            </View>
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Payment Status</Text>
+              <View
+                className={`px-3 py-1 rounded-full ${getStatusColor(order.payment_transaction.status).split(" ")[1]}`}
+              >
+                <Text
+                  className={`text-xs font-semibold ${getStatusColor(order.payment_transaction.status).split(" ")[0]}`}
+                >
+                  {getStatusText(order.payment_transaction.status)}
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Created Date</Text>
+              <Text className="text-gray-800 font-medium">
+                {new Date(order.payment_transaction.transaction_date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Last Updated</Text>
+              <Text className="text-gray-800 font-medium">
+                {new Date(order.payment_transaction.updated_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       {/* Action Buttons */}
-      {order.status.toLowerCase() === "pending" && (
-        <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
-          {order.status.toLowerCase() === "paid" && (
+      {order.status.toLowerCase() === "pending" &&
+        order.payment_transaction.status.toLowerCase() !== "completed" && (
+          <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
             <TouchableOpacity className="rounded-lg py-4 items-center border border-primary flex-1">
               <Text className="text-primary font-bold text-base">Cancel Order</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity className="bg-primary rounded-lg py-4 items-center flex-1">
-            <Text className="text-white font-bold text-base">Pay Order</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+
+            <TouchableOpacity
+              className="bg-primary rounded-lg py-4 items-center flex-1"
+              onPress={() =>
+                router.push({
+                  pathname: "/(payment)",
+                  params: { paymentUrl: order.payment_transaction.gateway_ref },
+                })
+              }
+            >
+              <Text className="text-white font-bold text-base">Pay Order</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
       {order.status.toLowerCase() === "delivered" && (
         <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">

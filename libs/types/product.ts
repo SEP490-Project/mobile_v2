@@ -26,7 +26,7 @@ export interface Variant {
   capacity_unit: string;
   container_type: string;
   dispenser_type: string;
-  manufacture_date: string;
+  manufacturing_date?: string;
   expiry_date: string;
   instructions: string;
   uses?: string;
@@ -40,6 +40,9 @@ export interface Variant {
   length: number;
   width: number;
   attributes: Attribute[];
+  pre_order_limit?: number;
+  pre_order_count?: number;
+  max_stock?: number;
 }
 
 export interface Attribute {

@@ -242,10 +242,7 @@ const CheckoutScreen = () => {
                 {selectedAddress.full_name}
               </Text>
               <Text className="text-gray-600 mt-1">{selectedAddress.phone_number}</Text>
-              <Text className="text-gray-600 mt-2">
-                {selectedAddress.street}
-                {selectedAddress.address_line_2 ? `, ${selectedAddress.address_line_2}` : ""}
-              </Text>
+              <Text className="text-gray-600 mt-2">{selectedAddress.street}</Text>
               <Text className="text-gray-600">
                 {selectedAddress.ward_name}, {selectedAddress.district_name},{" "}
                 {selectedAddress.province_name}

@@ -22,6 +22,9 @@ const getStatusColor = (status: string) => {
     case "paid":
       return "text-green-700";
     case "delivered":
+      return "text-green-700";
+    case "confirmed":
+      return "text-blue-700";
     case "completed":
       return "text-green-700";
     case "in_transit":
@@ -45,7 +48,10 @@ const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "paid":
       return "bg-green-100";
+    case "confirmed":
+      return "bg-blue-100";
     case "delivered":
+      return "bg-green-100";
     case "completed":
       return "bg-green-100";
     case "in_transit":
@@ -79,18 +85,6 @@ function OrdersScreen() {
   const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
   const loading = useSelector((state: RootState) => state.manageOrder.loading);
   const [refreshing, setRefreshing] = React.useState(false);
-  const statusList = [
-    "all",
-    "pending",
-    "paid",
-    "confirmed",
-    "awaiting_pickup",
-    "shipped",
-    "in_transit",
-    "delivered",
-    "received",
-    "cancelled",
-  ];
 
   useFocusEffect(() => {
     dispatch(getOrdersThunk());
@@ -128,25 +122,8 @@ function OrdersScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* <FlatList
-        data={statusList}
-        keyExtractor={(item) => item}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        renderItem={({ item, index }) => {
-          return (
-            <TouchableOpacity className="bg-gray-200 px-4 py-2 mr-3 mt-4 h-full items-center">
-              <Text className="text-gray-700 font-medium">
-                {item === "all" ? "All" : getStatusText(item)}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      /> */}
-
       {/* Danh sách đơn hàng */}
-      {orderList?.data && orderList.data.length > 0 ? (
+      {orderList?.data && orderList?.data?.length > 0 ? (
         <FlatList
           data={orderList.data}
           keyExtractor={(item: OrderData) => item.id}
@@ -193,14 +170,14 @@ function OrdersScreen() {
                 <View className="flex-row items-center">
                   <MaterialIcons name="local-drink" size={20} color="#6b7280" />
                   <Text className="text-gray-600 text-sm ml-2">
-                    {item.order_items.length} item(s) •{" "}
-                    {item.order_items.reduce((sum, orderItem) => sum + orderItem.quantity, 0)} total
-                    quantity
+                    {item.order_items?.length} item(s) •{" "}
+                    {item.order_items?.reduce((sum, orderItem) => sum + orderItem.quantity, 0)}{" "}
+                    total quantity
                   </Text>
                 </View>
-                {item.order_items.length > 2 && (
+                {item.order_items?.length > 2 && (
                   <Text className="text-gray-400 text-xs mt-1 ml-7">
-                    +{item.order_items.length - 2} more items
+                    +{item.order_items?.length - 2} more items
                   </Text>
                 )}
               </View>
