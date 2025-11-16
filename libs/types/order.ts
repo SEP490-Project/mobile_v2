@@ -11,9 +11,9 @@ export interface OrderData {
   street: string;
   address_line2: string;
   city: string;
-  ghn_province_id: number;
-  ghn_district_id: number;
-  ghn_ward_code: string;
+  ghn_province_id?: number;
+  ghn_district_id?: number;
+  ghn_ward_code?: string;
   province_name: string;
   district_name: string;
   ward_name: string;
@@ -22,9 +22,23 @@ export interface OrderData {
   updated_at: string;
   order_type: string;
   is_self_picked_up: boolean;
+  payment_transaction: PaymentTransaction;
   user_note?: string;
   ghn_order_code: any;
   order_items: OrderItem[];
+}
+
+export interface PaymentTransaction {
+  id: string;
+  reference_id: string;
+  reference_type: string;
+  amount: string;
+  method: string;
+  status: string;
+  transaction_date: string;
+  gateway_ref: string;
+  gateway_id: string;
+  updated_at: string;
 }
 
 export interface OrderItem {

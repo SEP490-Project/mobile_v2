@@ -472,10 +472,10 @@ export default function ProductDetail() {
               <DetailRow label="Dispenser" value={selectedVariant.dispenser_type} />
 
               {/* Dates */}
-              {selectedVariant.manufacture_date && (
+              {selectedVariant.manufacturing_date && (
                 <DetailRow
                   label="Manufacture Date"
-                  value={new Date(selectedVariant.manufacture_date).toLocaleDateString()}
+                  value={new Date(selectedVariant.manufacturing_date).toLocaleDateString()}
                 />
               )}
               {selectedVariant.expiry_date && (

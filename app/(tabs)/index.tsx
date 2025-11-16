@@ -111,6 +111,7 @@ function Section({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
         renderItem={({ item, index }) => {
+          if (index >= 5) return null;
           return (
             <MotiView
               from={{ opacity: 0, translateY: 15 }}
@@ -215,7 +216,7 @@ function HomeScreen() {
 
       {/* Sections */}
       <Section
-        title="Latest Products"
+        title="Standard Products"
         products={productsData.filter((item) => item.type === "STANDARD")}
         delay={100}
         router={router}
