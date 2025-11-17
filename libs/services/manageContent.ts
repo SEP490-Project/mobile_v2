@@ -1,7 +1,7 @@
 import api from "../hooks/api/api";
+import { ContentFilter } from "../types/content";
 
-const manageContent = {
-  getAllContent: () => api.get("/categories"),
+export const manageContent = {
+  getAllContent: (params: ContentFilter) => api.get("/contents/public", { params }),
+  contentDetail: (id: string) => api.get(`/contents/public/${id}`),
 };
-
-export default manageContent;
