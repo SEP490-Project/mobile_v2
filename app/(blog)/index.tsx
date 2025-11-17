@@ -56,10 +56,6 @@ function BlogsScreen() {
               <Text className="text-gray-500 text-sm mb-3" numberOfLines={2}>
                 {item.description}
               </Text>
-              <TouchableOpacity className="flex-row items-center">
-                <Text className="text-rose-500 font-medium">Read More</Text>
-                <MaterialIcons name="arrow-right-alt" size={18} color="#F43F5E" />
-              </TouchableOpacity>
             </View>
           </View>
         )}

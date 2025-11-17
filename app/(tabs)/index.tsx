@@ -1,4 +1,3 @@
-import Header from "@/components/layout/Header";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
@@ -195,8 +194,6 @@ function HomeScreen() {
       style={{ paddingTop: insets.top + 10 }}
       showsVerticalScrollIndicator={false}
     >
-      <Header />
-
       {/* Categories */}
       <FlatList
         data={parentCategories}
@@ -232,7 +229,11 @@ function HomeScreen() {
 
       {/* Beauty Blog */}
       <View className="mt-6 px-4 pb-8">
-        <Text className="text-xl font-bold text-gray-800 mb-4">Beauty Blog</Text>
+        <Text className="text-xl font-bold text-gray-800 mb-4">Latest Blog</Text>
+        <TouchableOpacity className="flex-row items-center" onPress={() => router.push("/(blog)")}>
+          <Text className="text-rose-500 font-medium mr-1">See all</Text>
+          <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+        </TouchableOpacity>
         {blogPosts.map((post, i) => (
           <MotiView
             key={post.id}
@@ -246,10 +247,6 @@ function HomeScreen() {
               <Text className="text-lg font-semibold text-gray-800 mb-1" numberOfLines={2}>
                 {post.title}
               </Text>
-              <TouchableOpacity className="flex-row items-center mt-1">
-                <Text className="text-sm text-rose-500 font-medium">Read More</Text>
-                <MaterialIcons name="arrow-right-alt" size={18} color="#F43F5E" />
-              </TouchableOpacity>
             </View>
           </MotiView>
         ))}
