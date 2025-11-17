@@ -1,3 +1,4 @@
+import Header from "@/components/layout/Header";
 import { HapticTab } from "@/components/ui";
 import TabBarBackground from "@/components/ui/tab-bar-background";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -10,7 +11,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#ff9fb2",
-        headerShown: false,
+        headerShown: true,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -23,22 +24,15 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          header: () => <Header />,
           tabBarIcon: ({ color, size }) => <MaterialIcons name="home" color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="blogs"
-        options={{
-          title: "Blogs",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="newspaper" color={color} size={size} />
-          ),
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
           title: "Orders",
+          header: () => <Header />,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="receipt-long" color={color} size={size} />
           ),
@@ -48,6 +42,7 @@ export default function TabLayout() {
         name="account"
         options={{
           title: "Account",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="account-circle" color={color} size={size} />
           ),

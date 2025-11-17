@@ -11,10 +11,16 @@ export default function Header() {
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <View className="px-4 pb-4 flex-row items-center justify-between border-b border-gray-200">
+    <View
+      className="px-4 pb-4 flex-row items-center justify-between border-b border-gray-200 bg-white"
+      style={{ paddingTop: 50 }}
+    >
       <Text className="text-3xl font-extrabold text-primary">B-ShowSell</Text>
       <View className="flex-row gap-2">
-        <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
+        <TouchableOpacity
+          className="p-2 bg-gray-100 rounded-full"
+          onPress={() => router.push("/(search)")}
+        >
           <MaterialIcons name="search" size={24} color="#4B5563" />
         </TouchableOpacity>
         <TouchableOpacity

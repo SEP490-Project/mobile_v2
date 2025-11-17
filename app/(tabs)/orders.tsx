@@ -126,14 +126,6 @@ function OrdersScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
-        <Text className="text-2xl font-extrabold text-gray-900">My Orders</Text>
-        <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-          <MaterialIcons name="shopping-bag" size={22} color="#4B5563" />
-        </TouchableOpacity>
-      </View>
-
       {/* <FlatList
         data={statusList}
         keyExtractor={(item) => item}
