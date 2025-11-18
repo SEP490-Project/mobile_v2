@@ -1,8 +1,11 @@
 import { Response } from "@/libs/types/common";
 import { OrderData, PlaceOrderAndPayResponse } from "@/libs/types/order";
+import { PreOrderData } from "@/libs/types/pre-order";
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  createPreOrderThunk,
   getOrdersThunk,
+  getPreOrdersThunk,
   placeOrderAndPayForLimitedProductThunk,
   placeOrderAndPayThunk,
   receiveOrderThunk,
@@ -12,6 +15,7 @@ const orderManagerSlice = createSlice({
   name: "orderManager",
   initialState: {
     orderList: null as Response<OrderData[]> | null,
+    preOrderList: null as Response<PreOrderData[]> | null,
     payOrderResult: null as Response<PlaceOrderAndPayResponse> | null,
     loading: false,
     error: null as string | null,
@@ -67,6 +71,32 @@ const orderManagerSlice = createSlice({
         state.error = null;
       })
       .addCase(receiveOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(createPreOrderThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPreOrderThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.payOrderResult = action.payload;
+        state.error = null;
+      })
+      .addCase(createPreOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getPreOrdersThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getPreOrdersThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.preOrderList = action.payload;
+        state.error = null;
+      })
+      .addCase(getPreOrdersThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
