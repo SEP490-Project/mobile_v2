@@ -5,7 +5,15 @@ import { contentDetail } from "@/libs/stores/contentManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function BlogDetailScreen() {
@@ -19,6 +27,18 @@ function BlogDetailScreen() {
       dispatch(contentDetail(id));
     }
   }, [id, dispatch]);
+
+  // Share blog link
+  const onShare = async () => {
+    try {
+      const url = `https://bshowsell.site/blog/${id}`;
+      await Share.share({
+        message: `Check out this blog: ${content?.title}\n${url}`,
+      });
+    } catch (error: any) {
+      console.error("Error sharing content:", error.message);
+    }
+  };
 
   // Calculate time ago from created_at
   const getTimeAgo = (dateString: string) => {
@@ -67,11 +87,8 @@ function BlogDetailScreen() {
             </Text>
           </View>
           <View className="flex-row">
-            <TouchableOpacity className="p-2 bg-gray-100 rounded-full mr-2">
+            <TouchableOpacity className="p-2 bg-gray-100 rounded-full mr-2" onPress={onShare}>
               <MaterialIcons name="share" size={20} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-              <MaterialIcons name="bookmark-border" size={20} color="#4B5563" />
             </TouchableOpacity>
           </View>
         </View>
