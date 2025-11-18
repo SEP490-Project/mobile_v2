@@ -1,6 +1,7 @@
 import manageOrder from "@/libs/services/manageOrder";
 import { Response } from "@/libs/types/common";
 import { OrderData, PlaceOrderAndPayResponse } from "@/libs/types/order";
+import { PreOrderData } from "@/libs/types/pre-order";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 const getOrdersThunk = createAsyncThunk(
@@ -53,8 +54,34 @@ const receiveOrderThunk = createAsyncThunk(
   },
 );
 
+const createPreOrderThunk = createAsyncThunk(
+  "orderManager/createPreOrder",
+  async (payload: any, { rejectWithValue }) => {
+    try {
+      const response = await manageOrder.createAPreoOrder(payload);
+      return response.data as Response<PlaceOrderAndPayResponse>;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to create pre-order");
+    }
+  },
+);
+
+const getPreOrdersThunk = createAsyncThunk(
+  "orderManager/getPreOrders",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await manageOrder.getPreOrders();
+      return response.data as Response<PreOrderData[]>;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch pre-orders");
+    }
+  },
+);
+
 export {
+  createPreOrderThunk,
   getOrdersThunk,
+  getPreOrdersThunk,
   placeOrderAndPayForLimitedProductThunk,
   placeOrderAndPayThunk,
   receiveOrderThunk,
