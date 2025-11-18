@@ -37,6 +37,8 @@ export default function ProductDetail() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
 
+  const currentDate = new Date();
+
   // Setup video player for concept video
   const conceptVideoUrl = productDetail?.concept?.video_thumbnail;
   const videoPlayer = useVideoPlayer(conceptVideoUrl || "", (player) => {
@@ -89,6 +91,20 @@ export default function ProductDetail() {
         productId: productDetail.id,
         variantId: selectedVariant.id,
         quantity: quantity.toString(),
+      },
+    });
+  };
+
+  const handlePreOrder = () => {
+    if (!productDetail || !selectedVariant) return;
+
+    router.push({
+      pathname: "/(checkout)",
+      params: {
+        productId: productDetail.id,
+        variantId: selectedVariant.id,
+        quantity: quantity.toString(),
+        type: "preorder",
       },
     });
   };
@@ -356,7 +372,11 @@ export default function ProductDetail() {
                       selectedVariant.current_stock > 10 ? "text-green-600" : "text-orange-600"
                     }`}
                   >
-                    {selectedVariant.current_stock} available
+                    {currentDate >= new Date(productDetail.limited_product.availability_start_date)
+                      ? selectedVariant.current_stock
+                      : Number(selectedVariant.pre_order_limit || 0) -
+                        Number(selectedVariant.pre_order_count || 0)}{" "}
+                    available
                   </Text>
                 </View>
               )}
@@ -537,30 +557,53 @@ export default function ProductDetail() {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="px-4 py-4 border-t border-gray-100 bg-white">
-        <View className="flex-row gap-3">
-          {!isLimitedEdition && (
-            <TouchableOpacity
-              onPress={handleAddToCart}
-              className="flex-1 bg-white border-2 border-rose-500 rounded-xl py-4 items-center justify-center"
-              activeOpacity={0.7}
-            >
-              <Text className="text-rose-500 font-bold text-base">Add to Cart</Text>
-            </TouchableOpacity>
-          )}
+      {productDetail.type === "STANDARD" ||
+      (currentDate >= new Date(productDetail.limited_product.availability_start_date) &&
+        isLimitedEdition) ? (
+        <View className="px-4 py-4 border-t border-gray-100 bg-white">
+          <View className="flex-row gap-3">
+            {!isLimitedEdition && (
+              <TouchableOpacity
+                onPress={handleAddToCart}
+                className="flex-1 bg-white border-2 border-rose-500 rounded-xl py-4 items-center justify-center"
+                activeOpacity={0.7}
+              >
+                <Text className="text-rose-500 font-bold text-base">Add to Cart</Text>
+              </TouchableOpacity>
+            )}
 
-          <TouchableOpacity
-            onPress={handleBuyNow}
-            className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
-            activeOpacity={0.7}
-            // disabled={!selectedVariant || selectedVariant.current_stock === 0}
-          >
-            <Text className="text-white font-bold text-base">
-              {isLimitedEdition ? "Buy Now" : "Checkout Now"}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleBuyNow}
+              className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
+              activeOpacity={0.7}
+              disabled={
+                isLimitedEdition
+                  ? Number(selectedVariant?.current_stock) > Number(selectedVariant?.max_stock)
+                  : false
+              }
+            >
+              <Text className="text-white font-bold text-base">
+                {isLimitedEdition ? "Buy Now" : "Checkout Now"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      ) : (
+        <View className="px-4 py-4 border-t border-gray-100 bg-white">
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={handlePreOrder}
+              className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
+              activeOpacity={0.7}
+              disabled={
+                Number(selectedVariant?.pre_order_count) > Number(selectedVariant?.pre_order_limit)
+              }
+            >
+              <Text className="text-white font-bold text-base">Pre-order</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

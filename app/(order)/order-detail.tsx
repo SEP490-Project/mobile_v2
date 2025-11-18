@@ -192,40 +192,6 @@ const OrderDetailScreen = () => {
           ))}
         </View>
 
-        {/* Order Summary */}
-        <View className="bg-white px-4 py-4 mb-2">
-          <View className="flex-row items-center mb-3">
-            <MaterialIcons name="receipt" size={20} color="#ff9fb2" />
-            <Text className="text-lg font-bold text-gray-800 ml-2">Order Summary</Text>
-          </View>
-          <View className="space-y-2">
-            <View className="flex-row justify-between py-2">
-              <Text className="text-gray-600">
-                Subtotal ({order.order_items.reduce((sum, item) => sum + item.quantity, 0)} items)
-              </Text>
-              <Text className="text-gray-800 font-medium">
-                {convertNumberToVND(
-                  order.order_items.reduce((sum, item) => sum + item.subtotal, 0),
-                )}
-              </Text>
-            </View>
-            <View className="flex-row justify-between py-2">
-              <Text className="text-gray-600">Shipping Fee</Text>
-              <Text className="text-gray-800 font-medium">
-                {convertNumberToVND(order.shipping_fee)}
-              </Text>
-            </View>
-            <View className="border-t border-gray-200 pt-2 mt-2">
-              <View className="flex-row justify-between">
-                <Text className="text-lg font-bold text-gray-800">Total</Text>
-                <Text className="text-lg font-bold text-primary">
-                  {convertNumberToVND(order.total_amount + order.shipping_fee)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
         {/* Payment Transaction */}
         <View className="bg-white px-4 py-4 mb-4">
           <View className="flex-row items-center mb-3">
@@ -233,6 +199,12 @@ const OrderDetailScreen = () => {
             <Text className="text-lg font-bold text-gray-800 ml-2">Payment Information</Text>
           </View>
           <View className="space-y-2">
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Id</Text>
+              <Text className="text-gray-800 font-medium capitalize">
+                #{order.payment_transaction.id.slice(0, 8)}
+              </Text>
+            </View>
             <View className="flex-row justify-between py-2">
               <Text className="text-gray-600">Payment Method</Text>
               <Text className="text-gray-800 font-medium capitalize">
@@ -274,6 +246,40 @@ const OrderDetailScreen = () => {
                   minute: "2-digit",
                 })}
               </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Order Summary */}
+        <View className="bg-white px-4 py-4 mb-2">
+          <View className="flex-row items-center mb-3">
+            <MaterialIcons name="receipt" size={20} color="#ff9fb2" />
+            <Text className="text-lg font-bold text-gray-800 ml-2">Order Summary</Text>
+          </View>
+          <View className="space-y-2">
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">
+                Subtotal ({order.order_items.reduce((sum, item) => sum + item.quantity, 0)} items)
+              </Text>
+              <Text className="text-gray-800 font-medium">
+                {convertNumberToVND(
+                  order.order_items.reduce((sum, item) => sum + item.subtotal, 0),
+                )}
+              </Text>
+            </View>
+            <View className="flex-row justify-between py-2">
+              <Text className="text-gray-600">Shipping Fee</Text>
+              <Text className="text-gray-800 font-medium">
+                {convertNumberToVND(order.shipping_fee)}
+              </Text>
+            </View>
+            <View className="border-t border-gray-200 pt-2 mt-2">
+              <View className="flex-row justify-between">
+                <Text className="text-lg font-bold text-gray-800">Total</Text>
+                <Text className="text-lg font-bold text-primary">
+                  {convertNumberToVND(order.total_amount + order.shipping_fee)}
+                </Text>
+              </View>
             </View>
           </View>
         </View>

@@ -4,11 +4,16 @@ import { clearCart } from "@/libs/stores/cartManager/slice";
 import { caculateDeliveryFeeThunk } from "@/libs/stores/ghnServiceManager/thunk";
 import { getShippingAddressesThunk } from "@/libs/stores/locationManager/thunk";
 import {
+  createPreOrderThunk,
   placeOrderAndPayForLimitedProductThunk,
   placeOrderAndPayThunk,
 } from "@/libs/stores/orderManager/thunk";
 import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
-import { CreateOrderPayload, CreateOrderPayloadItem } from "@/libs/types/order";
+import {
+  CreateOrderPayload,
+  CreateOrderPayloadItem,
+  CreatePreOrderPayload,
+} from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -28,11 +33,11 @@ import { useSelector } from "react-redux";
 const CheckoutScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { productId, variantId, quantity } = useLocalSearchParams();
+  const { productId, variantId, quantity, type } = useLocalSearchParams();
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
 
-  // Determine if this is a "Buy Now" checkout or "Cart" checkout
   const isBuyNowCheckout = !!(productId && variantId && quantity);
+  const isPreOrderCheckout = type === "preorder";
 
   const productDetail = useSelector((state: RootState) => state.manageProducts.productDetail?.data);
   const { deliveryFee, loading: ghnLoading } = useSelector(
@@ -182,6 +187,64 @@ const CheckoutScreen = () => {
       }
     } catch (error: any) {
       Alert.alert("Error", error || "Failed to place order");
+    }
+  };
+
+  const handlePreOrder = async () => {
+    if (!selectedAddress) {
+      Alert.alert("Error", "Please select a delivery address");
+      return;
+    }
+
+    if (!variantId) {
+      Alert.alert("Error", "No product variant selected");
+      return;
+    }
+
+    const payload: CreatePreOrderPayload = {
+      address_id: selectedAddress.id,
+      cancel_url: "https://example.com/cancel",
+      success_url: "https://example.com/success",
+      is_self_pickup: isSelfPickup,
+      variant_id: variantId as string,
+      user_note: userNote,
+    };
+
+    console.log("Pre-order payload:", payload);
+
+    try {
+      const result = await dispatch(createPreOrderThunk(payload)).unwrap();
+
+      // Check if payment URL exists in response
+      if (result?.data?.payment_tx?.checkoutUrl) {
+        const paymentUrl = result.data.payment_tx.checkoutUrl;
+        Alert.alert(
+          "Pre-Order Created!",
+          "Your pre-order has been created. You will be redirected to payment.",
+          [
+            {
+              text: "Pay Now",
+              onPress: () => {
+                router.push({ pathname: "/(payment)", params: { paymentUrl } });
+              },
+            },
+            {
+              text: "Pay Later",
+              style: "cancel",
+              onPress: () => router.push("/(tabs)/orders"),
+            },
+          ],
+        );
+      } else {
+        Alert.alert("Success", "Pre-order placed successfully!", [
+          {
+            text: "OK",
+            onPress: () => router.push("/(tabs)/orders"),
+          },
+        ]);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error || "Failed to place pre-order");
     }
   };
 
@@ -366,14 +429,14 @@ const CheckoutScreen = () => {
           className={`rounded-lg py-4 items-center ${
             orderLoading || !selectedAddress ? "bg-gray-300" : "bg-primary"
           }`}
-          onPress={handlePlaceOrder}
+          onPress={isPreOrderCheckout ? handlePreOrder : handlePlaceOrder}
           disabled={orderLoading || !selectedAddress}
         >
           {orderLoading ? (
             <ActivityIndicator size="large" color="#ff9fb2" />
           ) : (
             <Text className="text-white font-bold text-lg">
-              Place Order -{" "}
+              {isPreOrderCheckout ? "Place Pre-Order" : "Place Order"} -{" "}
               {isSelfPickup || productDetail?.type === "LIMITED"
                 ? convertNumberToVND(total - shippingFee)
                 : convertNumberToVND(total)}

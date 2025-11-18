@@ -38,9 +38,9 @@ const PaymentWebViewScreen = () => {
           />
         )}
         onNavigationStateChange={(navState) => {
-          if (navState.url.includes("payment-success")) {
+          if (navState.url.includes("success")) {
             router.replace("/payment-success");
-          } else if (navState.url.includes("payment-failed")) {
+          } else if (navState.url.includes("cancel")) {
             router.replace("/payment-failed");
           }
         }}
