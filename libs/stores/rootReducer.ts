@@ -2,6 +2,7 @@ import { combineReducers } from "@reduxjs/toolkit";
 import { manageAuthenReducer } from "./authenManager/slice";
 import { manageCartReducer } from "./cartManager/slice";
 import { manageCategoriesReducer } from "./categoryManager/slice";
+import { manageContentReducer } from "./contentManager/slice";
 import { ghnServiceManagerReducer } from "./ghnServiceManager/slice";
 import { manageLocationReducer } from "./locationManager/slice";
 import { manageOrderReducer } from "./orderManager/slice";
@@ -17,4 +18,5 @@ export const rootReducer = combineReducers({
   manageLocation: manageLocationReducer,
   manageGhnService: ghnServiceManagerReducer,
   manageOrder: manageOrderReducer,
+  manageContent: manageContentReducer,
 });

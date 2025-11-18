@@ -86,6 +86,15 @@ export interface CreateOrderPayloadOrder {
   user_note?: string;
 }
 
+export interface CreatePreOrderPayload {
+  address_id: string;
+  cancel_url?: string;
+  success_url?: string;
+  is_self_pickup: boolean;
+  variant_id: string;
+  user_note?: string;
+}
+
 export interface CreateOrderPayloadItem {
   height: number;
   length: number;

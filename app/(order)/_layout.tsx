@@ -5,6 +5,7 @@ const OrderLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="order-detail" options={{ headerShown: false }} />
+      <Stack.Screen name="pre-order-detail" options={{ headerShown: false }} />
     </Stack>
   );
 };
