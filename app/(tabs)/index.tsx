@@ -1,9 +1,11 @@
-import Header from "@/components/layout/Header";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
+import { useContent } from "@/libs/hooks/useContent";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
+import { getAllContents } from "@/libs/stores/contentManager/thunk";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
 import { Category } from "@/libs/types/category";
+import { ListContent } from "@/libs/types/content";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -20,28 +22,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-
-// --- Dữ liệu ---
-const blogPosts = [
-  {
-    id: "1",
-    title: "How to Build a Simple Skincare Routine",
-    image:
-      "https://theorganiccompoundingpharmacy.com/cdn/shop/articles/How_to_Build_a_Simple_Skincare_Routine_for_Beginners.png?v=1737490654&width=480",
-  },
-  {
-    id: "2",
-    title: "Top 5 Makeup Trends of 2025",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPAgEcdWsdoPpihyfXEqQBdpnWkriNEh1COA&s",
-  },
-  {
-    id: "3",
-    title: "Haircare Secrets from Professionals",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOdR5A8qlKaImozYZTXFDf3U7UtyGVkcP2Bw&s",
-  },
-];
 
 // --- Category Item ---
 function CategoryItem({
@@ -166,6 +146,7 @@ function HomeScreen() {
   const { loading: categoriesLoading, categories } = useSelector(
     (state: RootState) => state.manageCategories,
   );
+  const { contents } = useContent();
 
   const productsData: Product[] = products?.data || [];
   const categoriesData: Category[] = categories?.data || [];
@@ -175,10 +156,15 @@ function HomeScreen() {
 
   useFocusEffect(() => {
     dispatch(getAllProductsThunk());
-  });
-
-  useFocusEffect(() => {
     dispatch(getAllCategoriesThunk());
+    dispatch(
+      getAllContents({
+        page: 1,
+        limit: 5,
+        sort_by: "created_at",
+        sort_order: "desc",
+      }),
+    );
   });
 
   if (productsLoading && categoriesLoading) {
@@ -195,8 +181,6 @@ function HomeScreen() {
       style={{ paddingTop: insets.top + 10 }}
       showsVerticalScrollIndicator={false}
     >
-      <Header />
-
       {/* Categories */}
       <FlatList
         data={parentCategories}
@@ -231,28 +215,68 @@ function HomeScreen() {
       />
 
       {/* Beauty Blog */}
-      <View className="mt-6 px-4 pb-8">
-        <Text className="text-xl font-bold text-gray-800 mb-4">Beauty Blog</Text>
-        {blogPosts.map((post, i) => (
-          <MotiView
-            key={post.id}
-            from={{ opacity: 0, translateY: 10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: i * 150, type: "timing" }}
-            className="flex-row items-center mb-4 bg-white rounded-xl p-3 border border-gray-100 shadow-sm"
+      <View className="mt-6 pb-8">
+        <View className="flex-row justify-between items-center px-4 mb-3">
+          <Text className="text-xl font-bold text-gray-800">Latest Blog</Text>
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() => router.push("/(blog)")}
           >
-            <Image source={{ uri: post.image }} className="w-24 h-24 rounded-lg mr-4" />
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800 mb-1" numberOfLines={2}>
-                {post.title}
-              </Text>
-              <TouchableOpacity className="flex-row items-center mt-1">
-                <Text className="text-sm text-rose-500 font-medium">Read More</Text>
-                <MaterialIcons name="arrow-right-alt" size={18} color="#F43F5E" />
-              </TouchableOpacity>
-            </View>
-          </MotiView>
-        ))}
+            <Text className="text-rose-500 font-medium mr-1">See all</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={contents || []}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          renderItem={({ item, index }: { item: ListContent; index: number }) => {
+            // Calculate time ago from created_at
+            const getTimeAgo = (dateString: string) => {
+              const now = new Date();
+              const createdDate = new Date(dateString);
+              const diffInMs = now.getTime() - createdDate.getTime();
+              const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+              const diffInDays = Math.floor(diffInHours / 24);
+
+              if (diffInHours < 1) return "Just now";
+              if (diffInHours < 24) return `${diffInHours}H ago`;
+              if (diffInDays < 7) return `${diffInDays}D ago`;
+              return `${Math.floor(diffInDays / 7)}W ago`;
+            };
+
+            return (
+              <MotiView
+                from={{ opacity: 0, translateY: 15 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ delay: 700 + index * 120, type: "timing" }}
+                className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-64"
+              >
+                <TouchableOpacity
+                  onPress={() => router.push({ pathname: "/(blog)/[id]", params: { id: item.id } })}
+                  className="relative"
+                >
+                  <Image
+                    source={{ uri: item.thumbnail_url || "https://via.placeholder.com/300x200" }}
+                    className="w-full h-40 rounded-lg mb-3"
+                  />
+                  <Text numberOfLines={2} className="font-semibold text-gray-800 text-base mb-2">
+                    {item.title}
+                  </Text>
+                  <View className="flex-row items-center">
+                    <MaterialIcons name="access-time" size={16} color="#9CA3AF" />
+                    <Text className="text-gray-500 text-sm ml-1">
+                      {getTimeAgo(item.created_at)}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </MotiView>
+            );
+          }}
+        />
       </View>
     </ScrollView>
   );
