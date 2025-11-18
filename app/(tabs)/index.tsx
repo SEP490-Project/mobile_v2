@@ -178,7 +178,7 @@ function HomeScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white"
-      style={{ paddingTop: insets.top + 10 }}
+      // style={{ paddingTop: insets.top + 10 }}
       showsVerticalScrollIndicator={false}
     >
       {/* Categories */}
