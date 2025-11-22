@@ -8,6 +8,18 @@ import WebView from "react-native-webview";
 const PaymentWebViewScreen = () => {
   const router = useRouter();
   const { paymentUrl } = useLocalSearchParams();
+
+  const handleDeepLink = (url: string) => {
+    if (url.startsWith("b-showsell://payment-success")) {
+      router.replace("/payment-success");
+      return true;
+    } else if (url.startsWith("b-showsell://payment-failed")) {
+      router.replace("/payment-failed");
+      return true;
+    }
+    return false;
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View
@@ -29,6 +41,7 @@ const PaymentWebViewScreen = () => {
 
       <WebView
         source={{ uri: paymentUrl as string }}
+        originWhitelist={["*"]}
         startInLoadingState
         renderLoading={() => (
           <ActivityIndicator
@@ -37,12 +50,11 @@ const PaymentWebViewScreen = () => {
             color="#ff9fb2"
           />
         )}
-        onNavigationStateChange={(navState) => {
-          if (navState.url.includes("success")) {
-            router.replace("/payment-success");
-          } else if (navState.url.includes("cancel")) {
-            router.replace("/payment-failed");
+        onShouldStartLoadWithRequest={(request) => {
+          if (handleDeepLink(request.url)) {
+            return false;
           }
+          return true;
         }}
       />
     </SafeAreaView>
