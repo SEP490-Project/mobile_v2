@@ -135,8 +135,8 @@ const CheckoutScreen = () => {
     }));
 
     const payload: CreateOrderPayload = {
-      cancel_url: "payment-failed",
-      success_url: "payment-success",
+      cancel_url: "b-showsell://payment-failed",
+      success_url: "b-showsell://payment-success",
       order: {
         is_self_pickup: isSelfPickup,
         user_note: userNote,
@@ -203,8 +203,8 @@ const CheckoutScreen = () => {
 
     const payload: CreatePreOrderPayload = {
       address_id: selectedAddress.id,
-      cancel_url: "https://example.com/cancel",
-      success_url: "https://example.com/success",
+      cancel_url: "b-showsell://payment-failed",
+      success_url: "b-showsell://payment-success",
       is_self_pickup: isSelfPickup,
       variant_id: variantId as string,
       user_note: userNote,
