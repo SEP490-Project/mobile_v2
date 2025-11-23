@@ -14,10 +14,9 @@ import "../global.css";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
     shouldShowBanner: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
     shouldShowList: true,
   }),
 });
