@@ -129,7 +129,7 @@ function BlogsScreen() {
         emptyText="No blogs found"
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => router.push({ pathname: "/(blog)/[id]", params: { id: item.id } })}
+            onPress={() => router.push({ pathname: "/blog/[id]", params: { id: item.id } })}
             activeOpacity={0.7}
           >
             <View className="bg-white mb-4 rounded-xl shadow-sm border border-gray-100 overflow-hidden">

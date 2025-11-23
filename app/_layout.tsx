@@ -22,6 +22,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
+export const unstable_settings = {
+  initialRouteName: "(tabs)",
+};
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     Montserrat: require("../assets/fonts/Montserrat-Regular.ttf"),
@@ -47,7 +51,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(product)" options={{ headerShown: false }} />
               <Stack.Screen name="(search)" options={{ headerShown: false }} />
-              <Stack.Screen name="(blog)" options={{ headerShown: false }} />
+              <Stack.Screen name="blog" options={{ headerShown: false }} />
               <Stack.Screen name="(cart)" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(user)" options={{ headerShown: false }} />

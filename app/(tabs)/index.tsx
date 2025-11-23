@@ -218,10 +218,7 @@ function HomeScreen() {
       <View className="mt-6 pb-8">
         <View className="flex-row justify-between items-center px-4 mb-3">
           <Text className="text-xl font-bold text-gray-800">Latest Blog</Text>
-          <TouchableOpacity
-            className="flex-row items-center"
-            onPress={() => router.push("/(blog)")}
-          >
+          <TouchableOpacity className="flex-row items-center" onPress={() => router.push("/blog")}>
             <Text className="text-rose-500 font-medium mr-1">See all</Text>
             <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
           </TouchableOpacity>
@@ -256,7 +253,7 @@ function HomeScreen() {
                 className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-64"
               >
                 <TouchableOpacity
-                  onPress={() => router.push({ pathname: "/(blog)/[id]", params: { id: item.id } })}
+                  onPress={() => router.push({ pathname: "/blog/[id]", params: { id: item.id } })}
                   className="relative"
                 >
                   <Image
