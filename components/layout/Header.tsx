@@ -1,3 +1,4 @@
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { RootState } from "@/libs/stores";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -9,6 +10,7 @@ export default function Header() {
   const router = useRouter();
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const { isAuthenticated } = useAuth();
 
   return (
     <View
@@ -37,6 +39,14 @@ export default function Header() {
             </View>
           )}
         </TouchableOpacity>
+        {/* {isAuthenticated && ( */}
+        <TouchableOpacity
+          className="p-2 bg-gray-100 rounded-full"
+          onPress={() => router.push("/(notification)")}
+        >
+          <MaterialIcons name="notifications-none" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        {/* )} */}
       </View>
     </View>
   );

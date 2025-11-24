@@ -1,17 +1,31 @@
+// _layout.tsx
+// <-- IMPORTANT: ensure EventSource polyfill runs BEFORE other imports that may use SSE.
+// We import and set global.EventSource here before anything else that might rely on it.
+import "react-native-gesture-handler";
+
+// Polyfill EventSource for SSE (react-native-sse)
+//  - requires: yarn add react-native-sse
+//  - If you're on Expo managed workflow, you must EAS build after adding this native dependency.
+import EventSource from "react-native-sse";
+
+// --- rest of your imports
 import ReduxProvider from "@/app/provider";
 import { NotificationProvider } from "@/libs/context/notificationContext";
 import { SessionInitializer } from "@/libs/hooks/api/sessionInitializer";
 import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
 import * as Notifications from "expo-notifications";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import "react-native-gesture-handler";
+import { useEffect, useRef, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
+if (!(global as any).EventSource) {
+  (global as any).EventSource = EventSource;
+}
 
+// Notification display policy
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -32,6 +46,10 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
+  const router = useRouter();
+  const pendingPathRef = useRef<string | null>(null);
+  const [triedPending, setTriedPending] = useState(false);
+
   useEffect(() => {
     const setupNavBar = async () => {
       await NavigationBar.setButtonStyleAsync("dark");
@@ -39,17 +57,137 @@ export default function RootLayout() {
     setupNavBar();
   }, []);
 
+  useEffect(() => {
+    const tryNavigatePending = async () => {
+      const path = pendingPathRef.current;
+      if (!path) return;
+      if (!loaded) {
+        return;
+      }
+
+      await new Promise((res) => setTimeout(res, 300));
+
+      try {
+        console.log("[notification] attempting pending navigation to:", path);
+        router.push(path);
+        pendingPathRef.current = null;
+        setTriedPending(true);
+      } catch (err) {
+        console.warn("[notification] retry navigation failed, will try again soon", err);
+        setTimeout(() => {
+          if (pendingPathRef.current && !triedPending) {
+            try {
+              router.push(pendingPathRef.current!);
+              pendingPathRef.current = null;
+              setTriedPending(true);
+            } catch (e) {
+              console.warn("[notification] second retry failed", e);
+            }
+          }
+        }, 500);
+      }
+    };
+
+    tryNavigatePending();
+  }, [loaded, router, triedPending]);
+
+  useEffect(() => {
+    const safeNavigate = (path: string | null) => {
+      if (!path) return;
+      if (!loaded) {
+        console.log("[notification] saved pending path (fonts not ready):", path);
+        pendingPathRef.current = path;
+        return;
+      }
+      try {
+        console.log("[notification] navigate immediately to:", path);
+        router.push(path);
+      } catch (err) {
+        console.warn("[notification] immediate navigation failed, save pending", err);
+        pendingPathRef.current = path;
+      }
+    };
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      try {
+        const data = response?.notification?.request?.content?.data ?? {};
+        if (data.path) {
+          safeNavigate(String(data.path));
+          return;
+        }
+        if (data.screen) {
+          const { screen, ...params } = data;
+          const searchParams = new URLSearchParams(
+            Object.entries(params).reduce(
+              (acc, [k, v]) => {
+                if (v === undefined || v === null) return acc;
+                acc[k] = String(v);
+                return acc;
+              },
+              {} as Record<string, string>,
+            ),
+          );
+          const query = Object.keys(params).length ? "?" + searchParams.toString() : "";
+          safeNavigate(`${screen}${query}`);
+        }
+      } catch (err) {
+        console.warn("Error handling notification response", err);
+      }
+    });
+
+    (async () => {
+      try {
+        const lastResponse = await Notifications.getLastNotificationResponseAsync();
+        if (lastResponse) {
+          const data = lastResponse?.notification?.request?.content?.data ?? {};
+          if (data.path) {
+            console.log("[notification] coldstart - got lastResponse.path:", data.path);
+            pendingPathRef.current = String(data.path);
+            return;
+          }
+          if (data.screen) {
+            const { screen, ...params } = data;
+            const query = Object.keys(params).length
+              ? "?" +
+                new URLSearchParams(
+                  Object.entries(params).reduce(
+                    (acc, [k, v]) => {
+                      if (v === undefined || v === null) return acc;
+                      acc[k] = String(v);
+                      return acc;
+                    },
+                    {} as Record<string, string>,
+                  ),
+                ).toString()
+              : "";
+            pendingPathRef.current = `${screen}${query}`;
+            console.log("[notification] coldstart - saved pending screen:", pendingPathRef.current);
+          }
+        }
+      } catch (err) {
+        console.warn("Error getting last notification response", err);
+      }
+    })();
+
+    return () => {
+      responseListener.remove();
+    };
+  }, [router, loaded]);
+
   if (!loaded) return null;
 
   return (
     <SafeAreaProvider>
       <ReduxProvider>
+        {/* NotificationProvider hiện tại trong libs/context/notificationContext.tsx
+            Provider mới phải được thay thế bằng file mình đã dán trước đó để hỗ trợ SSE (react-native-sse). */}
         <NotificationProvider>
           <SessionInitializer>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(product)" options={{ headerShown: false }} />
               <Stack.Screen name="(search)" options={{ headerShown: false }} />
+              <Stack.Screen name="(notification)" options={{ headerShown: false }} />
               <Stack.Screen name="blog" options={{ headerShown: false }} />
               <Stack.Screen name="(cart)" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />

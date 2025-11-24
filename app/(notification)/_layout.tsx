@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
+import React from "react";
 
-const BlogLayout = () => {
+const NotificationLayout = () => {
   return (
     <Stack
       screenOptions={{
@@ -12,10 +13,10 @@ const BlogLayout = () => {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Blogs" }} />
-      <Stack.Screen name="[id]" />
+      <Stack.Screen name="index" options={{ title: "My Notifications" }} />
+      <Stack.Screen name="[id]" options={{ title: "Detail" }} />
     </Stack>
   );
 };
 
-export default BlogLayout;
+export default NotificationLayout;
