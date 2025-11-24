@@ -78,6 +78,32 @@ const getPreOrdersThunk = createAsyncThunk(
   },
 );
 
+const requestCompensateOrderThunk = createAsyncThunk(
+  "orderManager/requestCompensateOrder",
+  async (orderId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageOrder.requestCompensateOrder(orderId);
+      return response.data as any;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to request order compensation",
+      );
+    }
+  },
+);
+
+const requestRefundOrderThunk = createAsyncThunk(
+  "orderManager/requestRefundOrder",
+  async (orderId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageOrder.requestRefundOrder(orderId);
+      return response.data as any;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to request order refund");
+    }
+  },
+);
+
 export {
   createPreOrderThunk,
   getOrdersThunk,
@@ -85,4 +111,6 @@ export {
   placeOrderAndPayForLimitedProductThunk,
   placeOrderAndPayThunk,
   receiveOrderThunk,
+  requestCompensateOrderThunk,
+  requestRefundOrderThunk,
 };
