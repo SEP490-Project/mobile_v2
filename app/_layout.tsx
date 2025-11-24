@@ -6,7 +6,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -47,9 +47,7 @@ export default function RootLayout() {
     const tryNavigatePending = async () => {
       const path = pendingPathRef.current;
       if (!path) return;
-      if (!loaded) {
-        return;
-      }
+      if (!loaded) return;
 
       await new Promise((res) => setTimeout(res, 300));
 
@@ -77,8 +75,8 @@ export default function RootLayout() {
     tryNavigatePending();
   }, [loaded, router, triedPending]);
 
-  useEffect(() => {
-    const safeNavigate = (path: string | null) => {
+  const safeNavigate = useCallback(
+    (path: string | null) => {
       if (!path) return;
       if (!loaded) {
         console.log("[notification] saved pending path (fonts not ready):", path);
@@ -92,8 +90,11 @@ export default function RootLayout() {
         console.warn("[notification] immediate navigation failed, save pending", err);
         pendingPathRef.current = path;
       }
-    };
+    },
+    [loaded, router],
+  );
 
+  useEffect(() => {
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       try {
         const data = response?.notification?.request?.content?.data ?? {};
@@ -158,14 +159,14 @@ export default function RootLayout() {
     return () => {
       responseListener.remove();
     };
-  }, [router, loaded]);
+  }, [safeNavigate]);
 
   if (!loaded) return null;
 
   return (
     <SafeAreaProvider>
       <ReduxProvider>
-        <NotificationProvider>
+        <NotificationProvider onNavigate={(path) => safeNavigate(path)}>
           <SessionInitializer>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
