@@ -1,14 +1,3 @@
-// _layout.tsx
-// <-- IMPORTANT: ensure EventSource polyfill runs BEFORE other imports that may use SSE.
-// We import and set global.EventSource here before anything else that might rely on it.
-import "react-native-gesture-handler";
-
-// Polyfill EventSource for SSE (react-native-sse)
-//  - requires: yarn add react-native-sse
-//  - If you're on Expo managed workflow, you must EAS build after adding this native dependency.
-import EventSource from "react-native-sse";
-
-// --- rest of your imports
 import ReduxProvider from "@/app/provider";
 import { NotificationProvider } from "@/libs/context/notificationContext";
 import { SessionInitializer } from "@/libs/hooks/api/sessionInitializer";
@@ -18,14 +7,11 @@ import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
+import "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
-if (!(global as any).EventSource) {
-  (global as any).EventSource = EventSource;
-}
 
-// Notification display policy
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -69,7 +55,7 @@ export default function RootLayout() {
 
       try {
         console.log("[notification] attempting pending navigation to:", path);
-        router.push(path);
+        router.push(path as any);
         pendingPathRef.current = null;
         setTriedPending(true);
       } catch (err) {
@@ -77,7 +63,7 @@ export default function RootLayout() {
         setTimeout(() => {
           if (pendingPathRef.current && !triedPending) {
             try {
-              router.push(pendingPathRef.current!);
+              router.push(pendingPathRef.current as any);
               pendingPathRef.current = null;
               setTriedPending(true);
             } catch (e) {
@@ -101,7 +87,7 @@ export default function RootLayout() {
       }
       try {
         console.log("[notification] navigate immediately to:", path);
-        router.push(path);
+        router.push(path as any);
       } catch (err) {
         console.warn("[notification] immediate navigation failed, save pending", err);
         pendingPathRef.current = path;
@@ -179,8 +165,6 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ReduxProvider>
-        {/* NotificationProvider hiện tại trong libs/context/notificationContext.tsx
-            Provider mới phải được thay thế bằng file mình đã dán trước đó để hỗ trợ SSE (react-native-sse). */}
         <NotificationProvider>
           <SessionInitializer>
             <Stack>
