@@ -44,20 +44,17 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    const tryNavigatePending = async () => {
-      const path = pendingPathRef.current;
-      if (!path) return;
-      if (!loaded) return;
+    if (!loaded) return;
+    const path = pendingPathRef.current;
+    if (!path) return;
 
-      await new Promise((res) => setTimeout(res, 300));
-
+    (async () => {
       try {
-        console.log("[notification] attempting pending navigation to:", path);
+        await new Promise((res) => setTimeout(res, 300));
         router.push(path as any);
         pendingPathRef.current = null;
         setTriedPending(true);
       } catch (err) {
-        console.warn("[notification] retry navigation failed, will try again soon", err);
         setTimeout(() => {
           if (pendingPathRef.current && !triedPending) {
             try {
@@ -65,29 +62,24 @@ export default function RootLayout() {
               pendingPathRef.current = null;
               setTriedPending(true);
             } catch (e) {
-              console.warn("[notification] second retry failed", e);
+              console.warn("[notification] retry pending navigation failed", e);
             }
           }
         }, 500);
       }
-    };
-
-    tryNavigatePending();
+    })();
   }, [loaded, router, triedPending]);
 
   const safeNavigate = useCallback(
     (path: string | null) => {
       if (!path) return;
       if (!loaded) {
-        console.log("[notification] saved pending path (fonts not ready):", path);
         pendingPathRef.current = path;
         return;
       }
       try {
-        console.log("[notification] navigate immediately to:", path);
         router.push(path as any);
       } catch (err) {
-        console.warn("[notification] immediate navigation failed, save pending", err);
         pendingPathRef.current = path;
       }
     },
@@ -128,7 +120,6 @@ export default function RootLayout() {
         if (lastResponse) {
           const data = lastResponse?.notification?.request?.content?.data ?? {};
           if (data.path) {
-            console.log("[notification] coldstart - got lastResponse.path:", data.path);
             pendingPathRef.current = String(data.path);
             return;
           }
@@ -148,7 +139,6 @@ export default function RootLayout() {
                 ).toString()
               : "";
             pendingPathRef.current = `${screen}${query}`;
-            console.log("[notification] coldstart - saved pending screen:", pendingPathRef.current);
           }
         }
       } catch (err) {
