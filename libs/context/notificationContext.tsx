@@ -26,7 +26,6 @@ interface NotificationContextType {
   notifications: NotificationItem[];
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
-  // kept for compatibility but will be a no-op if backend lacks endpoint
   fetchInitialUnreadCount: () => Promise<void>;
 }
 
@@ -56,11 +55,9 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
   const [sseConnected, setSseConnected] = useState<boolean>(false);
   const [sseUrl, setSseUrl] = useState<string | null>(null);
 
-  // unread + list
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  // refs for listeners and SSE
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
@@ -68,11 +65,9 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
   const backoffRef = useRef<number>(1000);
   const reconnectTimerRef = useRef<number | null>(null);
 
-  // helper refs to avoid races and decide merge policy
   const unreadCountRef = useRef<number>(0);
   const lastLocalIncrementAtRef = useRef<number | null>(null);
 
-  // keep unreadCountRef in sync whenever state changes from anywhere
   useEffect(() => {
     unreadCountRef.current = unreadCount;
   }, [unreadCount]);
@@ -146,46 +141,81 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
     unreadCountRef.current = 0;
   }, []);
 
-  // handle incoming payloads (message events)
+  // robust handler for server payloads (message events)
   const handleServerPayload = useCallback(
     async (payload: any) => {
       try {
         console.log("[NotificationProvider] handleServerPayload - raw payload:", payload);
 
-        // If server provided unread_count explicitly — has authoritative value
-        if (typeof payload.unread_count === "number") {
-          const serverCnt = payload.unread_count;
-          console.log("[NotificationProvider] server provided unread_count:", serverCnt);
+        // Try to extract unread_count from many shapes
+        let serverCnt: number | undefined = undefined;
+        if (payload && typeof payload.unread_count === "number") serverCnt = payload.unread_count;
+        else if (
+          payload &&
+          typeof payload.unread_count === "string" &&
+          !isNaN(Number(payload.unread_count))
+        )
+          serverCnt = Number(payload.unread_count);
+        else if (payload?.data && typeof payload.data.unread_count !== "undefined") {
+          const v = payload.data.unread_count;
+          if (typeof v === "number") serverCnt = v;
+          else if (typeof v === "string" && !isNaN(Number(v))) serverCnt = Number(v);
+        } else if (typeof payload === "string" && !isNaN(Number(payload))) {
+          serverCnt = Number(payload);
+        }
 
-          // Merge policy: if we recently incremented locally and local > server, keep local
+        if (typeof serverCnt === "number") {
+          console.log("[NotificationProvider] server provided unread_count:", serverCnt);
           const local = unreadCountRef.current ?? unreadCount;
           const lastLocalInc = lastLocalIncrementAtRef.current ?? 0;
-          const justIncremented = Date.now() - lastLocalInc < 3000; // 3s window
-
+          const justIncremented = Date.now() - lastLocalInc < 3000; // keep 3s window
           let final = serverCnt;
           if (justIncremented && local > serverCnt) {
             console.log(
-              "[NotificationProvider] recent local increment detected, keeping local unreadCount:",
+              "[NotificationProvider] recent local increment - keeping local:",
               local,
-              "instead of server value:",
+              "over server:",
               serverCnt,
             );
             final = local;
           }
-
           setUnreadCount(final);
           unreadCountRef.current = final;
         }
 
-        // notification payload (title/body may be inside data)
-        const title = payload.title ?? payload.data?.title;
-        const body = payload.body ?? payload.data?.body;
-        const data = payload.data ?? {};
+        // normalize title/body/data
+        const title =
+          payload.title ??
+          payload.data?.title ??
+          payload.notification?.title ??
+          payload.msg ??
+          payload.message ??
+          payload.alert;
+        const body =
+          payload.body ??
+          payload.data?.body ??
+          payload.notification?.body ??
+          payload.message ??
+          payload.alert;
+        const data =
+          payload.data ?? payload.payload ?? payload.extra ?? payload.notification?.data ?? {};
 
-        const isNotification = Boolean(title || body);
+        const isNotification = Boolean(
+          title ||
+            body ||
+            (data && Object.keys(data).length > 0) ||
+            payload.event ||
+            payload.type ||
+            payload.msg ||
+            payload.message,
+        );
 
         if (isNotification) {
-          const id = payload.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+          const id =
+            payload.id ??
+            payload.notification?.id ??
+            payload.message_id ??
+            `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
           const item: NotificationItem = {
             id,
             title,
@@ -196,8 +226,7 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
           };
           pushToList(item);
 
-          // If server didn't provide unread_count in this payload, auto-increment local unread counter
-          if (typeof payload.unread_count !== "number") {
+          if (typeof serverCnt !== "number") {
             setUnreadCount((u) => {
               const next = u + 1;
               lastLocalIncrementAtRef.current = Date.now();
@@ -207,7 +236,6 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
             });
           }
 
-          // schedule local notification so user sees banner
           try {
             await Notifications.scheduleNotificationAsync({
               content: { title: title ?? "Thông báo", body: body ?? "", data },
@@ -217,9 +245,10 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
           } catch (e) {
             console.warn("[NotificationProvider] scheduleNotificationAsync failed", e);
           }
+        } else {
+          console.log("[NotificationProvider] payload ignored (not a notification):", payload);
         }
 
-        // navigation from payload if present
         const navPath = data?.path ?? data?.screen ?? payload.path ?? payload.screen;
         if (navPath && typeof onNavigate === "function") {
           try {
@@ -238,17 +267,14 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
         console.warn("[NotificationProvider] handleServerPayload error", err);
       }
     },
-    [onNavigate, pushToList],
+    [onNavigate, pushToList, unreadCount],
   );
 
   // prepare auth header (try api.defaults, then storage)
   const prepareAuthHeader = useCallback(async (): Promise<Record<string, string> | undefined> => {
     try {
       const defaultsHeaders: any = api?.defaults?.headers ?? {};
-      const headerCandidates = {
-        ...defaultsHeaders,
-        ...(api.defaults?.headers?.common ?? {}),
-      };
+      const headerCandidates = { ...defaultsHeaders, ...(api.defaults?.headers?.common ?? {}) };
       console.log(
         "[NotificationProvider][DEBUG] api.defaults.headers at connect-time:",
         headerCandidates,
@@ -339,9 +365,16 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
           backoffRef.current = 1000;
           setSseConnected(true);
 
-          // No server unread-count endpoint available; do not fetch.
-          // We allow server to push initial events; we avoid overwriting local increments.
-          // Logging is helpful to observe timing.
+          // Wait a bit for any immediate server pushes, then fetch unread-count endpoint as fallback.
+          (async () => {
+            try {
+              await new Promise((r) => setTimeout(r, 600));
+              console.log("[SSE] open handler: calling fetchInitialUnreadCount()");
+              await fetchInitialUnreadCount();
+            } catch (e) {
+              console.warn("[SSE] open handler fetchInitialUnreadCount error", e);
+            }
+          })();
         });
 
         es.addEventListener("error", (err: any) => {
@@ -369,15 +402,21 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
           try {
             console.log("[SSE] message event raw data:", e?.data ?? "(empty)");
             const raw = e?.data ?? "";
-            const payload = raw ? JSON.parse(raw) : {};
-            console.log("[SSE] parsed payload:", payload);
+            let payload: any = {};
+            try {
+              payload = raw ? JSON.parse(raw) : {};
+            } catch (parseErr) {
+              console.warn("[SSE] message parse error (raw not JSON):", parseErr, "raw:", raw);
+              payload = raw;
+            }
+            console.log("[SSE] parsed message payload:", payload);
             handleServerPayload(payload);
           } catch (err) {
             console.warn("[SSE] message parse error", err, "raw:", e?.data ?? null);
           }
         });
 
-        // replace your unread_count listener with this
+        // unread_count named event (handle number/string/object)
         // @ts-ignore
         es.addEventListener("unread_count", (e: any) => {
           try {
@@ -387,31 +426,21 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
             try {
               parsed = JSON.parse(parsedRaw);
             } catch (err) {
-              // If not JSON, maybe it's a plain number string like "66"
               parsed = parsedRaw;
             }
             console.log("[SSE] unread_count parsed:", parsed);
 
-            // handle both shapes:
-            // 1) parsed is a number: 66
-            // 2) parsed is an object: { unread_count: 66 } or { unread_count: "66" }
             let serverCnt: number | undefined = undefined;
-            if (typeof parsed === "number") {
-              serverCnt = parsed;
-            } else if (
-              typeof parsed === "string" &&
-              parsed.trim() !== "" &&
-              !isNaN(Number(parsed))
-            ) {
+            if (typeof parsed === "number") serverCnt = parsed;
+            else if (typeof parsed === "string" && parsed.trim() !== "" && !isNaN(Number(parsed)))
               serverCnt = Number(parsed);
-            } else if (parsed && typeof parsed.unread_count !== "undefined") {
+            else if (parsed && typeof parsed.unread_count !== "undefined") {
               const v = parsed.unread_count;
               if (typeof v === "number") serverCnt = v;
               else if (typeof v === "string" && !isNaN(Number(v))) serverCnt = Number(v);
             }
 
             if (typeof serverCnt === "number") {
-              // merge policy: if we recently incremented locally and local > server, keep local
               const local = unreadCountRef.current ?? unreadCount;
               const lastLocalInc = lastLocalIncrementAtRef.current ?? 0;
               const justIncremented = Date.now() - lastLocalInc < 3000;
@@ -436,7 +465,7 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
           }
         });
 
-        // optional notification named event
+        // notification named event
         // @ts-ignore
         es.addEventListener("notification", (e: any) => {
           try {
@@ -502,28 +531,56 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
     setTimeout(() => connectSse(), 300);
   }, [connectSse, disconnectSse]);
 
-  // fetchInitialUnreadCount is a no-op since backend doesn't have endpoint;
-  // kept for compatibility but logs a helpful warning.
+  // fetchInitialUnreadCount -> use your API endpoint /notifications/unread-count
   const fetchInitialUnreadCount = useCallback(async () => {
-    console.log(
-      "[NotificationProvider] fetchInitialUnreadCount called but backend lacks endpoint - no-op",
-    );
-    return Promise.resolve();
-  }, []);
-
-  // attach debug helpers
-  useEffect(() => {
-    // attach to globalThis (safer across environments)
     try {
-      // @ts-ignore
+      console.log(
+        "[NotificationProvider] fetchInitialUnreadCount: calling /notifications/unread-count",
+      );
+      const res = await api.get("/notifications/unread-count");
+      const cnt =
+        res?.data?.data?.unread_count ??
+        res?.data?.unread_count ??
+        (typeof res?.data === "number" ? res.data : undefined);
+
+      if (typeof cnt === "number") {
+        const local = unreadCountRef.current ?? unreadCount;
+        const lastLocalInc = lastLocalIncrementAtRef.current ?? 0;
+        const justIncremented = Date.now() - lastLocalInc < 3000;
+        let final = cnt;
+        if (justIncremented && local > cnt) {
+          console.log(
+            "[NotificationProvider] fetchInitialUnreadCount: recent local increment -> keeping local:",
+            local,
+            "over fetched:",
+            cnt,
+          );
+          final = local;
+        }
+        setUnreadCount(final);
+        unreadCountRef.current = final;
+        console.log("[NotificationProvider] fetchInitialUnreadCount: applied unreadCount:", final);
+      } else {
+        console.warn(
+          "[NotificationProvider] fetchInitialUnreadCount: unexpected response shape",
+          res?.data,
+        );
+      }
+    } catch (err) {
+      console.warn("[NotificationProvider] fetchInitialUnreadCount failed", err);
+    }
+  }, [unreadCount]);
+
+  // attach debug helpers (DEV only)
+  useEffect(() => {
+    try {
       const G: any =
         typeof globalThis !== "undefined"
           ? globalThis
           : typeof window !== "undefined"
             ? window
             : {};
-      if (G) {
-        // @ts-ignore
+      if (__DEV__ && G) {
         G.__NOTIF__ = {
           reconnectSse,
           disconnectSse,
@@ -562,7 +619,7 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
                 authHeaderToUse ? authHeaderToUse.slice(0, 12) + "..." : null,
               );
 
-              const res = await fetch(sseUrl, {
+              const res = await fetch(sseUrl!, {
                 method: "GET",
                 headers: {
                   Accept: "text/event-stream",
@@ -582,7 +639,6 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
             }
           },
 
-          // debug helpers
           forceIncrement: () => {
             setUnreadCount((u) => {
               const next = u + 1;
@@ -618,9 +674,8 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
             });
           },
         };
-        console.log("[NotificationProvider] debug helpers attached to globalThis.__NOTIF__");
         console.log(
-          "[NotificationProvider] try globalThis.__NOTIF__.forceIncrement() / .forceAddNotification()",
+          "[NotificationProvider] debug helpers attached to globalThis.__NOTIF__ (DEV only)",
         );
       }
     } catch (e) {
@@ -629,7 +684,6 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
 
     return () => {
       try {
-        // @ts-ignore
         const G: any =
           typeof globalThis !== "undefined"
             ? globalThis
@@ -650,8 +704,6 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
         sseUrl,
         reconnectSse,
         testFetchSseEndpoint: async () => {
-          // proxy to global helper (keeps type)
-          // @ts-ignore
           const G: any =
             typeof globalThis !== "undefined"
               ? globalThis
@@ -659,7 +711,6 @@ export const NotificationProvider: React.FC<Props> = ({ children, onNavigate, ss
                 ? window
                 : {};
           if (G && G.__NOTIF__ && typeof G.__NOTIF__.testFetchSseEndpoint === "function") {
-            // @ts-ignore
             return G.__NOTIF__.testFetchSseEndpoint();
           }
         },
