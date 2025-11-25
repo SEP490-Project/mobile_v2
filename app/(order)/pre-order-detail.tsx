@@ -1,4 +1,6 @@
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
+import { useAppDispatch } from "@/libs/stores";
+import { requestCompensatePreOrderThunk } from "@/libs/stores/orderManager/thunk";
 import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -47,6 +49,7 @@ const getStatusText = (status: string) => {
 
 const PreOrderDetailScreen = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { preOrderData } = useLocalSearchParams();
 
   // Parse the pre-order data from params
@@ -70,6 +73,22 @@ const PreOrderDetailScreen = () => {
       </SafeAreaView>
     );
   }
+
+  const handleCompensatePreOrder = async (file: File, reason: string) => {
+    const formData = new FormData();
+    formData.append("reason", reason);
+    formData.append("file", file);
+
+    const result = await dispatch(
+      requestCompensatePreOrderThunk({ preOrderId: preOrder.id, file: formData }),
+    );
+
+    console.log("Compensate pre-order result:", result);
+    if (requestCompensatePreOrderThunk.fulfilled.match(result)) {
+      alert("Compensation request submitted successfully.");
+    }
+    router.back();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -269,46 +288,6 @@ const PreOrderDetailScreen = () => {
             </View>
           )}
 
-        {/* Action Notes History */}
-        {/* {preOrder.action_notes && preOrder.action_notes.length > 0 && (
-          <View className="bg-white px-4 py-4 mb-2">
-            <View className="flex-row items-center mb-3">
-              <MaterialIcons name="history" size={20} color="#ff9fb2" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">Action History</Text>
-            </View>
-            {preOrder.action_notes.map((note: ActionNote, index: number) => (
-              <View
-                key={index}
-                className={`py-3 ${
-                  index !== preOrder.action_notes!.length - 1 ? "border-b border-gray-100" : ""
-                }`}
-              >
-                <View className="flex-row justify-between items-start mb-2">
-                  <Text className="font-semibold text-gray-800">{note.user_name}</Text>
-                  <Text className="text-xs text-gray-500">
-                    {new Date(note.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                </View>
-                <Text className="text-sm text-gray-600 mb-1">{note.user_email}</Text>
-                <View className="bg-gray-50 rounded p-2 mt-2">
-                  <Text className="text-xs text-gray-500 mb-1">
-                    Action: <Text className="font-medium text-gray-700">{note.action_type}</Text>
-                  </Text>
-                  {note.reason && (
-                    <Text className="text-sm text-gray-700 mt-1">Reason: {note.reason}</Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        )} */}
-
         {/* Payment Information */}
         {preOrder.PaymentTx && (
           <View className="bg-white px-4 py-4 mb-2">
@@ -381,8 +360,7 @@ const PreOrderDetailScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      {preOrder.status.toLowerCase() === "pending" ||
-      preOrder.status.toLowerCase() === "pre_ordered" ? (
+      {preOrder.status.toLowerCase() === "pending" && (
         <View className="bg-white px-4 py-3 border-t border-gray-200">
           <TouchableOpacity
             className="border border-red-500 rounded-lg py-4 items-center"
@@ -394,23 +372,7 @@ const PreOrderDetailScreen = () => {
             <Text className="text-red-500 font-bold text-base">Cancel Pre-Order</Text>
           </TouchableOpacity>
         </View>
-      ) : null}
-
-      {/* {preOrder.status.toLowerCase() === "approved" && preOrder.PaymentTx?.gateway_ref && (
-        <View className="bg-white px-4 py-3 border-t border-gray-200">
-          <TouchableOpacity
-            className="bg-primary rounded-lg py-4 items-center"
-            onPress={() =>
-              router.push({
-                pathname: "/(payment)",
-                params: { paymentUrl: preOrder.PaymentTx?.gateway_ref },
-              })
-            }
-          >
-            <Text className="text-white font-bold text-base">Complete Payment</Text>
-          </TouchableOpacity>
-        </View>
-      )} */}
+      )}
     </SafeAreaView>
   );
 };

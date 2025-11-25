@@ -15,8 +15,19 @@ const manageOrder = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  requestCompensateOrder: (orderId: string) => api.post(`/orders/${orderId}/compensate`),
+  requestCompensateOrder: (orderId: string, file: FormData) =>
+    api.post(`/orders/${orderId}/compensation`, file, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   requestRefundOrder: (orderId: string) => api.post(`/orders/${orderId}/refund`),
+  requestCompenstatePreOrder: (preorderId: string, file: FormData) =>
+    api.post(`/preorders/${preorderId}/compensation`, file, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
 };
 
 export default manageOrder;
