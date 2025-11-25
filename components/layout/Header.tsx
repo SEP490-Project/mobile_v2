@@ -26,38 +26,40 @@ export default function Header() {
           <MaterialIcons name="search" size={24} color="#4B5563" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          className="p-2 bg-gray-100 rounded-full relative"
-          activeOpacity={0.7}
-          onPress={() => router.push("/(cart)")}
-        >
-          <MaterialIcons name="shopping-cart" size={24} color="#374151" />
-
-          {cartItemCount > 0 && (
-            <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
-              <Text className="text-white text-xs font-bold">
-                {cartItemCount > 9 ? "9+" : cartItemCount}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
         {isAuthenticated && (
-          <TouchableOpacity
-            className="p-2 bg-gray-100 rounded-full relative"
-            onPress={() => router.push("/(notification)")}
-            accessibilityLabel={`Notifications, ${unreadCount} unread`}
-          >
-            <MaterialIcons name="notifications-none" size={24} color="#4B5563" />
+          <>
+            <TouchableOpacity
+              className="p-2 bg-gray-100 rounded-full relative"
+              activeOpacity={0.7}
+              onPress={() => router.push("/(cart)")}
+            >
+              <MaterialIcons name="shopping-cart" size={24} color="#374151" />
 
-            {unreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-red-500 min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center">
-                <Text className="text-white text-[10px] font-bold">
-                  {unreadCount > 99 ? "99+" : String(unreadCount)}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+              {cartItemCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
+                  <Text className="text-white text-xs font-bold">
+                    {cartItemCount > 9 ? "9+" : cartItemCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="p-2 bg-gray-100 rounded-full relative"
+              onPress={() => router.push("/(notification)")}
+              accessibilityLabel={`Notifications, ${unreadCount} unread`}
+            >
+              <MaterialIcons name="notifications-none" size={24} color="#4B5563" />
+
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-red-500 min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center">
+                  <Text className="text-white text-[10px] font-bold">
+                    {unreadCount > 99 ? "99+" : String(unreadCount)}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </View>
