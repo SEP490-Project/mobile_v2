@@ -1,20 +1,28 @@
 import { useAuth } from "@/libs/hooks/useAuthen";
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export function withAuthGuard<P extends object>(WrappedComponent: React.ComponentType<P>) {
   const GuardedComponent: React.FC<P> = (props) => {
     const { isAuthenticated, loading } = useAuth();
     const router = useRouter();
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-      if (!loading && !isAuthenticated) {
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+      if (isReady && !loading && !isAuthenticated) {
         router.replace("/(auth)");
       }
-    }, [isAuthenticated, loading]);
+    }, [isAuthenticated, loading, router, isReady]);
 
-    if (loading) {
+    if (!isReady || loading) {
       return (
         <View className="flex-1 justify-center items-center bg-white">
           <ActivityIndicator size="large" color="#ff9fb2" />
@@ -25,11 +33,9 @@ export function withAuthGuard<P extends object>(WrappedComponent: React.Componen
     if (!isAuthenticated) {
       return null;
     }
-
     return <WrappedComponent {...(props as P)} />;
   };
 
-  // Đặt display name giúp debug dễ hơn
   GuardedComponent.displayName = `WithAuthGuard(${
     WrappedComponent.displayName || WrappedComponent.name || "Component"
   })`;
