@@ -164,6 +164,13 @@ const accountMenuItems = [
     bgColor: "#F3E8FF",
     iconColor: "#9333EA",
   },
+  {
+    iconName: "settings",
+    name: "Settings",
+    route: "/(setting)",
+    bgColor: "#DBEAFE",
+    iconColor: "#2563EB",
+  },
 ];
 
 const commonMenuItems = [

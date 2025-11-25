@@ -3,6 +3,8 @@ import * as Notifications from "expo-notifications";
 import React, { createContext, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import EventSource from "react-native-sse";
 import api from "../hooks/api/api";
+import { useAuth } from "../hooks/useAuthen";
+import { useAppDispatch } from "../stores";
 import { registerForPushNotificationsAsync } from "../utils/registerForPushNotificationsAsync";
 
 type NotificationItem = {
@@ -53,6 +55,9 @@ export const NotificationProvider: React.FC<Props> = ({
   ssePath,
   enableLocalNotification = true,
 }) => {
+  const { isAuthenticated } = useAuth();
+  const dispatch = useAppDispatch();
+
   const [expoPushToken, setExpoPushToken] = useState<string>("");
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
 
@@ -88,9 +93,17 @@ export const NotificationProvider: React.FC<Props> = ({
   }, [ssePath]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      // Clear token and disconnect when logged out
+      setExpoPushToken("");
+      notificationListener.current?.remove();
+      notificationListener.current = null;
+      return;
+    }
+
     (async () => {
       try {
-        const token = await registerForPushNotificationsAsync();
+        const token = await registerForPushNotificationsAsync(dispatch);
         if (token) setExpoPushToken(token);
       } catch (e) {
         /* silent */
@@ -104,7 +117,7 @@ export const NotificationProvider: React.FC<Props> = ({
     return () => {
       notificationListener.current?.remove();
     };
-  }, []);
+  }, [isAuthenticated, dispatch]);
 
   const pushToList = useCallback((item: NotificationItem) => {
     setNotifications((prev) => {
@@ -392,7 +405,8 @@ export const NotificationProvider: React.FC<Props> = ({
   }, []);
 
   useEffect(() => {
-    if (!sseUrl) {
+    if (!sseUrl || !isAuthenticated) {
+      disconnectSse();
       return;
     }
     connectSse();
@@ -400,7 +414,7 @@ export const NotificationProvider: React.FC<Props> = ({
       disconnectSse();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sseUrl]);
+  }, [sseUrl, isAuthenticated]);
 
   const reconnectSse = useCallback(() => {
     disconnectSse();

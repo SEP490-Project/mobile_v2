@@ -1,9 +1,11 @@
+import { registerDeviceTokenThunk } from "@/libs/stores/deviceTokenManager/thunk";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import { AppDispatch } from "../stores";
 
-export async function registerForPushNotificationsAsync() {
+export async function registerForPushNotificationsAsync(dispatch?: AppDispatch) {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
@@ -35,6 +37,17 @@ export async function registerForPushNotificationsAsync() {
         })
       ).data;
       console.log(pushTokenString);
+
+      // Register device token with backend
+      if (dispatch) {
+        await dispatch(
+          registerDeviceTokenThunk({
+            token: pushTokenString,
+            platform: Platform.OS.toUpperCase(),
+          }),
+        );
+      }
+
       return pushTokenString;
     } catch (e: unknown) {
       throw new Error(`${e}`);
