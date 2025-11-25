@@ -20,7 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
 // --- Category Item ---
@@ -152,7 +151,7 @@ function HomeScreen() {
   const categoriesData: Category[] = categories?.data || [];
 
   const parentCategories = categoriesData.filter((item) => !item.parent_category);
-  const insets = useSafeAreaInsets();
+  const currentDate = new Date();
 
   useFocusEffect(() => {
     dispatch(getAllProductsThunk());
@@ -174,6 +173,13 @@ function HomeScreen() {
       </View>
     );
   }
+
+  const filterLimitedProducts = productsData.filter(
+    (item) =>
+      item.type === "LIMITED" &&
+      (!item.limited_product?.premiere_date ||
+        currentDate >= new Date(item.limited_product?.premiere_date)),
+  );
 
   return (
     <ScrollView
@@ -208,7 +214,7 @@ function HomeScreen() {
       />
       <Section
         title="Limited Edition Products"
-        products={productsData.filter((item) => item.type === "LIMITED")}
+        products={filterLimitedProducts}
         delay={400}
         router={router}
         type="LIMITED"
