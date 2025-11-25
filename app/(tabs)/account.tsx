@@ -83,7 +83,7 @@ function AccountScreen() {
         </View>
 
         {/* Content */}
-        <View className="bg-white rounded-t-3xl p-6 shadow-xl">
+        <View className="bg-white rounded-3xl p-6 shadow-xl">
           {isAuthenticated ? (
             <>
               {accountMenuItems.map((item) => (
