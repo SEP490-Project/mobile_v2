@@ -4,7 +4,6 @@ import {
   registerDeviceTokenThunk,
 } from "@/libs/stores/deviceTokenManager/thunk";
 import Constants from "expo-constants";
-import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Switch, Text, View } from "react-native";
@@ -46,13 +45,13 @@ function SettingScreen() {
     try {
       setIsLoading(true);
 
-      if (!Device.isDevice) {
-        Alert.alert(
-          "Not supported",
-          "Push notifications only work on physical devices, not simulators/emulators.",
-        );
-        return;
-      }
+      // if (!Device.isDevice) {
+      //   Alert.alert(
+      //     "Not supported",
+      //     "Push notifications only work on physical devices, not simulators/emulators.",
+      //   );
+      //   return;
+      // }
 
       if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("default", {
