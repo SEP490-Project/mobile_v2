@@ -88,14 +88,25 @@ const OrderDetailScreen = () => {
     router.back();
   };
 
-  const handleCompensateOrder = async (reason: string, file: File) => {
+  const handleCompensateOrder = async (reason: string, file: any) => {
     const formData = new FormData();
     formData.append("reason", reason);
-    formData.append("file", file);
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.type,
+    } as any);
 
-    const result = await dispatch(
-      requestCompensateOrderThunk({ orderId: order.id, file: formData }),
-    );
+    console.log("FormData being sent:", {
+      reason,
+      file: {
+        uri: file.uri,
+        name: file.name,
+        type: file.type,
+      },
+    });
+
+    const result = await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
 
     console.log("Compensate order result:", result);
     if (requestCompensateOrderThunk.fulfilled.match(result)) {
