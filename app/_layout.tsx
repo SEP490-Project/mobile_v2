@@ -7,6 +7,7 @@ import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Appearance } from "react-native";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -41,6 +42,8 @@ export default function RootLayout() {
       await NavigationBar.setButtonStyleAsync("dark");
     };
     setupNavBar();
+
+    Appearance.setColorScheme("light");
   }, []);
 
   useEffect(() => {
