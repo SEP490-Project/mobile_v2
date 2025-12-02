@@ -15,9 +15,11 @@ export default function Header() {
   const { unreadCount } = useContext(NotificationContext);
 
   return (
-    <View className="pt-[50px] px-4 pb-4 flex-row items-center justify-between border-b border-gray-200 bg-white">
-      <Text className="text-3xl font-extrabold text-primary">B-ShowSell</Text>
-
+    <View
+      className="px-4 pb-4 flex-row items-center justify-between border-b border-gray-200 bg-white"
+      style={{ paddingTop: 50 }}
+    >
+      <Text className="text-3xl font-extrabold text-primary">B-Showsell</Text>
       <View className="flex-row gap-2">
         <TouchableOpacity
           className="p-2 bg-gray-100 rounded-full"
