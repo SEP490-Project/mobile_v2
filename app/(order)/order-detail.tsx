@@ -1,8 +1,14 @@
+import { CompensateModal } from "@/components/order/CompensateModal";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { RootState, useAppDispatch } from "@/libs/stores";
-import { receiveOrderThunk } from "@/libs/stores/orderManager/thunk";
+import {
+  receiveOrderThunk,
+  requestCompensateOrderThunk,
+  requestRefundOrderThunk,
+} from "@/libs/stores/orderManager/thunk";
 import { OrderData, OrderItem } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
+
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -49,6 +55,8 @@ const OrderDetailScreen = () => {
   const { orderId } = useLocalSearchParams();
   const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
 
+  const [compensateModalVisible, setCompensateModalVisible] = React.useState(false);
+
   // Find the specific order
   const order: OrderData | undefined = orderList?.data?.find((o: OrderData) => o.id === orderId);
 
@@ -62,12 +70,35 @@ const OrderDetailScreen = () => {
   }
 
   const handleReceiveOrder = async () => {
-    console.log("Receiving order:", order.id);
     const result = await dispatch(receiveOrderThunk(order.id));
-    console.log("Receive order result:", result);
     if (receiveOrderThunk.fulfilled.match(result)) {
       alert("Order marked as received successfully.");
     }
+    router.back();
+  };
+
+  const handleRequestRefund = async () => {
+    console.log("Requesting refund for order:", order.id);
+    const result = await dispatch(requestRefundOrderThunk(order.id));
+
+    console.log("Refund request result:", result);
+    if (requestRefundOrderThunk.fulfilled.match(result)) {
+      alert("Refund request submitted successfully.");
+    }
+    router.back();
+  };
+
+  const handleCompensateOrder = async (reason: string, file: any) => {
+    const formData = new FormData();
+    formData.append("reason", reason);
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.type,
+    } as any);
+
+    await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
+
     router.back();
   };
 
@@ -310,6 +341,12 @@ const OrderDetailScreen = () => {
       {order.status.toLowerCase() === "delivered" && (
         <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
           <TouchableOpacity
+            className="rounded-lg py-4 items-center border border-primary flex-1"
+            onPress={() => setCompensateModalVisible(true)}
+          >
+            <Text className="text-primary font-bold text-base">Compensate Order</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             className="rounded-lg py-4 items-center bg-primary flex-1"
             onPress={handleReceiveOrder}
           >
@@ -317,6 +354,22 @@ const OrderDetailScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
+      {order.status.toLowerCase() === "paid" && (
+        <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
+          <TouchableOpacity
+            className="rounded-lg py-4 items-center border border-primary flex-1"
+            onPress={handleRequestRefund}
+          >
+            <Text className="text-primary font-bold text-base">Request Refund</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <CompensateModal
+        visible={compensateModalVisible}
+        onClose={() => setCompensateModalVisible(false)}
+        handleCompensateOrder={handleCompensateOrder}
+      />
     </SafeAreaView>
   );
 };
