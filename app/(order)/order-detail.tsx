@@ -97,21 +97,8 @@ const OrderDetailScreen = () => {
       type: file.type,
     } as any);
 
-    console.log("FormData being sent:", {
-      reason,
-      file: {
-        uri: file.uri,
-        name: file.name,
-        type: file.type,
-      },
-    });
+    await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
 
-    const result = await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
-
-    console.log("Compensate order result:", result);
-    if (requestCompensateOrderThunk.fulfilled.match(result)) {
-      alert("Compensation request submitted successfully.");
-    }
     router.back();
   };
 
