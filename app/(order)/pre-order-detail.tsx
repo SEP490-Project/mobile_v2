@@ -1,6 +1,10 @@
+import { CompensateModal } from "@/components/order/CompensateModal";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { useAppDispatch } from "@/libs/stores";
-import { requestCompensatePreOrderThunk } from "@/libs/stores/orderManager/thunk";
+import {
+  receivePreOrderThunk,
+  requestCompensatePreOrderThunk,
+} from "@/libs/stores/orderManager/thunk";
 import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -51,6 +55,7 @@ const PreOrderDetailScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { preOrderData } = useLocalSearchParams();
+  const [showCompensateModal, setShowCompensateModal] = React.useState(false);
 
   // Parse the pre-order data from params
   const preOrder: PreOrderData | null = React.useMemo(() => {
@@ -74,10 +79,14 @@ const PreOrderDetailScreen = () => {
     );
   }
 
-  const handleCompensatePreOrder = async (file: File, reason: string) => {
+  const handleCompensatePreOrder = async (reason: string, file: any) => {
     const formData = new FormData();
     formData.append("reason", reason);
-    formData.append("file", file);
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.type,
+    } as any);
 
     const result = await dispatch(
       requestCompensatePreOrderThunk({ preOrderId: preOrder.id, file: formData }),
@@ -86,8 +95,21 @@ const PreOrderDetailScreen = () => {
     console.log("Compensate pre-order result:", result);
     if (requestCompensatePreOrderThunk.fulfilled.match(result)) {
       alert("Compensation request submitted successfully.");
+      setShowCompensateModal(false);
+      router.back();
     }
-    router.back();
+  };
+
+  const handleReceivePreOrder = async () => {
+    const result = await dispatch(receivePreOrderThunk(preOrder.id));
+
+    console.log("Receive pre-order result:", result);
+    if (receivePreOrderThunk.fulfilled.match(result)) {
+      alert("Pre-order received successfully.");
+      router.back();
+    } else {
+      alert("Failed to receive pre-order. Please try again.");
+    }
   };
 
   return (
@@ -373,6 +395,33 @@ const PreOrderDetailScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Delivered Status - Show Received and Compensate Buttons */}
+      {preOrder.status.toLowerCase() === "delivered" && (
+        <View className="bg-white px-4 py-3 border-t border-gray-200">
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              className="flex-1 bg-primary rounded-lg py-4 items-center"
+              onPress={handleReceivePreOrder}
+            >
+              <Text className="text-white font-bold text-base">Received</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 border border-orange-500 rounded-lg py-4 items-center"
+              onPress={() => setShowCompensateModal(true)}
+            >
+              <Text className="text-orange-500 font-bold text-base">Request Compensate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Compensate Modal */}
+      <CompensateModal
+        visible={showCompensateModal}
+        onClose={() => setShowCompensateModal(false)}
+        handleCompensateOrder={handleCompensatePreOrder}
+      />
     </SafeAreaView>
   );
 };
