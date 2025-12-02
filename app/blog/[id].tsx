@@ -1,7 +1,7 @@
-import TiptapRenderer from "@/components/common/TiptapRenderer";
 import { useContent } from "@/libs/hooks/useContent";
 import { useAppDispatch } from "@/libs/stores";
 import { contentDetail } from "@/libs/stores/contentManager/thunk";
+import TiptapRenderer from "@/libs/utils/tiptap/renderTiptapContent";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect } from "react";

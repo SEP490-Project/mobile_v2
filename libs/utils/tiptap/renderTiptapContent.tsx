@@ -1,19 +1,16 @@
+// components/common/TiptapRenderer.tsx
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { Dimensions, Image, Linking, ScrollView, Text, View } from "react-native";
+import { Dimensions, Image, Linking, Text, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import { WebView } from "react-native-webview";
+import { TiptapVideoNode } from "./TiptapVideoNode";
 
 const { width } = Dimensions.get("window");
 
+// ----- helper text node -----
 const renderTextNode = (node: any, i: number) => {
   if (!node?.text) return null;
-  let textStyle = "text-gray-800";
-  let element = (
-    <Text key={i} className={textStyle}>
-      {node.text}
-    </Text>
-  );
+  let element: React.ReactNode = node.text;
 
   if (node.marks) {
     node.marks.forEach((mark: any) => {
@@ -70,28 +67,34 @@ const renderTextNode = (node: any, i: number) => {
     });
   }
 
+  // đảm bảo luôn là <Text>, không để string trần
+  if (typeof element === "string") {
+    return (
+      <Text key={i} className="text-gray-800">
+        {element}
+      </Text>
+    );
+  }
   return element;
 };
 
-// 🧩 Recursive Renderer
+const itemContent = (content: any[]) =>
+  content?.map((c) => (c.type === "paragraph" ? c.content?.[0]?.text : "")).join(" ");
+
+// ----- recursive renderer -----
 export const renderTiptapContent = (node: any, key?: number): React.ReactNode => {
   if (!node) return null;
 
   switch (node.type) {
     case "doc":
       return (
-        <ScrollView
-          key={key}
-          showsVerticalScrollIndicator={false}
-          className="bg-white"
-          contentContainerStyle={{ paddingBottom: 80 }}
-        >
+        <View key={key}>
           {node.content?.map((child: any, i: number) => (
             <Animated.View key={i} entering={FadeInUp.delay(i * 80)}>
               {renderTiptapContent(child, i)}
             </Animated.View>
           ))}
-        </ScrollView>
+        </View>
       );
 
     case "heading": {
@@ -146,20 +149,23 @@ export const renderTiptapContent = (node: any, key?: number): React.ReactNode =>
       );
 
     case "video":
-      return (
-        <View key={key} className="my-6 rounded-xl overflow-hidden">
-          <WebView
-            source={{ uri: node.attrs?.src }}
-            style={{ width: width - 32, height: (width - 32) * 0.56, borderRadius: 12 }}
-            allowsFullscreenVideo
-          />
-          {node.attrs?.title && (
-            <Text className="text-gray-500 text-sm italic text-center mt-2">
-              {node.attrs.title}
-            </Text>
-          )}
-        </View>
-      );
+      console.log("Render TipTap video node:", {
+        src: node.attrs?.src,
+        title: node.attrs?.title,
+        attrs: node.attrs,
+      });
+
+      // Kiểm tra URL có hợp lệ không
+      if (!node.attrs?.src) {
+        console.error("Video node missing src attribute");
+        return (
+          <View key={key} className="my-5 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <Text className="text-red-600 text-center">❌ Video thiếu đường dẫn</Text>
+          </View>
+        );
+      }
+
+      return <TiptapVideoNode key={key} src={node.attrs.src} title={node.attrs?.title} />;
 
     case "blockquote":
       return (
@@ -195,7 +201,7 @@ export const renderTiptapContent = (node: any, key?: number): React.ReactNode =>
 
     case "codeBlock":
       return (
-        <View key={key} className="bg-gray-900 p-3 rounded-lg my-4" style={{ overflow: "hidden" }}>
+        <View key={key} className="bg-gray-900 p-3 rounded-lg my-4">
           <Text className="text-white font-mono text-sm leading-6">
             {node.content?.[0]?.text || ""}
           </Text>
@@ -207,7 +213,13 @@ export const renderTiptapContent = (node: any, key?: number): React.ReactNode =>
   }
 };
 
-// helper for list items
-const itemContent = (content: any[]) => {
-  return content?.map((c) => (c.type === "paragraph" ? c.content?.[0]?.text : "")).join(" ");
+// Component wrapper
+type TiptapRendererProps = {
+  content: any;
 };
+
+const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
+  return <View className="bg-white">{renderTiptapContent(content)}</View>;
+};
+
+export default TiptapRenderer;
