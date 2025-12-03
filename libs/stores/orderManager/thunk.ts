@@ -80,9 +80,9 @@ const getPreOrdersThunk = createAsyncThunk(
 
 const requestCompensateOrderThunk = createAsyncThunk(
   "orderManager/requestCompensateOrder",
-  async ({ orderId, formData }: { orderId: string; formData: FormData }, { rejectWithValue }) => {
+  async ({ orderId, file }: { orderId: string; file: FormData }, { rejectWithValue }) => {
     try {
-      const response = await manageOrder.requestCompensateOrder(orderId, formData);
+      const response = await manageOrder.requestCompensateOrder(orderId, file);
       return response.data as any;
     } catch (error: any) {
       return rejectWithValue(
@@ -106,17 +106,26 @@ const requestRefundOrderThunk = createAsyncThunk(
 
 const requestCompensatePreOrderThunk = createAsyncThunk(
   "orderManager/requestCompensatePreOrder",
-  async (
-    { preOrderId, formData }: { preOrderId: string; formData: FormData },
-    { rejectWithValue },
-  ) => {
+  async ({ preOrderId, file }: { preOrderId: string; file: FormData }, { rejectWithValue }) => {
     try {
-      const response = await manageOrder.requestCompenstatePreOrder(preOrderId, formData);
+      const response = await manageOrder.requestCompenstatePreOrder(preOrderId, file);
       return response.data as any;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to request pre-order compensation",
       );
+    }
+  },
+);
+
+const receivePreOrderThunk = createAsyncThunk(
+  "orderManager/receivePreOrder",
+  async (preOrderId: string, { rejectWithValue }) => {
+    try {
+      const response = await manageOrder.receivedPreOrder(preOrderId);
+      return response.data as any;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to receive pre-order");
     }
   },
 );
@@ -128,6 +137,7 @@ export {
   placeOrderAndPayForLimitedProductThunk,
   placeOrderAndPayThunk,
   receiveOrderThunk,
+  receivePreOrderThunk,
   requestCompensateOrderThunk,
   requestCompensatePreOrderThunk,
   requestRefundOrderThunk,
