@@ -4,6 +4,7 @@ import { contentDetail, getAllContents } from "./thunk";
 
 interface stateType {
   loading: boolean;
+  loadingMore: boolean;
   contents: ListContent[];
   content: ListContent | null;
   pagination: {
@@ -18,6 +19,7 @@ interface stateType {
 
 const initialState: stateType = {
   loading: false,
+  loadingMore: false,
   contents: [],
   content: null,
   pagination: null,
@@ -29,16 +31,33 @@ export const manageContentSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getAllContents.pending, (state) => {
-        state.loading = true;
+      .addCase(getAllContents.pending, (state, action) => {
+        const page = (action.meta && (action.meta.arg as any)?.page) || 1;
+        if (page && page > 1) {
+          state.loadingMore = true;
+        } else {
+          state.loading = true;
+        }
       })
       .addCase(getAllContents.fulfilled, (state, action) => {
         state.loading = false;
-        state.contents = action.payload.data || [];
-        state.pagination = action.payload.pagination;
+        state.loadingMore = false;
+
+        const pagination = action.payload?.pagination || null;
+        const page = pagination?.page ?? ((action.meta && (action.meta.arg as any)?.page) || 1);
+        const newData: ListContent[] = action.payload?.data || [];
+
+        if (page && page > 1) {
+          state.contents = [...state.contents, ...newData];
+        } else {
+          state.contents = newData;
+        }
+
+        state.pagination = pagination;
       })
       .addCase(getAllContents.rejected, (state) => {
         state.loading = false;
+        state.loadingMore = false;
       })
 
       .addCase(contentDetail.pending, (state) => {
@@ -46,7 +65,7 @@ export const manageContentSlice = createSlice({
       })
       .addCase(contentDetail.fulfilled, (state, action) => {
         state.loading = false;
-        state.content = action.payload.data;
+        state.content = action.payload?.data ?? null;
       })
       .addCase(contentDetail.rejected, (state) => {
         state.loading = false;
