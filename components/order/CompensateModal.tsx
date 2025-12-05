@@ -9,7 +9,7 @@ export const CompensateModal = ({
 }: {
   visible: boolean;
   onClose: () => void;
-  handleCompensateOrder: (reason: string, file: any) => void;
+  handleCompensateOrder: (reason: string, file: File) => void;
 }) => {
   const [reason, setReason] = React.useState("");
   const [imageUri, setImageUri] = React.useState<string | null>(null);
@@ -94,7 +94,7 @@ export const CompensateModal = ({
                 const file = {
                   uri: imageUri,
                   name: fileName || "image.jpg",
-                  type: asset.mimeType || "image/jpeg",
+                  type: asset.type || "image/jpeg",
                 } as any;
                 handleCompensateOrder(reason, file);
                 onClose();
