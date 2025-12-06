@@ -1,5 +1,5 @@
 import { manageAuthen } from "@/libs/services/manageAuthen";
-import type { Login, SignUp } from "@/libs/types/auth";
+import type { ForgotPassword, Login, ResetPassword, SignUp } from "@/libs/types/auth";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -47,7 +47,7 @@ export const register = createAsyncThunk(
       return response.data;
     } catch (error: unknown) {
       const err = error as AxiosError<{ message?: string }>;
-      return rejectWithValue(err.response?.data?.message || "Đăng ký thất bại");
+      return rejectWithValue(err.response?.data?.message || "Registration failed");
     }
   },
 );
@@ -66,7 +66,7 @@ export const refresh = createAsyncThunk("auth/refresh", async (_, { rejectWithVa
     return data;
   } catch (error: unknown) {
     const err = error as AxiosError<{ message?: string }>;
-    return rejectWithValue(err.response?.data?.message || "Làm mới token thất bại");
+    return rejectWithValue(err.response?.data?.message || "Token refresh failed");
   }
 });
 
@@ -96,6 +96,32 @@ export const restoreSession = createAsyncThunk("auth/restore", async (_, { rejec
     return { access_token: accessToken, user };
   } catch (error: unknown) {
     const err = error as AxiosError<{ message?: string }>;
-    return rejectWithValue(err.response?.data?.message || "Không thể khôi phục phiên đăng nhập");
+    return rejectWithValue(err.response?.data?.message || "Unable to restore session");
   }
 });
+
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (req: ForgotPassword, { rejectWithValue }) => {
+    try {
+      const response = await manageAuthen.forgotPassword(req);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      return rejectWithValue(err.response?.data?.message || "Forgot password failed");
+    }
+  },
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async (req: ResetPassword, { rejectWithValue }) => {
+    try {
+      const response = await manageAuthen.resetPassword(req);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      return rejectWithValue(err.response?.data?.message || "Reset password failed");
+    }
+  },
+);

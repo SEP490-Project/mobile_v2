@@ -22,6 +22,7 @@ export default function StackLayout() {
       <Stack.Screen name="index" options={{ headerTitle: () => null }} />
       <Stack.Screen name="signup" options={{ headerTitle: () => null }} />
       <Stack.Screen name="forgot" options={{ headerTitle: () => null }} />
+      <Stack.Screen name="reset-password" options={{ headerTitle: () => null }} />
     </Stack>
   );
 }

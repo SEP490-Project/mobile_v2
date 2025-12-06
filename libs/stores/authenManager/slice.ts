@@ -1,5 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, logout, refresh, register, restoreSession } from "./thunk";
+import {
+  forgotPassword,
+  login,
+  logout,
+  refresh,
+  register,
+  resetPassword,
+  restoreSession,
+} from "./thunk";
 
 interface AuthState {
   loading: boolean;
@@ -68,6 +76,26 @@ export const manageAuthenSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+      })
+
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotPassword.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state) => {
+        state.loading = false;
       });
   },
 });
