@@ -80,9 +80,9 @@ const getPreOrdersThunk = createAsyncThunk(
 
 const requestCompensateOrderThunk = createAsyncThunk(
   "orderManager/requestCompensateOrder",
-  async ({ orderId, file }: { orderId: string; file: FormData }, { rejectWithValue }) => {
+  async ({ orderId, formData }: { orderId: string; formData: FormData }, { rejectWithValue }) => {
     try {
-      const response = await manageOrder.requestCompensateOrder(orderId, file);
+      const response = await manageOrder.requestCompensateOrder(orderId, formData);
       return response.data as any;
     } catch (error: any) {
       return rejectWithValue(
@@ -106,9 +106,12 @@ const requestRefundOrderThunk = createAsyncThunk(
 
 const requestCompensatePreOrderThunk = createAsyncThunk(
   "orderManager/requestCompensatePreOrder",
-  async ({ preOrderId, file }: { preOrderId: string; file: FormData }, { rejectWithValue }) => {
+  async (
+    { preOrderId, formData }: { preOrderId: string; formData: FormData },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await manageOrder.requestCompenstatePreOrder(preOrderId, file);
+      const response = await manageOrder.requestCompenstatePreOrder(preOrderId, formData);
       return response.data as any;
     } catch (error: any) {
       return rejectWithValue(

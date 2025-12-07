@@ -10,6 +10,22 @@ export interface SignUp {
   username: string;
 }
 
+export interface ForgotPassword {
+  email: string;
+  frontend_url: string;
+}
+
+export interface ResetPassword {
+  email: string;
+  new_password: string;
+  token: string;
+}
+
+export interface ChangePassword {
+  current_password: string;
+  new_password: string;
+}
+
 export interface User {
   id: string;
   username: string;

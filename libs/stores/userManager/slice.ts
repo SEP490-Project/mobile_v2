@@ -1,6 +1,6 @@
 import { UserProfile } from "@/libs/types/user";
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserProfileThunk } from "./thunk";
+import { getUserProfileThunk, updateProfileThunk } from "./thunk";
 
 interface UserState {
   loading: boolean;
@@ -35,6 +35,19 @@ export const manageUserSlice = createSlice({
         state.error = null;
       })
       .addCase(getUserProfileThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateProfileThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfileThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload.data;
+        state.error = null;
+      })
+      .addCase(updateProfileThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

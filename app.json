@@ -31,6 +31,11 @@
             {
               "scheme": "https",
               "host": "bshowsell.site",
+              "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "bshowsell.site",
               "pathPrefix": "/blog"
             }
           ],
@@ -60,7 +65,8 @@
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

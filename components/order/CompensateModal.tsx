@@ -1,6 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import React from "react";
 import { Image, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export const CompensateModal = ({
   visible,
@@ -9,7 +10,7 @@ export const CompensateModal = ({
 }: {
   visible: boolean;
   onClose: () => void;
-  handleCompensateOrder: (reason: string, file: File) => void;
+  handleCompensateOrder: (reason: string, file: any) => void;
 }) => {
   const [reason, setReason] = React.useState("");
   const [imageUri, setImageUri] = React.useState<string | null>(null);
@@ -18,7 +19,7 @@ export const CompensateModal = ({
 
   if (!visible) return null;
 
-  const pickFile = async () => {
+  const pickImageFromLibrary = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
       alert("Permission to access media library is required!");
@@ -40,9 +41,31 @@ export const CompensateModal = ({
     }
   };
 
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera is required!");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 1,
+      aspect: [4, 3],
+    });
+    console.log(pickerResult);
+
+    if (!pickerResult.canceled && pickerResult.assets[0]) {
+      const asset = pickerResult.assets[0];
+      setImageUri(asset.uri);
+      setFileName(asset.fileName || "photo.jpg");
+      setAsset(asset);
+    }
+  };
+
   return (
     <Modal transparent animationType="slide" visible={visible}>
-      <View className="flex-1 justify-end bg-black/50">
+      <SafeAreaView className="flex-1 justify-end bg-black/50">
         <View className="bg-white rounded-t-lg p-6">
           <Text className="text-lg font-bold text-gray-800">Compensate Order</Text>
           <Text className="text-gray-600 mb-6">
@@ -59,12 +82,21 @@ export const CompensateModal = ({
           />
 
           <View>
-            <TouchableOpacity
-              className="border border-gray-300 rounded-lg p-3 mb-4 items-center"
-              onPress={pickFile}
-            >
-              <Text className="text-gray-600">Select Evidence File</Text>
-            </TouchableOpacity>
+            <Text className="text-gray-700 font-medium mb-2">Evidence File</Text>
+            <View className="flex-row gap-2 mb-4">
+              <TouchableOpacity
+                className="flex-1 border border-gray-300 rounded-lg p-3 items-center"
+                onPress={pickImageFromLibrary}
+              >
+                <Text className="text-gray-600">Choose from Library</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 border border-gray-300 rounded-lg p-3 items-center"
+                onPress={takePhoto}
+              >
+                <Text className="text-gray-600">Take Photo</Text>
+              </TouchableOpacity>
+            </View>
             <View className="items-center">
               {imageUri && (
                 <Image
@@ -90,11 +122,10 @@ export const CompensateModal = ({
                   alert("Please provide both reason and evidence file");
                   return;
                 }
-                // Create a File-like object for React Native
                 const file = {
                   uri: imageUri,
                   name: fileName || "image.jpg",
-                  type: asset.type || "image/jpeg",
+                  type: asset.mimeType || "image/jpeg",
                 } as any;
                 handleCompensateOrder(reason, file);
                 onClose();
@@ -104,7 +135,7 @@ export const CompensateModal = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };

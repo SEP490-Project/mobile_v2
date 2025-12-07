@@ -2,7 +2,6 @@ import { getRaw, removeItem, setRaw } from "@/libs/utils/token-storage";
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { requestInterceptor, successInterceptor } from "./interceptors";
 
-// Mở rộng AxiosRequestConfig
 declare module "axios" {
   export interface AxiosRequestConfig {
     _retry?: boolean;
@@ -77,9 +76,6 @@ api.interceptors.response.use(successInterceptor, async (error: AxiosError) => {
       await removeItem("access_token");
       await removeItem("refresh_token");
       await removeItem("user");
-
-      // 🔻 TODO: Thay bằng navigation reset sang Login
-      // navigation.navigate("Login");
 
       return Promise.reject(err);
     }

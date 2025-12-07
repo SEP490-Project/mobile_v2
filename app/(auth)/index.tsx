@@ -93,12 +93,31 @@ function LoginScreen() {
                 error={errors.password}
               />
 
-              <View className="pt-4">
+              <View className="flex-row justify-end mt-1">
+                <Text
+                  className="text-primary font-semibold"
+                  onPress={() => router.push("./forgot")}
+                >
+                  Forgot password?
+                </Text>
+              </View>
+
+              <View className="pt-4 mt-5">
                 <AuthButton
                   title={loading ? "Signing In..." : "Sign In"}
                   onPress={handleLogin}
                   disabled={loading || !login_identifier || !password}
                 />
+              </View>
+
+              <View className="flex-row justify-center mt-4">
+                <Text className="text-gray-500">Don&apos;t have an account? </Text>
+                <Text
+                  className="text-primary font-semibold"
+                  onPress={() => router.push("./signup")}
+                >
+                  Sign up
+                </Text>
               </View>
             </View>
           </View>

@@ -1,16 +1,18 @@
 import ReduxProvider from "@/app/provider";
 import { NotificationProvider } from "@/libs/context/notificationContext";
 import { SessionInitializer } from "@/libs/hooks/api/sessionInitializer";
+import type { RootState } from "@/libs/stores";
 import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
 import * as Notifications from "expo-notifications";
-import { Stack, useRouter } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Appearance } from "react-native";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
 import "../global.css";
 
 Notifications.setNotificationHandler({
@@ -22,10 +24,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export const unstable_settings = {
-  initialRouteName: "(tabs)",
-};
-
 export default function RootLayout() {
   const [loaded] = useFonts({
     Montserrat: require("../assets/fonts/Montserrat-Regular.ttf"),
@@ -33,21 +31,49 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  const router = useRouter();
-  const pendingPathRef = useRef<string | null>(null);
-  const [triedPending, setTriedPending] = useState(false);
-
   useEffect(() => {
     const setupNavBar = async () => {
-      await NavigationBar.setButtonStyleAsync("dark");
+      try {
+        await NavigationBar.setButtonStyleAsync("dark");
+      } catch (e) {
+        console.warn("[RootLayout] NavigationBar error", e);
+      }
     };
     setupNavBar();
 
     Appearance.setColorScheme("light");
   }, []);
 
+  return (
+    <SafeAreaProvider>
+      <ReduxProvider>
+        <RootLayoutContent />
+      </ReduxProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function RootLayoutContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const authState = useSelector((state: RootState) => state.manageAuthen);
+  const pendingPathRef = useRef<string | null>(null);
+  const [triedPending, setTriedPending] = useState(false);
+
+  const safeNavigate = useCallback(
+    (path: string | null) => {
+      if (!path) return;
+      try {
+        router.push(path as any);
+      } catch (err) {
+        pendingPathRef.current = path;
+      }
+    },
+    [router],
+  );
+
   useEffect(() => {
-    if (!loaded) return;
     const path = pendingPathRef.current;
     if (!path) return;
 
@@ -58,6 +84,7 @@ export default function RootLayout() {
         pendingPathRef.current = null;
         setTriedPending(true);
       } catch (err) {
+        console.warn("[PendingNavigate] first navigation failed, will retry", err);
         setTimeout(() => {
           if (pendingPathRef.current && !triedPending) {
             try {
@@ -71,34 +98,20 @@ export default function RootLayout() {
         }, 500);
       }
     })();
-  }, [loaded, router, triedPending]);
-
-  const safeNavigate = useCallback(
-    (path: string | null) => {
-      if (!path) return;
-      if (!loaded) {
-        pendingPathRef.current = path;
-        return;
-      }
-      try {
-        router.push(path as any);
-      } catch (err) {
-        pendingPathRef.current = path;
-      }
-    },
-    [loaded, router],
-  );
+  }, [router, triedPending]);
 
   useEffect(() => {
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
       try {
         const data = response?.notification?.request?.content?.data ?? {};
+
         if (data.path) {
           safeNavigate(String(data.path));
           return;
         }
         if (data.screen) {
           const { screen, ...params } = data;
+
           const searchParams = new URLSearchParams(
             Object.entries(params).reduce(
               (acc, [k, v]) => {
@@ -110,7 +123,8 @@ export default function RootLayout() {
             ),
           );
           const query = Object.keys(params).length ? "?" + searchParams.toString() : "";
-          safeNavigate(`${screen}${query}`);
+          const fullPath = `${screen}${query}`;
+          safeNavigate(fullPath);
         }
       } catch (err) {
         console.warn("Error handling notification response", err);
@@ -122,12 +136,14 @@ export default function RootLayout() {
         const lastResponse = await Notifications.getLastNotificationResponseAsync();
         if (lastResponse) {
           const data = lastResponse?.notification?.request?.content?.data ?? {};
+
           if (data.path) {
             pendingPathRef.current = String(data.path);
             return;
           }
           if (data.screen) {
             const { screen, ...params } = data;
+
             const query = Object.keys(params).length
               ? "?" +
                 new URLSearchParams(
@@ -141,7 +157,8 @@ export default function RootLayout() {
                   ),
                 ).toString()
               : "";
-            pendingPathRef.current = `${screen}${query}`;
+            const fullPath = `${screen}${query}`;
+            pendingPathRef.current = fullPath;
           }
         }
       } catch (err) {
@@ -154,33 +171,28 @@ export default function RootLayout() {
     };
   }, [safeNavigate]);
 
-  if (!loaded) return null;
-
   return (
-    <SafeAreaProvider>
-      <ReduxProvider>
-        <NotificationProvider onNavigate={(path) => safeNavigate(path)}>
-          <SessionInitializer>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(product)" options={{ headerShown: false }} />
-              <Stack.Screen name="(search)" options={{ headerShown: false }} />
-              <Stack.Screen name="(notification)" options={{ headerShown: false }} />
-              <Stack.Screen name="blog" options={{ headerShown: false }} />
-              <Stack.Screen name="(cart)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(user)" options={{ headerShown: false }} />
-              <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-              <Stack.Screen name="(general)" options={{ headerShown: false }} />
-              <Stack.Screen name="(checkout)" options={{ headerShown: false }} />
-              <Stack.Screen name="(order)" options={{ headerShown: false }} />
-              <Stack.Screen name="(payment)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="dark" />
-          </SessionInitializer>
-        </NotificationProvider>
-      </ReduxProvider>
-    </SafeAreaProvider>
+    <NotificationProvider onNavigate={(path) => safeNavigate(path)}>
+      <SessionInitializer>
+        <Stack initialRouteName="(tabs)">
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(product)" options={{ headerShown: false }} />
+          <Stack.Screen name="(search)" options={{ headerShown: false }} />
+          <Stack.Screen name="(change-password)" options={{ headerShown: false }} />
+          <Stack.Screen name="(notification)" options={{ headerShown: false }} />
+          <Stack.Screen name="blog" options={{ headerShown: false }} />
+          <Stack.Screen name="(cart)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(user)" options={{ headerShown: false }} />
+          <Stack.Screen name="(setting)" options={{ headerShown: false }} />
+          <Stack.Screen name="(general)" options={{ headerShown: false }} />
+          <Stack.Screen name="(checkout)" options={{ headerShown: false }} />
+          <Stack.Screen name="(order)" options={{ headerShown: false }} />
+          <Stack.Screen name="(payment)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="dark" />
+      </SessionInitializer>
+    </NotificationProvider>
   );
 }
