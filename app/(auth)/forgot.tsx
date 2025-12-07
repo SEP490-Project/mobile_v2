@@ -91,7 +91,7 @@ function ForgotPasswordScreen() {
               placeholder="Enter your email"
               value={email}
               onChangeText={(text) => {
-                setEmail(text);
+                setEmail(text.trim());
                 if (error) setError("");
               }}
               error={error}
