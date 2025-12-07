@@ -133,7 +133,7 @@ export default function ResetPasswordScreen() {
       field: "new_password" | "confirm_password" | "reset_url",
     ) =>
     (text: string) => {
-      setter(text);
+      setter(text.trim());
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
     };
 
