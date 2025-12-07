@@ -14,6 +14,9 @@ export interface UserProfile {
   current_login_device: string[];
   number_of_sessions: number;
   shipping_address: ShippingAddress[];
+  bank_account?: string;
+  bank_account_holder?: string;
+  bank_name?: string;
 }
 
 export interface ShippingAddress {
@@ -24,14 +27,14 @@ export interface ShippingAddress {
   phone_number: string;
   email: string;
   street: string;
-  address_line_2: any;
+  address_line_2?: string;
   city: string;
-  state: any;
+  state?: string;
   postal_code: string;
   country: string;
-  ward_name: string;
-  district_name: string;
-  company: any;
+  ward_name?: string;
+  district_name?: string;
+  company?: string;
   is_default: boolean;
   created_at: string;
   updated_at: string;

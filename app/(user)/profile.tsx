@@ -1,6 +1,6 @@
 import { AppDispatch, RootState } from "@/libs/stores";
 import { getUserProfileThunk } from "@/libs/stores/userManager/thunk";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
@@ -102,24 +102,11 @@ const MyProfile = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["bottom"]}>
       <ScrollView
         className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View className="relative flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="p-2 bg-gray-50 rounded-full absolute left-4 z-50"
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-gray-600 font-semibold text-2xl text-center w-full">
-            My Profile
-          </Text>
-        </View>
-
         <ImageBackground
           source={require("@/assets/images/background/account-background.jpg")}
           resizeMode="cover"
@@ -184,7 +171,7 @@ const MyProfile = () => {
         </View>
 
         {profile.shipping_address && profile.shipping_address.length > 0 && (
-          <View className="bg-white mx-4 mt-4 rounded-lg p-4 shadow-sm">
+          <View className="bg-white mx-4 my-4 rounded-lg p-4 shadow-sm">
             <Text className="text-lg font-bold text-gray-800 mb-2">Shipping Addresses</Text>
             {profile.shipping_address.map((address, index) => (
               <View key={address.id} className="mb-4 last:mb-0">
