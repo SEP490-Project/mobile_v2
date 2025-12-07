@@ -5,6 +5,10 @@ export interface PreOrderData {
   quantity: number;
   unit_price: number;
   total_amount: number;
+  status: string;
+  user_bank_account: string;
+  user_bank_name: string;
+  user_bank_account_holder: string;
   full_name: string;
   phone_number: string;
   email: string;
@@ -17,6 +21,8 @@ export interface PreOrderData {
   province_name: string;
   district_name: string;
   ward_name: string;
+  is_self_picked_up: boolean;
+  action_notes?: ActionNote[];
   capacity: number;
   capacity_unit: string;
   container_type: string;
@@ -30,12 +36,46 @@ export interface PreOrderData {
   height: number;
   length: number;
   width: number;
-  is_self_picked_up: boolean;
-  status: string;
+  product_name: string;
+  description: string;
+  product_type: string;
   created_at: string;
   updated_at: string;
-  action_notes?: ActionNote[];
-  PaymentTx?: PaymentTx;
+  images?: Image[];
+  brand: Brand;
+  category: Category;
+  PaymentTx: PaymentTx;
+  confirmation_image?: string;
+  user_resource?: string;
+}
+
+export interface Image {
+  image_url: string;
+  alt_text: string;
+  is_primary: boolean;
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  description?: string;
+  contact_email: string;
+  contact_phone: string;
+  address: string;
+  website: string;
+  logo_url: string;
+  tax_number: string;
+  representative_name: string;
+  representative_role: string;
+  representative_email: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: any;
+  parent_category: any;
+  child_categories: any[];
 }
 
 export interface PaymentTx {

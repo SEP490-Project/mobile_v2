@@ -18,60 +18,52 @@ import { useSelector } from "react-redux";
 // --- Status Colors ---
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
-    case "paid":
-    case "approved":
-      return "text-green-700";
-    case "delivered":
-      return "text-green-700";
-    case "pre_ordered":
-      return "text-purple-700";
-    case "confirmed":
-      return "text-blue-700";
-    case "completed":
-      return "text-green-700";
-    case "in_transit":
-    case "shipping":
-      return "text-yellow-700";
-    case "processing":
     case "pending":
-      return "text-blue-700";
-    case "cancelled":
-    case "rejected":
-      return "text-red-700";
+      return "text-blue-800";
+    case "paid":
+      return "text-green-800";
+    case "pre_ordered":
+      return "text-purple-800";
     case "awaiting_pickup":
-      return "text-yellow-700";
+      return "text-yellow-800";
+    case "in_transit":
+      return "text-blue-800";
+    case "delivered":
+      return "text-green-800";
     case "received":
-      return "text-green-700";
+      return "text-teal-800";
+    case "cancelled":
+      return "text-red-800";
+    case "compensate_request":
+      return "text-blue-800";
+    case "compensated":
+      return "text-green-800";
     default:
-      return "text-gray-700";
+      return "text-gray-800";
   }
 };
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase()) {
-    case "paid":
-    case "approved":
-      return "bg-green-100";
-    case "confirmed":
+    case "pending":
       return "bg-blue-100";
-    case "delivered":
+    case "paid":
       return "bg-green-100";
     case "pre_ordered":
       return "bg-purple-100";
-    case "completed":
-      return "bg-green-100";
-    case "in_transit":
-    case "shipping":
-      return "bg-yellow-100";
-    case "processing":
-    case "pending":
-      return "bg-blue-100";
-    case "cancelled":
-    case "rejected":
-      return "bg-red-100";
     case "awaiting_pickup":
-      return "bg-yellow-100 ";
+      return "bg-yellow-100";
+    case "in_transit":
+      return "bg-blue-100";
+    case "delivered":
+      return "bg-green-100";
     case "received":
+      return "bg-teal-100";
+    case "cancelled":
+      return "bg-red-100";
+    case "compensate_request":
+      return "bg-blue-100";
+    case "compensated":
       return "bg-green-100";
     default:
       return "bg-gray-100";

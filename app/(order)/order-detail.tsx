@@ -11,34 +11,40 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
-    case "paid":
-      return "text-green-700 bg-green-100";
-    case "delivered":
-      return "text-green-700 bg-green-100";
-    case "confirmed":
-      return "text-blue-700 bg-blue-100";
-    case "completed":
-      return "text-green-700 bg-green-100";
-    case "in_transit":
-      return "text-yellow-700 bg-yellow-100";
-    case "shipping":
-      return "text-yellow-700 bg-yellow-100";
     case "pending":
-      return "text-blue-700 bg-blue-100";
-    case "cancelled":
-      return "text-red-700 bg-red-100";
+      return "text-blue-800 bg-blue-100";
+    case "paid":
+      return "text-green-800 bg-green-100";
+    case "refund_request":
+      return "text-blue-800 bg-blue-100";
+    case "refunded":
+      return "text-green-800 bg-green-100";
+    case "confirmed":
+      return "text-yellow-800 bg-yellow-100";
     case "awaiting_pickup":
-      return "text-yellow-700 bg-yellow-100";
+      return "text-blue-800 bg-blue-100";
+    case "shipped":
+      return "text-orange-800 bg-orange-100";
+    case "in_transit":
+      return "text-blue-800 bg-blue-100";
+    case "delivered":
+      return "text-green-800 bg-green-100";
     case "received":
-      return "text-green-700 bg-green-100";
+      return "text-teal-800 bg-teal-100";
+    case "cancelled":
+      return "text-red-800 bg-red-100";
+    case "compensate_request":
+      return "text-blue-800 bg-blue-100";
+    case "compensated":
+      return "text-green-800 bg-green-100";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "text-gray-800 bg-gray-100";
   }
 };
 
@@ -201,8 +207,11 @@ const OrderDetailScreen = () => {
                 index !== order.order_items.length - 1 ? "border-b border-gray-100" : ""
               }`}
             >
-              <View className="w-20 h-20 bg-gray-100 rounded-lg items-center justify-center">
-                <MaterialIcons name="local-drink" size={32} color="#9ca3af" />
+              <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center">
+                <Image
+                  source={{ uri: item.images?.[0]?.image_url }}
+                  style={{ width: 64, height: 64, borderRadius: 12 }}
+                />
               </View>
               <View className="flex-1 ml-3">
                 <Text className="font-semibold text-gray-800">
@@ -319,27 +328,6 @@ const OrderDetailScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      {order.status.toLowerCase() === "pending" &&
-        order.payment_transaction.status.toLowerCase() !== "completed" && (
-          <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
-            <TouchableOpacity className="rounded-lg py-4 items-center border border-primary flex-1">
-              <Text className="text-primary font-bold text-base">Cancel Order</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="bg-primary rounded-lg py-4 items-center flex-1"
-              onPress={() =>
-                router.push({
-                  pathname: "/(payment)",
-                  params: { paymentUrl: order.payment_transaction.gateway_ref },
-                })
-              }
-            >
-              <Text className="text-white font-bold text-base">Pay Order</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
       {order.status.toLowerCase() === "delivered" && (
         <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
           <TouchableOpacity
@@ -367,6 +355,7 @@ const OrderDetailScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
       <CompensateModal
         visible={compensateModalVisible}
         onClose={() => setCompensateModalVisible(false)}

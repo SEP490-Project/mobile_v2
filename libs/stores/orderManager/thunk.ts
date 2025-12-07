@@ -130,6 +130,19 @@ const receivePreOrderThunk = createAsyncThunk(
   },
 );
 
+const requestRefundPreOrderThunk = createAsyncThunk(
+  "orderManager/requestRefundPreOrder",
+  async ({ preOrderId, reason }: { preOrderId: string; reason: FormData }, { rejectWithValue }) => {
+    try {
+      console.log("Requesting refund for pre-order:", preOrderId, "with reason:", reason);
+      const response = await manageOrder.requestRefundPreOrder(preOrderId, reason);
+      return response.data as any;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to request pre-order refund");
+    }
+  },
+);
+
 export {
   createPreOrderThunk,
   getOrdersThunk,
@@ -141,4 +154,5 @@ export {
   requestCompensateOrderThunk,
   requestCompensatePreOrderThunk,
   requestRefundOrderThunk,
+  requestRefundPreOrderThunk,
 };

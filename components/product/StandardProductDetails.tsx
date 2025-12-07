@@ -1,4 +1,5 @@
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { useAppDispatch } from "@/libs/stores";
 import { addToCart } from "@/libs/stores/cartManager/slice";
 import { Product, Variant } from "@/libs/types/product";
@@ -15,11 +16,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import DetailRow from "./DetailRows";
 
 const { width } = Dimensions.get("window");
 
 const StandardProductDetails = ({ productDetail }: { productDetail: Product | undefined }) => {
+  const { user } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -60,6 +63,10 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
 
   const handleBuyNow = () => {
     if (!productDetail || !selectedVariant) return;
+    if (!user) {
+      router.replace("/(auth)");
+      return;
+    }
 
     router.push({
       pathname: "/(checkout)",
@@ -307,7 +314,7 @@ const ProductDetailsModal = ({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent={true}>
       {selectedVariant && (
         <View className="flex-1 justify-end bg-black/30" onTouchStart={onClose}>
-          <View
+          <SafeAreaView
             className="bg-gray-50 rounded-t-2xl p-4 h-fit z-50"
             onTouchStart={(e) => e.stopPropagation()}
           >
@@ -354,7 +361,7 @@ const ProductDetailsModal = ({
                 <Text className="text-white font-bold text-center">Close</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </SafeAreaView>
         </View>
       )}
     </Modal>
