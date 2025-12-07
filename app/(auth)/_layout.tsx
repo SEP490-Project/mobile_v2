@@ -1,22 +1,47 @@
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import React from "react";
-import { TouchableOpacity } from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
-export default function StackLayout() {
+export default function AuthStackLayout() {
+  const { loading, isAuthenticated } = useAuth();
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+      </View>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   return (
     <Stack
-      screenOptions={({ navigation }) => ({
+      screenOptions={({ navigation, route }) => ({
         headerShown: true,
         headerTitleAlign: "center",
         headerTintColor: "#ff9fb2",
         headerShadowVisible: false,
-        headerLeft: ({ canGoBack }) =>
-          canGoBack ? (
+        headerLeft: ({ canGoBack }) => {
+          if (route.name === "index") {
+            return (
+              <TouchableOpacity onPress={() => navigation.navigate("(tabs)")}>
+                <MaterialIcons name="chevron-left" size={28} color="#ff9fb2" />
+              </TouchableOpacity>
+            );
+          }
+
+          if (!canGoBack) return null;
+          return (
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <MaterialIcons name="chevron-left" size={32} color="#ff9fb2" />
             </TouchableOpacity>
-          ) : null,
+          );
+        },
       })}
     >
       <Stack.Screen name="index" options={{ headerTitle: () => null }} />
