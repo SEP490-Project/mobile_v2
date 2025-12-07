@@ -178,7 +178,8 @@ function HomeScreen() {
     (item) =>
       item.type === "LIMITED" &&
       (!item.limited_product?.premiere_date ||
-        currentDate >= new Date(item.limited_product?.premiere_date)),
+        (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
+          currentDate <= new Date(item.limited_product.availability_end_date))),
   );
 
   return (

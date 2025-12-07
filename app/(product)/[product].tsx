@@ -1,5 +1,6 @@
 import LimitedProductDetails from "@/components/product/LimitedProductDetails";
 import StandardProductDetails from "@/components/product/StandardProductDetails";
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getProductDetailsThunk } from "@/libs/stores/productManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -12,6 +13,8 @@ import { useSelector } from "react-redux";
 export default function ProductDetail() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { user } = useAuth();
+
   const { product: productId } = useLocalSearchParams();
 
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
@@ -51,20 +54,22 @@ export default function ProductDetail() {
           <TouchableOpacity className="p-2 bg-gray-50 rounded-full" activeOpacity={0.7}>
             <MaterialIcons name="share" size={24} color="#374151" />
           </TouchableOpacity>
-          <TouchableOpacity
-            className="p-2 bg-gray-50 rounded-full"
-            activeOpacity={0.7}
-            onPress={() => router.push("/(cart)")}
-          >
-            <MaterialIcons name="shopping-cart" size={24} color="#374151" />
-            {cartItemCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
-                <Text className="text-white text-xs font-bold">
-                  {cartItemCount > 9 ? "9+" : cartItemCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {user && (
+            <TouchableOpacity
+              className="p-2 bg-gray-50 rounded-full"
+              activeOpacity={0.7}
+              onPress={() => router.push("/(cart)")}
+            >
+              <MaterialIcons name="shopping-cart" size={24} color="#374151" />
+              {cartItemCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-rose-500 rounded-full w-5 h-5 items-center justify-center">
+                  <Text className="text-white text-xs font-bold">
+                    {cartItemCount > 9 ? "9+" : cartItemCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

@@ -24,7 +24,12 @@ const manageOrder = {
   requestRefundOrder: (orderId: string) => api.post(`/orders/${orderId}/refund`),
 
   // Preorder
-  requestRefundPreOrder: (preorderId: string) => api.post(`/preorders/refund/${preorderId}`),
+  requestRefundPreOrder: (preorderId: string, reason: FormData) =>
+    api.post(`/preorders/refund/${preorderId}`, reason, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   requestCompenstatePreOrder: (preorderId: string, file: FormData) =>
     api.post(`/preorders/${preorderId}/compensation`, file, {
       headers: {
