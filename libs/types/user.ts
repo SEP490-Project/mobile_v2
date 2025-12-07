@@ -29,6 +29,8 @@ export interface ShippingAddress {
   state: any;
   postal_code: string;
   country: string;
+  ward_name: string;
+  district_name: string;
   company: any;
   is_default: boolean;
   created_at: string;

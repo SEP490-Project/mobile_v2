@@ -15,20 +15,32 @@ const manageOrder = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  requestCompensateOrder: (orderId: string, file: FormData) =>
-    api.post(`/orders/${orderId}/compensation`, file, {
+  // requestCompensateOrder: (orderId: string, formData: FormData) =>
+  //   api.post(`/orders/${orderId}/compensation`, formData, {
+  //     headers: {
+  //       "Content-Type": "multipart/form-data",
+  //       accept: "application/json",
+  //     },
+  //   }),
+
+  requestCompensateOrder: async (orderId: string, formData: FormData) => {
+    console.log("Requesting compensation for order:", orderId, formData);
+    return api.post(`/orders/${orderId}/compensation`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+        accept: "application/json",
       },
-    }),
+    });
+  },
   requestRefundOrder: (orderId: string) => api.post(`/orders/${orderId}/refund`),
 
   // Preorder
   requestRefundPreOrder: (preorderId: string) => api.post(`/preorders/refund/${preorderId}`),
-  requestCompenstatePreOrder: (preorderId: string, file: FormData) =>
-    api.post(`/preorders/${preorderId}/compensation`, file, {
+  requestCompenstatePreOrder: (preorderId: string, formData: FormData) =>
+    api.post(`/preorders/${preorderId}/compensation`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+        accept: "application/json",
       },
     }),
   receivedPreOrder: (preorderId: string) =>

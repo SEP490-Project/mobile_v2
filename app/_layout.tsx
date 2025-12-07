@@ -165,6 +165,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(product)" options={{ headerShown: false }} />
               <Stack.Screen name="(search)" options={{ headerShown: false }} />
+              <Stack.Screen name="(change-password)" options={{ headerShown: false }} />
               <Stack.Screen name="(notification)" options={{ headerShown: false }} />
               <Stack.Screen name="blog" options={{ headerShown: false }} />
               <Stack.Screen name="(cart)" options={{ headerShown: false }} />

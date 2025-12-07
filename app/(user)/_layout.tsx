@@ -6,7 +6,7 @@ const UserLayout = () => {
     <Stack>
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="(address)" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="change-password" options={{ headerShown: false }} /> */}
+      <Stack.Screen name="update-profile" options={{ headerShown: false }} />
     </Stack>
   );
 };

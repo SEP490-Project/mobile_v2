@@ -89,7 +89,7 @@ const PreOrderDetailScreen = () => {
     } as any);
 
     const result = await dispatch(
-      requestCompensatePreOrderThunk({ preOrderId: preOrder.id, file: formData }),
+      requestCompensatePreOrderThunk({ preOrderId: preOrder.id, formData }),
     );
 
     console.log("Compensate pre-order result:", result);

@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  changePassword,
   forgotPassword,
   login,
   logout,
@@ -95,6 +96,16 @@ export const manageAuthenSlice = createSlice({
         state.loading = false;
       })
       .addCase(resetPassword.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changePassword.rejected, (state) => {
         state.loading = false;
       });
   },

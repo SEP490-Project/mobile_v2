@@ -20,6 +20,12 @@ export interface ResetPassword {
   new_password: string;
   token: string;
 }
+
+export interface ChangePassword {
+  current_password: string;
+  new_password: string;
+}
+
 export interface User {
   id: string;
   username: string;

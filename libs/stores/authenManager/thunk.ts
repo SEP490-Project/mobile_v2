@@ -1,5 +1,11 @@
 import { manageAuthen } from "@/libs/services/manageAuthen";
-import type { ForgotPassword, Login, ResetPassword, SignUp } from "@/libs/types/auth";
+import type {
+  ChangePassword,
+  ForgotPassword,
+  Login,
+  ResetPassword,
+  SignUp,
+} from "@/libs/types/auth";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import * as SecureStore from "expo-secure-store";
@@ -122,6 +128,19 @@ export const resetPassword = createAsyncThunk(
     } catch (error: unknown) {
       const err = error as AxiosError<{ message?: string }>;
       return rejectWithValue(err.response?.data?.message || "Reset password failed");
+    }
+  },
+);
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (req: ChangePassword, { rejectWithValue }) => {
+    try {
+      const response = await manageAuthen.changePassword(req);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      return rejectWithValue(err.response?.data?.message || "Change password failed");
     }
   },
 );
