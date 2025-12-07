@@ -1,45 +1,43 @@
 import { CompensateModal } from "@/components/order/CompensateModal";
+import RefundModal from "@/components/order/RefundModal";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { useAppDispatch } from "@/libs/stores";
 import {
   receivePreOrderThunk,
   requestCompensatePreOrderThunk,
+  requestRefundPreOrderThunk,
 } from "@/libs/stores/orderManager/thunk";
 import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
-    case "paid":
-    case "approved":
-      return "text-green-700 bg-green-100";
-    case "delivered":
-      return "text-green-700 bg-green-100";
-    case "pre_ordered":
-      return "text-purple-700 bg-purple-100";
-    case "confirmed":
-      return "text-blue-700 bg-blue-100";
-    case "completed":
-      return "text-green-700 bg-green-100";
-    case "in_transit":
-    case "shipping":
-      return "text-yellow-700 bg-yellow-100";
-    case "processing":
     case "pending":
-      return "text-blue-700 bg-blue-100";
-    case "cancelled":
-    case "rejected":
-      return "text-red-700 bg-red-100";
+      return "text-blue-800 bg-blue-100";
+    case "paid":
+      return "text-green-800 bg-green-100";
+    case "pre_ordered":
+      return "text-purple-800 bg-purple-100";
     case "awaiting_pickup":
-      return "text-yellow-700 bg-yellow-100";
+      return "text-yellow-800 bg-yellow-100";
+    case "in_transit":
+      return "text-blue-800 bg-blue-100";
+    case "delivered":
+      return "text-green-800 bg-green-100";
     case "received":
-      return "text-green-700 bg-green-100";
+      return "text-teal-800 bg-teal-100";
+    case "cancelled":
+      return "text-red-800 bg-red-100";
+    case "compensate_request":
+      return "text-blue-800 bg-blue-100";
+    case "compensated":
+      return "text-green-800 bg-green-100";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "text-gray-800 bg-gray-100";
   }
 };
 
@@ -56,8 +54,8 @@ const PreOrderDetailScreen = () => {
   const dispatch = useAppDispatch();
   const { preOrderData } = useLocalSearchParams();
   const [showCompensateModal, setShowCompensateModal] = React.useState(false);
+  const [showRefundModal, setShowRefundModal] = React.useState(false);
 
-  // Parse the pre-order data from params
   const preOrder: PreOrderData | null = React.useMemo(() => {
     try {
       if (typeof preOrderData === "string") {
@@ -109,6 +107,21 @@ const PreOrderDetailScreen = () => {
       router.back();
     } else {
       alert("Failed to receive pre-order. Please try again.");
+    }
+  };
+
+  const handleRefundPreOrder = async (reason: string) => {
+    const formData = new FormData();
+    formData.append("reason", reason);
+
+    const result = await dispatch(
+      requestRefundPreOrderThunk({ preOrderId: preOrder.id, reason: formData }),
+    );
+
+    if (requestRefundPreOrderThunk.fulfilled.match(result)) {
+      router.back();
+    } else {
+      alert("Failed to submit refund request. Please try again.");
     }
   };
 
@@ -174,7 +187,10 @@ const PreOrderDetailScreen = () => {
           <View className="bg-gray-50 rounded-lg p-4">
             <View className="flex-row items-center mb-3">
               <View className="w-16 h-16 bg-white rounded-lg items-center justify-center">
-                <MaterialIcons name="local-drink" size={32} color="#9ca3af" />
+                <Image
+                  source={{ uri: preOrder.images?.[0]?.image_url }}
+                  style={{ width: 64, height: 64, borderRadius: 12 }}
+                />
               </View>
               <View className="flex-1 ml-3">
                 <Text className="font-bold text-gray-800 text-base">
@@ -396,6 +412,19 @@ const PreOrderDetailScreen = () => {
         </View>
       )}
 
+      {preOrder.status.toLowerCase() === "paid" && (
+        <View className="bg-white px-4 py-3 border-t border-gray-200">
+          <TouchableOpacity
+            className="bg-primary rounded-lg py-4 items-center"
+            onPress={() => {
+              setShowRefundModal(true);
+            }}
+          >
+            <Text className="text-white font-bold text-base">Request Refund</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Delivered Status - Show Received and Compensate Buttons */}
       {preOrder.status.toLowerCase() === "delivered" && (
         <View className="bg-white px-4 py-3 border-t border-gray-200">
@@ -421,6 +450,11 @@ const PreOrderDetailScreen = () => {
         visible={showCompensateModal}
         onClose={() => setShowCompensateModal(false)}
         handleCompensateOrder={handleCompensatePreOrder}
+      />
+      <RefundModal
+        visible={showRefundModal}
+        onClose={() => setShowRefundModal(false)}
+        handleRefundOrder={handleRefundPreOrder}
       />
     </SafeAreaView>
   );

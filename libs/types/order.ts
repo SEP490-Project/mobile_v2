@@ -4,6 +4,9 @@ export interface OrderData {
   id: string;
   user_id: string;
   status: string;
+  bank_account: string;
+  bank_name: string;
+  bank_account_holder: string;
   total_amount: number;
   full_name: string;
   phone_number: string;
@@ -11,21 +14,34 @@ export interface OrderData {
   street: string;
   address_line2: string;
   city: string;
-  ghn_province_id?: number;
-  ghn_district_id?: number;
-  ghn_ward_code?: string;
+  ghn_province_id: number;
+  ghn_district_id: number;
+  ghn_ward_code: string;
   province_name: string;
   district_name: string;
   ward_name: string;
   shipping_fee: number;
   created_at: string;
   updated_at: string;
-  order_type: string;
   is_self_picked_up: boolean;
+  confirmation_image?: string;
+  order_type: string;
+  ghn_order_code?: string;
+  action_notes: ActionNote[];
+  user_note: string;
   payment_transaction: PaymentTransaction;
-  user_note?: string;
-  ghn_order_code: any;
   order_items: OrderItem[];
+  user_resource?: string;
+  staff_resource?: string;
+}
+
+export interface ActionNote {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  action_type: string;
+  reason: string;
+  created_at: string;
 }
 
 export interface PaymentTransaction {
@@ -43,8 +59,6 @@ export interface PaymentTransaction {
 
 export interface OrderItem {
   id: string;
-  order_id: string;
-  variant_id: string;
   quantity: number;
   subtotal: number;
   unit_price: number;
@@ -56,13 +70,52 @@ export interface OrderItem {
   manufacturing_date: any;
   expiry_date: string;
   instructions: string;
-  attributes_description: AttributesDescription[];
-  status: string;
-  updated_at: string;
   weight: number;
   height: number;
   length: number;
   width: number;
+  product_name: string;
+  description: string;
+  product_type: string;
+  limited_properties?: LimitedProperties;
+  attributes_description: AttributesDescription[];
+  images: Image[];
+  brand: Brand;
+  category: Category;
+}
+
+export interface LimitedProperties {
+  premiere_date: string;
+  availability_start_date: string;
+  availability_end_date: string;
+}
+
+export interface Image {
+  image_url: string;
+  alt_text: string;
+  is_primary: boolean;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  parent_category: any;
+  child_categories: Category[];
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  contact_email: string;
+  contact_phone: string;
+  address: string;
+  website: string;
+  logo_url: string;
+  tax_number: string;
+  representative_name: string;
+  representative_role: string;
+  representative_email: string;
 }
 
 export interface AttributesDescription {

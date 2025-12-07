@@ -34,6 +34,7 @@ const CheckoutScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { productId, variantId, quantity, type } = useLocalSearchParams();
+
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
 
   const isBuyNowCheckout = !!(productId && variantId && quantity);
@@ -160,23 +161,7 @@ const CheckoutScreen = () => {
       // Check if payment URL exists in response
       if (result?.data?.payment_tx?.checkoutUrl) {
         const paymentUrl = result.data.payment_tx.checkoutUrl;
-        Alert.alert(
-          "Order Created!",
-          "Your order has been created. You will be redirected to payment.",
-          [
-            {
-              text: "Pay Now",
-              onPress: () => {
-                router.push({ pathname: "/(payment)", params: { paymentUrl } });
-              },
-            },
-            {
-              text: "Pay Later",
-              style: "cancel",
-              onPress: () => router.push("/(tabs)/orders"),
-            },
-          ],
-        );
+        router.push({ pathname: "/(payment)", params: { paymentUrl } });
       } else {
         Alert.alert("Success", "Order placed successfully!", [
           {
@@ -210,31 +195,13 @@ const CheckoutScreen = () => {
       user_note: userNote,
     };
 
-    console.log("Pre-order payload:", payload);
-
     try {
       const result = await dispatch(createPreOrderThunk(payload)).unwrap();
 
       // Check if payment URL exists in response
       if (result?.data?.payment_tx?.checkoutUrl) {
         const paymentUrl = result.data.payment_tx.checkoutUrl;
-        Alert.alert(
-          "Pre-Order Created!",
-          "Your pre-order has been created. You will be redirected to payment.",
-          [
-            {
-              text: "Pay Now",
-              onPress: () => {
-                router.push({ pathname: "/(payment)", params: { paymentUrl } });
-              },
-            },
-            {
-              text: "Pay Later",
-              style: "cancel",
-              onPress: () => router.push("/(tabs)/orders"),
-            },
-          ],
-        );
+        router.push({ pathname: "/(payment)", params: { paymentUrl } });
       } else {
         Alert.alert("Success", "Pre-order placed successfully!", [
           {
@@ -248,7 +215,6 @@ const CheckoutScreen = () => {
     }
   };
 
-  // Show loading for Buy Now checkout if product details aren't loaded
   if (isBuyNowCheckout && !productDetail) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">
@@ -257,7 +223,6 @@ const CheckoutScreen = () => {
     );
   }
 
-  // Show error if no items to checkout
   if (checkoutItems.length === 0) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">

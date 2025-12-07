@@ -14,7 +14,7 @@ export interface Product {
   type: string;
   variants: Variant[];
   created_at: string;
-  limited_product: LimitedProduct;
+  limited_product?: LimitedProduct | null;
   concept: Concept;
 }
 
@@ -63,12 +63,10 @@ export interface Image {
 }
 
 export interface LimitedProduct {
-  max_stock: number;
-  is_free_shipping: boolean;
-  bought_limit: number;
-  premiere_date: string;
-  availability_start_date: string;
-  availability_end_date: string;
+  achievable_quantity: number;
+  premiere_date: Date;
+  availability_start_date: Date;
+  availability_end_date: Date;
 }
 
 export interface Concept {
