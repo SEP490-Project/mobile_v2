@@ -78,7 +78,7 @@ function RegisterScreen() {
   const handleChangeText =
     (setter: React.Dispatch<React.SetStateAction<string>>, field: keyof typeof errors) =>
     (text: string) => {
-      setter(text);
+      setter(text.trim());
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: "" }));
       }

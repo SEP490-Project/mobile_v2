@@ -1,4 +1,6 @@
 import { AuthButton, AuthInput } from "@/components/guest";
+import { useAppDispatch } from "@/libs/stores";
+import { forgotPassword } from "@/libs/stores/authenManager/thunk";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -18,20 +20,48 @@ const ForgotPasswordSchema = yup.object().shape({
 
 function ForgotPasswordScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
     setError("");
 
     try {
       await ForgotPasswordSchema.validate({ email });
-      console.log("Forgot password email:", email);
-      Alert.alert("Check your email", "A password reset link has been sent to your inbox.");
-    } catch (err) {
+      setLoading(true);
+
+      await dispatch(
+        forgotPassword({ email, frontend_url: "https://bshowsell.site/reset-password" }),
+      ).unwrap();
+
+      Alert.alert(
+        "Check your email",
+        "A password reset link has been sent to your inbox. You can also continue directly below.",
+        [
+          {
+            text: "Continue Here",
+            onPress: () =>
+              router.push({
+                pathname: "/(auth)/reset-password",
+                params: { from_forgot: "true" },
+              }),
+          },
+        ],
+      );
+    } catch (err: any) {
       if (err instanceof yup.ValidationError) {
         setError(err.message);
+      } else {
+        const errorMsg =
+          typeof err === "string"
+            ? err
+            : err?.message || "Failed to send reset email. Please try again.";
+        setError(errorMsg);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +81,8 @@ function ForgotPasswordScreen() {
             <View className="mb-12">
               <Text className="text-3xl font-bold mb-2 text-gray-600">Forgot your password?</Text>
               <Text className="text-gray-500">
-                Enter your email address and we’ll send you instructions to reset your password.
+                Enter your email address and we&apos;ll send you instructions to reset your
+                password.
               </Text>
             </View>
 
@@ -60,14 +91,18 @@ function ForgotPasswordScreen() {
               placeholder="Enter your email"
               value={email}
               onChangeText={(text) => {
-                setEmail(text);
+                setEmail(text.trim());
                 if (error) setError("");
               }}
               error={error}
             />
 
             <View className="pt-4">
-              <AuthButton title="Send Reset Link" onPress={handleResetPassword} disabled={!email} />
+              <AuthButton
+                title={loading ? "Sending..." : "Send Reset Link"}
+                onPress={handleResetPassword}
+                disabled={loading || !email}
+              />
             </View>
           </View>
 

@@ -99,14 +99,13 @@ const OrderDetailScreen = () => {
     }
   };
 
-  const handleCompensateOrder = async (reason: string, assest: any) => {
+  const handleCompensateOrder = async (reason: string, file: any) => {
     const formData = new FormData();
     formData.append("reason", reason);
     formData.append("file", {
-      uri: assest.uri,
-      name: assest.fileName || "evidence.jpg",
-      type: assest.mimeType || "image/jpeg",
-      mimeType: assest.mimeType || "image/jpeg",
+      uri: file.uri,
+      name: file.name,
+      type: file.type,
     } as any);
 
     const result = await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));

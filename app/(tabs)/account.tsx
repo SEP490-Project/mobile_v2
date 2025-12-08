@@ -153,7 +153,7 @@ const accountMenuItems = [
   {
     iconName: "lock",
     name: "Change Password",
-    route: "/change-password",
+    route: "/(change-password)",
     bgColor: "#FFF7ED",
     iconColor: "#F59E0B",
   },

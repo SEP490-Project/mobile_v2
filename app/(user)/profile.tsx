@@ -1,6 +1,6 @@
 import { AppDispatch, RootState } from "@/libs/stores";
 import { getUserProfileThunk } from "@/libs/stores/userManager/thunk";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
@@ -101,27 +101,12 @@ const MyProfile = () => {
     </View>
   );
 
-  // const defaultAddress = profile.shipping_address?.find((addr) => addr.is_default);
-
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["bottom"]}>
       <ScrollView
         className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View className="relative flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="p-2 bg-gray-50 rounded-full absolute left-4 z-50"
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-gray-600 font-semibold text-2xl text-center w-full">
-            My Profile
-          </Text>
-        </View>
-
         <ImageBackground
           source={require("@/assets/images/background/account-background.jpg")}
           resizeMode="cover"
@@ -143,6 +128,17 @@ const MyProfile = () => {
             </View>
             <Text className="text-2xl font-bold text-white mb-1">{profile.full_name}</Text>
             <Text className="text-blue-100">@{profile.username}</Text>
+
+            <TouchableOpacity
+              onPress={() => router.push("/(user)/update-profile")}
+              className="mt-4 bg-white/20 border border-white/30 px-6 py-3 rounded-lg"
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="create-outline" size={18} color="white" />
+                <Text className="text-white font-semibold ml-2">Edit Profile</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
 
@@ -150,13 +146,55 @@ const MyProfile = () => {
           <Text className="text-lg font-bold text-gray-800 mb-2">Personal Information</Text>
           <InfoRow icon="person-outline" label="Full Name" value={profile.full_name} />
           <InfoRow icon="mail-outline" label="Email" value={profile.email} />
-          <InfoRow icon="call-outline" label="Phone" value={profile.phone} />
+          <InfoRow icon="call-outline" label="Phone" value={profile.phone || "Not provided"} />
           <InfoRow
             icon="calendar-outline"
             label="Date of Birth"
-            value={formatDate(profile.date_of_birth)}
+            value={profile.date_of_birth ? formatDate(profile.date_of_birth) : "Not provided"}
+          />
+          <InfoRow icon="shield-outline" label="Role" value={profile.role} />
+          <InfoRow
+            icon="checkmark-circle-outline"
+            label="Account Status"
+            value={profile.is_active ? "Active" : "Inactive"}
           />
         </View>
+
+        <View className="bg-white mx-4 mt-4 rounded-lg p-4 shadow-sm">
+          <Text className="text-lg font-bold text-gray-800 mb-2">Account Activity</Text>
+          <InfoRow icon="time-outline" label="Last Login" value={formatDate(profile.last_login)} />
+          <InfoRow
+            icon="calendar-outline"
+            label="Account Created"
+            value={formatDate(profile.created_at)}
+          />
+        </View>
+
+        {profile.shipping_address && profile.shipping_address.length > 0 && (
+          <View className="bg-white mx-4 my-4 rounded-lg p-4 shadow-sm">
+            <Text className="text-lg font-bold text-gray-800 mb-2">Shipping Addresses</Text>
+            {profile.shipping_address.map((address, index) => (
+              <View key={address.id} className="mb-4 last:mb-0">
+                <View className="flex-row items-center mb-2">
+                  <Text className="text-base font-semibold text-gray-800">{address.full_name}</Text>
+                  {address.is_default && (
+                    <View className="ml-2 bg-blue-100 px-2 py-1 rounded-full">
+                      <Text className="text-xs text-blue-600 font-medium">Default</Text>
+                    </View>
+                  )}
+                </View>
+                <Text className="text-gray-600 mb-1">{address.phone_number}</Text>
+                <Text className="text-gray-600 mb-1">{address.email}</Text>
+                <Text className="text-gray-600">
+                  {address.street}, {address.ward_name}, {address.district_name}, {address.city}
+                </Text>
+                {index < profile.shipping_address.length - 1 && (
+                  <View className="mt-3 border-b border-gray-100" />
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

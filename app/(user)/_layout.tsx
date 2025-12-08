@@ -3,10 +3,19 @@ import React from "react";
 
 const UserLayout = () => {
   return (
-    <Stack>
-      <Stack.Screen name="profile" options={{ headerShown: false }} />
+    <Stack
+      screenOptions={{
+        headerShown: true,
+        headerTitleAlign: "center",
+        headerTintColor: "#ff9fb2",
+        headerStyle: {
+          backgroundColor: "#fff",
+        },
+      }}
+    >
+      <Stack.Screen name="profile" options={{ title: "My Profile" }} />
       <Stack.Screen name="(address)" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="change-password" options={{ headerShown: false }} /> */}
+      <Stack.Screen name="update-profile" options={{ title: "Update Profile" }} />
     </Stack>
   );
 };

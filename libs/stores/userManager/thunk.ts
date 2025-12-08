@@ -15,4 +15,18 @@ const getUserProfileThunk = createAsyncThunk(
     }
   },
 );
-export { getUserProfileThunk };
+
+const updateProfileThunk = createAsyncThunk(
+  "userManager/updateProfile",
+  async (profileData: any, { rejectWithValue }) => {
+    try {
+      const response = await manageUser.updateProfile(profileData);
+      return response.data as Response<UserProfile>;
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export { getUserProfileThunk, updateProfileThunk };

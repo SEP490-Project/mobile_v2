@@ -18,16 +18,16 @@ export const CompensateModal = ({
 }: {
   visible: boolean;
   onClose: () => void;
-  handleCompensateOrder: (reason: string, file: File) => void;
+  handleCompensateOrder: (reason: string, file: any) => void;
 }) => {
   const [reason, setReason] = React.useState("");
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [fileName, setFileName] = React.useState<string | null>(null);
-  const [assest, setAssest] = React.useState<any>(null);
+  const [asset, setAsset] = React.useState<any>(null);
 
   if (!visible) return null;
 
-  const pickFile = async () => {
+  const pickImageFromLibrary = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
       alert("Permission to access media library is required!");
@@ -45,7 +45,29 @@ export const CompensateModal = ({
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
       setFileName(asset.fileName || "image.jpg");
-      setAssest(asset);
+      setAsset(asset);
+    }
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera is required!");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 1,
+      aspect: [4, 3],
+    });
+    console.log(pickerResult);
+
+    if (!pickerResult.canceled && pickerResult.assets[0]) {
+      const asset = pickerResult.assets[0];
+      setImageUri(asset.uri);
+      setFileName(asset.fileName || "photo.jpg");
+      setAsset(asset);
     }
   };
 
@@ -69,12 +91,21 @@ export const CompensateModal = ({
             />
 
             <View>
-              <TouchableOpacity
-                className="border border-gray-300 rounded-lg p-3 mb-4 items-center"
-                onPress={pickFile}
-              >
-                <Text className="text-gray-600">Select Evidence File</Text>
-              </TouchableOpacity>
+              <Text className="text-gray-700 font-medium mb-2">Evidence File</Text>
+              <View className="flex-row gap-2 mb-4">
+                <TouchableOpacity
+                  className="flex-1 border border-gray-300 rounded-lg p-3 items-center"
+                  onPress={pickImageFromLibrary}
+                >
+                  <Text className="text-gray-600">Choose from Library</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 border border-gray-300 rounded-lg p-3 items-center"
+                  onPress={takePhoto}
+                >
+                  <Text className="text-gray-600">Take Photo</Text>
+                </TouchableOpacity>
+              </View>
               <View className="items-center">
                 {imageUri && (
                   <Image
@@ -100,7 +131,12 @@ export const CompensateModal = ({
                     alert("Please provide both reason and evidence file");
                     return;
                   }
-                  handleCompensateOrder(reason, assest);
+                  const file = {
+                    uri: imageUri,
+                    name: fileName || "image.jpg",
+                    type: asset.mimeType || "image/jpeg",
+                  } as any;
+                  handleCompensateOrder(reason, file);
                   onClose();
                 }}
               >
