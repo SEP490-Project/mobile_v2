@@ -11,6 +11,7 @@ import {
   receiveOrderThunk,
   receivePreOrderThunk,
   requestCompensateOrderThunk,
+  requestCompensatePreOrderThunk,
   requestRefundOrderThunk,
   requestRefundPreOrderThunk,
 } from "./thunk";
@@ -149,6 +150,18 @@ const orderManagerSlice = createSlice({
         state.error = null;
       })
       .addCase(requestRefundPreOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(requestCompensatePreOrderThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(requestCompensatePreOrderThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(requestCompensatePreOrderThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
