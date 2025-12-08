@@ -11,7 +11,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -43,6 +51,8 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "compensated":
       return "text-green-800 bg-green-100";
+    case "completed":
+      return "text-green-800 bg-green-100";
     default:
       return "text-gray-800 bg-gray-100";
   }
@@ -59,9 +69,10 @@ const OrderDetailScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { orderId } = useLocalSearchParams();
-  const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
+  const { orderList, loading } = useSelector((state: RootState) => state.manageOrder);
 
   const [compensateModalVisible, setCompensateModalVisible] = React.useState(false);
+  const [zoomedIn, setZoomedIn] = React.useState(false);
 
   // Find the specific order
   const order: OrderData | undefined = orderList?.data?.find((o: OrderData) => o.id === orderId);
@@ -79,19 +90,22 @@ const OrderDetailScreen = () => {
     const result = await dispatch(receiveOrderThunk(order.id));
     if (receiveOrderThunk.fulfilled.match(result)) {
       alert("Order marked as received successfully.");
+      router.back();
+    } else {
+      alert(result.payload || "Failed to mark order as received.");
     }
-    router.back();
   };
 
   const handleRequestRefund = async () => {
-    console.log("Requesting refund for order:", order.id);
     const result = await dispatch(requestRefundOrderThunk(order.id));
 
     console.log("Refund request result:", result);
     if (requestRefundOrderThunk.fulfilled.match(result)) {
       alert("Refund request submitted successfully.");
+      router.back();
+    } else {
+      alert(result.payload || "Failed to submit refund request.");
     }
-    router.back();
   };
 
   const handleCompensateOrder = async (reason: string, file: any) => {
@@ -105,12 +119,23 @@ const OrderDetailScreen = () => {
 
     const result = await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
 
-    console.log("Compensate order result:", result);
     if (requestCompensateOrderThunk.fulfilled.match(result)) {
       alert("Compensation request submitted successfully.");
+      setCompensateModalVisible(false);
+      router.back();
+    } else {
+      alert(result.payload || "Failed to submit compensation request.");
     }
-    router.back();
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+        <Text className="mt-4 text-gray-500">Processing ...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -164,6 +189,28 @@ const OrderDetailScreen = () => {
             </Text>
           </View>
         </View>
+
+        {(order.status === "COMPENSATED" || order.status === "REFUNDED") && (
+          <View className="bg-yellow-50 px-4 py-3 mb-2 mx-4 rounded-lg border border-yellow-200">
+            <Text className="text-yellow-800 font-medium text-center">
+              {order.status === "COMPENSATED"
+                ? "This pre-order has been compensated."
+                : "This pre-order has been refunded."}{" "}
+              {"\n"}
+              The Image below is the staff {order.status} proof.
+            </Text>
+            <TouchableOpacity
+              className="mt-2 rounded-lg"
+              onPress={() => setZoomedIn(true)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: order.staff_resource || "" }}
+                style={{ width: "100%", height: 200, borderRadius: 12, marginTop: 10 }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Delivery Address */}
         <View className="bg-white px-4 py-4 mb-2">
@@ -363,6 +410,24 @@ const OrderDetailScreen = () => {
         onClose={() => setCompensateModalVisible(false)}
         handleCompensateOrder={handleCompensateOrder}
       />
+      {/* Zoomed In Image Modal */}
+      {zoomedIn && (
+        <Modal animationType="fade" transparent={true} visible={zoomedIn}>
+          <View className="flex-1 bg-black bg-opacity-90 justify-center items-center">
+            <TouchableOpacity
+              className="absolute top-10 right-5 p-2 bg-gray-800 rounded-full"
+              onPress={() => setZoomedIn(false)}
+            >
+              <MaterialIcons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Image
+              source={{ uri: order.staff_resource || "" }}
+              style={{ width: "90%", height: "70%", borderRadius: 12 }}
+              resizeMode="contain"
+            />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };

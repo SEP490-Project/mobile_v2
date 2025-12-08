@@ -2,19 +2,10 @@ import { convertNumberToVND } from "@/libs/helper/currency-helper";
 import { useAuth } from "@/libs/hooks/useAuthen";
 import { Product, Variant } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  Image,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -69,7 +60,20 @@ const LimitedProductDetails = ({ productDetail }: { productDetail: Product }) =>
   const videoPlayer = useVideoPlayer(conceptVideoUrl || "", (player) => {
     player.loop = true;
     player.muted = false;
-    player.play();
+  });
+
+  useEffect(() => {
+    if (!videoPlayer) return;
+
+    if (scrollOffset.value > HEADER_HEIGHT / 2 || viewProduct) {
+      videoPlayer.pause();
+    }
+  }, [videoPlayer, scrollOffset.value, viewProduct]);
+
+  useFocusEffect(() => {
+    if (videoPlayer) {
+      videoPlayer.play();
+    }
   });
 
   const bannerImages = productDetail.concept.banner_url
@@ -147,7 +151,9 @@ const LimitedProductDetails = ({ productDetail }: { productDetail: Product }) =>
       <View className="px-4 pt-4 border-t border-gray-100 bg-white">
         <View className="flex-row gap-3">
           <TouchableOpacity
-            onPress={() => setViewProduct(true)}
+            onPress={() => {
+              setViewProduct(true);
+            }}
             className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
             activeOpacity={0.7}
           >
@@ -248,10 +254,6 @@ const ViewProductModal = ({
     ) {
       setQuantity(quantity + 1);
     } else {
-      Alert.alert(
-        "Limit Reached",
-        "You have reached the maximum achievable quantity for this product.",
-      );
     }
   };
 
@@ -344,7 +346,12 @@ const ViewProductModal = ({
                 </View>
 
                 <View className="items-end">
-                  <Text className="text-gray-500 text-sm mb-1">Stock</Text>
+                  <Text className="text-gray-500 text-sm mb-1">
+                    {currentDate <
+                    new Date(productDetail.limited_product?.availability_start_date || new Date())
+                      ? "Pre-order Stock"
+                      : "Available Stock"}
+                  </Text>
                   <Text
                     className={`text-lg font-semibold ${
                       selectedVariant.current_stock > 10 ? "text-green-600" : "text-orange-600"
@@ -427,12 +434,20 @@ const ViewProductModal = ({
                 <TouchableOpacity
                   onPress={handleIncrementQuantity}
                   className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center"
-                  disabled={!selectedVariant || quantity >= 10}
+                  disabled={
+                    !selectedVariant ||
+                    quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                  }
                 >
                   <MaterialIcons
                     name="add"
                     size={24}
-                    color={!selectedVariant || quantity >= 10 ? "#D1D5DB" : "#374151"}
+                    color={
+                      !selectedVariant ||
+                      quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                        ? "#D1D5DB"
+                        : "#374151"
+                    }
                   />
                 </TouchableOpacity>
               </View>

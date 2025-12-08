@@ -1,7 +1,7 @@
 import { CompensateModal } from "@/components/order/CompensateModal";
 import RefundModal from "@/components/order/RefundModal";
 import { convertNumberToVND } from "@/libs/helper/currency-helper";
-import { useAppDispatch } from "@/libs/stores";
+import { RootState, useAppDispatch } from "@/libs/stores";
 import {
   receivePreOrderThunk,
   requestCompensatePreOrderThunk,
@@ -11,8 +11,17 @@ import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
@@ -36,6 +45,8 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "compensated":
       return "text-green-800 bg-green-100";
+    case "completed":
+      return "text-green-800 bg-green-100";
     default:
       return "text-gray-800 bg-gray-100";
   }
@@ -55,6 +66,9 @@ const PreOrderDetailScreen = () => {
   const { preOrderData } = useLocalSearchParams();
   const [showCompensateModal, setShowCompensateModal] = React.useState(false);
   const [showRefundModal, setShowRefundModal] = React.useState(false);
+  const [zoomedIn, setZoomedIn] = React.useState(false);
+
+  const { loading } = useSelector((state: RootState) => state.manageOrder);
 
   const preOrder: PreOrderData | null = React.useMemo(() => {
     try {
@@ -90,11 +104,12 @@ const PreOrderDetailScreen = () => {
       requestCompensatePreOrderThunk({ preOrderId: preOrder.id, formData }),
     );
 
-    console.log("Compensate pre-order result:", result);
     if (requestCompensatePreOrderThunk.fulfilled.match(result)) {
       alert("Compensation request submitted successfully.");
       setShowCompensateModal(false);
       router.back();
+    } else {
+      alert(result.payload || "Failed to submit compensation request.");
     }
   };
 
@@ -106,7 +121,7 @@ const PreOrderDetailScreen = () => {
       alert("Pre-order received successfully.");
       router.back();
     } else {
-      alert("Failed to receive pre-order. Please try again.");
+      alert(result.payload || "Failed to receive pre-order. Please try again.");
     }
   };
 
@@ -119,11 +134,22 @@ const PreOrderDetailScreen = () => {
     );
 
     if (requestRefundPreOrderThunk.fulfilled.match(result)) {
+      alert("Refund request submitted successfully.");
+      setShowRefundModal(false);
       router.back();
     } else {
-      alert("Failed to submit refund request. Please try again.");
+      alert(result.payload || "Failed to submit refund request. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+        <Text className="mt-4 text-gray-500">Processing ...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -160,12 +186,14 @@ const PreOrderDetailScreen = () => {
           </View>
           <View className="flex-row justify-between items-center mt-2">
             <Text className="text-sm text-gray-500">Pickup Method</Text>
-            <Text className="text-sm text-gray-700">
+            <Text
+              className={`text-sm font-medium rounded-full px-3 ${preOrder.is_self_picked_up ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"}`}
+            >
               {preOrder.is_self_picked_up ? "Self Pickup" : "Delivery"}
             </Text>
           </View>
           <View className="flex-row justify-between items-center mt-2">
-            <Text className="text-sm text-gray-500">Order Date</Text>
+            <Text className="text-sm text-gray-500">Created Date</Text>
             <Text className="text-sm text-gray-700">
               {new Date(preOrder.created_at).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -175,6 +203,56 @@ const PreOrderDetailScreen = () => {
                 minute: "2-digit",
               })}
             </Text>
+          </View>
+        </View>
+
+        {(preOrder.status === "COMPENSATED" || preOrder.status === "REFUNDED") && (
+          <View className="bg-yellow-50 px-4 py-3 mb-2 mx-4 rounded-lg border border-yellow-200">
+            <Text className="text-yellow-800 font-medium text-center">
+              {preOrder.status === "COMPENSATED"
+                ? "This pre-order has been compensated."
+                : "This pre-order has been refunded."}{" "}
+              {"\n"}
+              The Image below is the staff {preOrder.status} proof.
+            </Text>
+            <TouchableOpacity
+              className="mt-2 rounded-lg"
+              activeOpacity={0.8}
+              onPress={() => setZoomedIn(true)}
+            >
+              <Image
+                source={{ uri: preOrder.staff_resource || "" }}
+                style={{ width: "100%", height: 200, borderRadius: 12, marginTop: 10 }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Delivery Address */}
+        <View className="bg-white px-4 py-4 mb-2">
+          <View className="flex-row items-center mb-3">
+            <MaterialIcons name="location-on" size={20} color="#ff9fb2" />
+            <Text className="text-lg font-bold text-gray-800 ml-2">
+              {preOrder.is_self_picked_up ? "Contact Information" : "Delivery Address"}
+            </Text>
+          </View>
+          <View className="bg-gray-50 rounded-lg p-3">
+            <Text className="font-semibold text-base text-gray-800">{preOrder.full_name}</Text>
+            <Text className="text-gray-600 mt-1">{preOrder.phone_number}</Text>
+            <Text className="text-gray-600 mt-1">{preOrder.email}</Text>
+            {!preOrder.is_self_picked_up && (
+              <>
+                <View className="border-t border-gray-200 my-2" />
+                <Text className="text-gray-600 mt-2">{preOrder.street}</Text>
+                {preOrder.address_line2 && (
+                  <Text className="text-gray-600">{preOrder.address_line2}</Text>
+                )}
+                <Text className="text-gray-600">
+                  {preOrder.ward_name}, {preOrder.district_name}
+                </Text>
+                <Text className="text-gray-600">{preOrder.province_name}</Text>
+              </>
+            )}
           </View>
         </View>
 
@@ -266,46 +344,6 @@ const PreOrderDetailScreen = () => {
               <Text className="text-gray-600">Weight</Text>
               <Text className="text-gray-800 font-medium">{preOrder.weight} kg</Text>
             </View>
-          </View>
-        </View>
-
-        {/* Instructions */}
-        {preOrder.instructions && (
-          <View className="bg-white px-4 py-4 mb-2">
-            <View className="flex-row items-center mb-3">
-              <MaterialIcons name="description" size={20} color="#ff9fb2" />
-              <Text className="text-lg font-bold text-gray-800 ml-2">Instructions</Text>
-            </View>
-            <Text className="text-gray-700 leading-6">{preOrder.instructions}</Text>
-          </View>
-        )}
-
-        {/* Delivery Address */}
-        <View className="bg-white px-4 py-4 mb-2">
-          <View className="flex-row items-center mb-3">
-            <MaterialIcons name="location-on" size={20} color="#ff9fb2" />
-            <Text className="text-lg font-bold text-gray-800 ml-2">
-              {preOrder.is_self_picked_up ? "Contact Information" : "Delivery Address"}
-            </Text>
-          </View>
-          <View className="bg-gray-50 rounded-lg p-3">
-            <Text className="font-semibold text-base text-gray-800">{preOrder.full_name}</Text>
-            <Text className="text-gray-600 mt-1">{preOrder.phone_number}</Text>
-            <Text className="text-gray-600 mt-1">{preOrder.email}</Text>
-            {!preOrder.is_self_picked_up && (
-              <>
-                <View className="border-t border-gray-200 my-2" />
-                <Text className="text-gray-600 mt-2">{preOrder.street}</Text>
-                {preOrder.address_line2 && (
-                  <Text className="text-gray-600">{preOrder.address_line2}</Text>
-                )}
-                <Text className="text-gray-600">
-                  {preOrder.ward_name}, {preOrder.district_name}
-                </Text>
-                <Text className="text-gray-600">{preOrder.province_name}</Text>
-                {preOrder.city && <Text className="text-gray-600">{preOrder.city}</Text>}
-              </>
-            )}
           </View>
         </View>
 
@@ -456,6 +494,25 @@ const PreOrderDetailScreen = () => {
         onClose={() => setShowRefundModal(false)}
         handleRefundOrder={handleRefundPreOrder}
       />
+
+      {/* Zoomed In Image Modal */}
+      {zoomedIn && (
+        <Modal animationType="fade" transparent={true} visible={zoomedIn}>
+          <View className="flex-1 bg-black bg-opacity-90 justify-center items-center">
+            <TouchableOpacity
+              className="absolute top-10 right-5 p-2 bg-gray-800 rounded-full"
+              onPress={() => setZoomedIn(false)}
+            >
+              <MaterialIcons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Image
+              source={{ uri: preOrder.staff_resource || "" }}
+              style={{ width: "90%", height: "70%", borderRadius: 12 }}
+              resizeMode="contain"
+            />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };
