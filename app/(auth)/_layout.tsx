@@ -44,7 +44,10 @@ export default function AuthStackLayout() {
         },
       })}
     >
-      <Stack.Screen name="index" options={{ headerTitle: () => null }} />
+      <Stack.Screen
+        name="index"
+        options={{ headerTitle: () => null, animation: "slide_from_left" }}
+      />
       <Stack.Screen name="signup" options={{ headerTitle: () => null }} />
       <Stack.Screen name="forgot" options={{ headerTitle: () => null }} />
       <Stack.Screen name="reset-password" options={{ headerTitle: () => null }} />

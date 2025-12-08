@@ -1,5 +1,6 @@
 import { AuthInput } from "@/components/guest";
 import { AppDispatch, RootState } from "@/libs/stores";
+import { uploadFilesThunk } from "@/libs/stores/fileManager/thunk";
 import { getUserProfileThunk, updateProfileThunk } from "@/libs/stores/userManager/thunk";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -18,7 +19,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import * as yup from "yup";
 
@@ -72,6 +73,7 @@ interface UpdateProfileData {
 function UpdateProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { profile, loading } = useSelector((state: RootState) => state.manageUser);
 
   const [formData, setFormData] = useState<UpdateProfileData>({
@@ -111,10 +113,28 @@ function UpdateProfileScreen() {
   }, [dispatch, profile]);
 
   const handleInputChange = (field: keyof UpdateProfileData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value.trim() }));
     if (errors[field]) {
       setErrors((prev: any) => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const getChangedFields = () => {
+    if (!profile) return formData;
+
+    const changedData: Partial<UpdateProfileData> = {};
+
+    Object.keys(formData).forEach((key) => {
+      const field = key as keyof UpdateProfileData;
+      const originalValue = profile[field] || "";
+      const currentValue = formData[field] || "";
+
+      if (originalValue !== currentValue) {
+        changedData[field] = currentValue;
+      }
+    });
+
+    return changedData;
   };
 
   const handleSubmit = async () => {
@@ -130,12 +150,48 @@ function UpdateProfileScreen() {
 
       await UpdateProfileSchema.validate(dataToValidate, { abortEarly: false });
 
-      const result = await dispatch(updateProfileThunk(formData));
+      const changedData = getChangedFields();
+
+      if (Object.keys(changedData).length === 0) {
+        Alert.alert("No Changes", "No changes detected to save.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (changedData.avatar_url !== undefined) {
+        if (selectedImageAsset) {
+          const file = {
+            uri: selectedImageAsset.uri,
+            name: selectedImageAsset.fileName || `avatar_${Date.now()}.jpg`,
+            type: selectedImageAsset.mimeType || selectedImageAsset.type || "image/jpeg",
+          };
+
+          const filePayload = {
+            userId: profile?.id ?? "",
+            files: [file] as unknown as File[],
+          };
+
+          const uploadResult = await dispatch(uploadFilesThunk(filePayload as any));
+
+          if (uploadFilesThunk.fulfilled.match(uploadResult)) {
+            const uploadedFiles = uploadResult.payload;
+            if (Array.isArray(uploadedFiles) && uploadedFiles.length > 0) {
+              const first = uploadedFiles[0];
+              changedData.avatar_url = typeof first === "string" ? first : (first?.url ?? "");
+            }
+          } else {
+            throw new Error("Failed to upload image. Please try again.");
+          }
+        }
+      }
+
+      const result = await dispatch(updateProfileThunk(changedData));
 
       if (updateProfileThunk.fulfilled.match(result)) {
         Alert.alert("Success", "Profile updated successfully!", [
           { text: "OK", onPress: () => router.back() },
         ]);
+        setSelectedImageAsset(null);
       } else {
         throw new Error((result.payload as string) || "Update failed");
       }
@@ -147,7 +203,11 @@ function UpdateProfileScreen() {
         });
         setErrors(newErrors);
       } else {
-        Alert.alert("Error", "Failed to update profile. Please try again.");
+        const errorMessage =
+          typeof err === "string"
+            ? err
+            : ((err as any)?.message ?? "Failed to update profile. Please try again.");
+        Alert.alert("Error", errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -211,15 +271,16 @@ function UpdateProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 16 : 0}
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View className="flex-1">
             <ScrollView
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
               className="flex-1"
               showsVerticalScrollIndicator={false}
             >
@@ -350,13 +411,18 @@ function UpdateProfileScreen() {
               </View>
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 pb-4 pt-3">
+            <View
+              className="absolute left-0 right-0 bg-white border-t border-slate-200 px-4 pb-4 pt-3"
+              style={{
+                bottom: insets.bottom || 8,
+              }}
+            >
               <TouchableOpacity
                 onPress={handleSubmit}
                 disabled={isSubmitting}
                 activeOpacity={0.85}
                 className={`w-full py-3 rounded-xl items-center justify-center ${
-                  isSubmitting ? "bg-primary" : "bg-primary/70"
+                  isSubmitting ? "bg-primary/70" : "bg-primary"
                 }`}
               >
                 {isSubmitting ? (

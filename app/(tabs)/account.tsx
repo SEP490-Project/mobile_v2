@@ -1,9 +1,10 @@
 import { useAuth } from "@/libs/hooks/useAuthen";
-import { useAppDispatch } from "@/libs/stores";
+import { RootState, useAppDispatch } from "@/libs/stores";
 import { logout } from "@/libs/stores/authenManager/thunk";
+import { getUserProfileThunk } from "@/libs/stores/userManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Alert,
   Image,
@@ -13,11 +14,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSelector } from "react-redux";
 
 function AccountScreen() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const dispatch = useAppDispatch();
+  const { profile } = useSelector((state: RootState) => state.manageUser);
+
+  useEffect(() => {
+    if (isAuthenticated && !profile) {
+      dispatch(getUserProfileThunk());
+    }
+  }, [dispatch, isAuthenticated, profile]);
 
   const handleAuthPress = () => {
     router.push("/(auth)");
@@ -43,8 +52,6 @@ function AccountScreen() {
     ]);
   };
 
-  const AUTH_AVATAR = "https://randomuser.me/api/portraits/men/32.jpg";
-
   return (
     <ImageBackground
       source={require("@/assets/images/background/account-background.jpg")}
@@ -58,10 +65,18 @@ function AccountScreen() {
         {/* Header */}
         <View className="flex items-center justify-center pt-16 pb-8">
           {isAuthenticated ? (
-            <Image
-              source={{ uri: AUTH_AVATAR }}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-xl"
-            />
+            profile?.avatar_url || user.avatar_url ? (
+              <Image
+                source={{ uri: profile?.avatar_url || user.avatar_url }}
+                className="w-32 h-32 rounded-full border-4 border-white shadow-xl"
+              />
+            ) : (
+              <View className="w-32 h-32 rounded-full border-4 border-white bg-blue-600 flex items-center justify-center shadow-xl">
+                <Text className="text-6xl font-bold text-white">
+                  {(profile?.username || user.username)?.charAt(0).toUpperCase() || "U"}
+                </Text>
+              </View>
+            )
           ) : (
             <View className="w-32 h-32 rounded-full border-white flex items-center justify-center">
               <MaterialIcons name="account-circle" size={100} color="#ffffff" />
@@ -69,13 +84,15 @@ function AccountScreen() {
           )}
 
           <Text className="text-4xl font-bold mt-3 text-white">
-            {isAuthenticated ? user.username : "My Account"}
+            {isAuthenticated
+              ? profile?.full_name || user.full_name || profile?.username || user.username
+              : "My Account"}
           </Text>
 
           {isAuthenticated ? (
             <View className="flex-row items-center mt-1">
               <MaterialIcons name="email" size={16} color="#F3F4F6" />
-              <Text className="text-gray-100 text-lg ml-1">{user.email}</Text>
+              <Text className="text-gray-100 text-lg ml-1">{profile?.email || user.email}</Text>
             </View>
           ) : (
             <Text className="text-gray-100 text-base mt-1">Sign in to manage your profile</Text>
