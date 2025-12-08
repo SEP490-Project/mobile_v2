@@ -5,7 +5,16 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -250,10 +259,14 @@ const ViewProductModal = ({
     if (!selectedVariant) return;
     if (
       productDetail.limited_product &&
-      quantity <= productDetail.limited_product?.achievable_quantity
+      quantity < productDetail.limited_product?.achievable_quantity
     ) {
       setQuantity(quantity + 1);
     } else {
+      Alert.alert(
+        "Limit Reached",
+        "You have reached the maximum achievable quantity for this product.",
+      );
     }
   };
 
@@ -436,7 +449,7 @@ const ViewProductModal = ({
                   className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center"
                   disabled={
                     !selectedVariant ||
-                    quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                    quantity === (productDetail.limited_product?.achievable_quantity || 1)
                   }
                 >
                   <MaterialIcons
@@ -444,7 +457,7 @@ const ViewProductModal = ({
                     size={24}
                     color={
                       !selectedVariant ||
-                      quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                      quantity === (productDetail.limited_product?.achievable_quantity || 1)
                         ? "#D1D5DB"
                         : "#374151"
                     }

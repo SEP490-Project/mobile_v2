@@ -145,6 +145,7 @@ export interface CreatePreOrderPayload {
   success_url?: string;
   is_self_pickup: boolean;
   variant_id: string;
+  quantity: number;
   user_note?: string;
 }
 
