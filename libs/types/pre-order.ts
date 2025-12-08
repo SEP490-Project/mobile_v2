@@ -47,6 +47,7 @@ export interface PreOrderData {
   PaymentTx: PaymentTx;
   confirmation_image?: string;
   user_resource?: string;
+  staff_resource?: string;
 }
 
 export interface Image {
