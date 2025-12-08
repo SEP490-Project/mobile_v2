@@ -43,6 +43,8 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "compensated":
       return "text-green-800 bg-green-100";
+    case "completed":
+      return "text-green-800 bg-green-100";
     default:
       return "text-gray-800 bg-gray-100";
   }
@@ -59,7 +61,7 @@ const OrderDetailScreen = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { orderId } = useLocalSearchParams();
-  const orderList = useSelector((state: RootState) => state.manageOrder.orderList);
+  const { orderList, error } = useSelector((state: RootState) => state.manageOrder);
 
   const [compensateModalVisible, setCompensateModalVisible] = React.useState(false);
 
@@ -79,35 +81,43 @@ const OrderDetailScreen = () => {
     const result = await dispatch(receiveOrderThunk(order.id));
     if (receiveOrderThunk.fulfilled.match(result)) {
       alert("Order marked as received successfully.");
+      router.back();
+    } else {
+      alert(result.payload || "Failed to mark order as received.");
     }
-    router.back();
   };
 
   const handleRequestRefund = async () => {
-    console.log("Requesting refund for order:", order.id);
     const result = await dispatch(requestRefundOrderThunk(order.id));
 
     console.log("Refund request result:", result);
     if (requestRefundOrderThunk.fulfilled.match(result)) {
       alert("Refund request submitted successfully.");
+      router.back();
+    } else {
+      alert(result.payload || "Failed to submit refund request.");
     }
-    router.back();
   };
 
-  const handleCompensateOrder = async (reason: string, file: File) => {
+  const handleCompensateOrder = async (reason: string, assest: any) => {
     const formData = new FormData();
     formData.append("reason", reason);
-    formData.append("file", file);
+    formData.append("file", {
+      uri: assest.uri,
+      name: assest.fileName || "evidence.jpg",
+      type: assest.mimeType || "image/jpeg",
+      mimeType: assest.mimeType || "image/jpeg",
+    } as any);
 
-    const result = await dispatch(
-      requestCompensateOrderThunk({ orderId: order.id, file: formData }),
-    );
+    const result = await dispatch(requestCompensateOrderThunk({ orderId: order.id, formData }));
 
-    console.log("Compensate order result:", result);
     if (requestCompensateOrderThunk.fulfilled.match(result)) {
       alert("Compensation request submitted successfully.");
+      setCompensateModalVisible(false);
+      router.back();
+    } else {
+      alert(result.payload || "Failed to submit compensation request.");
     }
-    router.back();
   };
 
   return (

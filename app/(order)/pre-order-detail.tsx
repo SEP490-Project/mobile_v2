@@ -36,6 +36,8 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "compensated":
       return "text-green-800 bg-green-100";
+    case "completed":
+      return "text-green-800 bg-green-100";
     default:
       return "text-gray-800 bg-gray-100";
   }
@@ -77,24 +79,26 @@ const PreOrderDetailScreen = () => {
     );
   }
 
-  const handleCompensatePreOrder = async (reason: string, file: any) => {
+  const handleCompensatePreOrder = async (reason: string, assest: any) => {
     const formData = new FormData();
     formData.append("reason", reason);
     formData.append("file", {
-      uri: file.uri,
-      name: file.name,
-      type: file.type,
+      uri: assest.uri,
+      name: assest.fileName || "evidence.jpg",
+      type: assest.mimeType || "image/jpeg",
+      mimeType: assest.mimeType || "image/jpeg",
     } as any);
 
     const result = await dispatch(
-      requestCompensatePreOrderThunk({ preOrderId: preOrder.id, file: formData }),
+      requestCompensatePreOrderThunk({ preOrderId: preOrder.id, formData }),
     );
 
-    console.log("Compensate pre-order result:", result);
     if (requestCompensatePreOrderThunk.fulfilled.match(result)) {
       alert("Compensation request submitted successfully.");
       setShowCompensateModal(false);
       router.back();
+    } else {
+      alert(result.payload || "Failed to submit compensation request.");
     }
   };
 
@@ -106,7 +110,7 @@ const PreOrderDetailScreen = () => {
       alert("Pre-order received successfully.");
       router.back();
     } else {
-      alert("Failed to receive pre-order. Please try again.");
+      alert(result.payload || "Failed to receive pre-order. Please try again.");
     }
   };
 
@@ -119,9 +123,11 @@ const PreOrderDetailScreen = () => {
     );
 
     if (requestRefundPreOrderThunk.fulfilled.match(result)) {
+      alert("Refund request submitted successfully.");
+      setShowRefundModal(false);
       router.back();
     } else {
-      alert("Failed to submit refund request. Please try again.");
+      alert(result.payload || "Failed to submit refund request. Please try again.");
     }
   };
 
