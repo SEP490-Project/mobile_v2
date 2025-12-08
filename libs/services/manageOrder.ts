@@ -34,8 +34,8 @@ const manageOrder = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  requestCompenstatePreOrder: (preorderId: string, form: FormData) =>
-    api.post(`/preorders/${preorderId}/compensation`, form, {
+  requestCompenstatePreOrder: (preorderId: string, formData: FormData) =>
+    api.post(`/preorders/${preorderId}/compensation`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         accept: "application/json",
