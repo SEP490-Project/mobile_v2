@@ -250,10 +250,11 @@ const ViewProductModal = ({
     if (!selectedVariant) return;
     if (
       productDetail.limited_product &&
-      quantity <= productDetail.limited_product?.achievable_quantity
+      quantity < productDetail.limited_product?.achievable_quantity
     ) {
       setQuantity(quantity + 1);
     } else {
+      alert("You have reached the maximum orderable quantity for this product.");
     }
   };
 
@@ -436,7 +437,7 @@ const ViewProductModal = ({
                   className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center"
                   disabled={
                     !selectedVariant ||
-                    quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                    quantity === (productDetail.limited_product?.achievable_quantity || 1)
                   }
                 >
                   <MaterialIcons
@@ -444,7 +445,7 @@ const ViewProductModal = ({
                     size={24}
                     color={
                       !selectedVariant ||
-                      quantity > (productDetail.limited_product?.achievable_quantity || 1)
+                      quantity === (productDetail.limited_product?.achievable_quantity || 1)
                         ? "#D1D5DB"
                         : "#374151"
                     }

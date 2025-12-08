@@ -190,6 +190,7 @@ const CheckoutScreen = () => {
       address_id: selectedAddress.id,
       cancel_url: "b-showsell://payment-failed",
       success_url: "b-showsell://payment-success",
+      quantity: parseInt(quantity as string) || 1,
       is_self_pickup: isSelfPickup,
       variant_id: variantId as string,
       user_note: userNote,
