@@ -394,7 +394,7 @@ const OrderDetailScreen = () => {
         </View>
       )}
 
-      {order.status.toLowerCase() === "paid" && (
+      {order.status.toLowerCase() === "paid" && order.order_type !== "LIMITED" && (
         <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
           <TouchableOpacity
             className="rounded-lg py-4 items-center border border-primary flex-1"

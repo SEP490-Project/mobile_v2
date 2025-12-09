@@ -5,16 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  Image,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -263,10 +254,7 @@ const ViewProductModal = ({
     ) {
       setQuantity(quantity + 1);
     } else {
-      Alert.alert(
-        "Limit Reached",
-        "You have reached the maximum achievable quantity for this product.",
-      );
+      alert("You have reached the maximum orderable quantity for this product.");
     }
   };
 
