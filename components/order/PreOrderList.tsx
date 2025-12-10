@@ -3,8 +3,8 @@ import { RootState, useAppDispatch } from "@/libs/stores";
 import { getPreOrdersThunk } from "@/libs/stores/orderManager/thunk";
 import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -85,9 +85,9 @@ export default function PreOrderList() {
   const loading = useSelector((state: RootState) => state.manageOrder.loading);
   const [refreshing, setRefreshing] = React.useState(false);
 
-  useFocusEffect(() => {
+  useEffect(() => {
     dispatch(getPreOrdersThunk());
-  });
+  }, [dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);
