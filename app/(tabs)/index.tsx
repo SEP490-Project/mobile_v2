@@ -8,9 +8,9 @@ import { Category } from "@/libs/types/category";
 import { ListContent } from "@/libs/types/content";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -153,7 +153,7 @@ function HomeScreen() {
   const parentCategories = categoriesData.filter((item) => !item.parent_category);
   const currentDate = new Date();
 
-  useFocusEffect(() => {
+  useEffect(() => {
     dispatch(getAllProductsThunk());
     dispatch(getAllCategoriesThunk());
     dispatch(
@@ -164,7 +164,7 @@ function HomeScreen() {
         sort_order: "desc",
       }),
     );
-  });
+  }, [dispatch]);
 
   if (productsLoading && categoriesLoading) {
     return (

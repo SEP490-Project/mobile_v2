@@ -3,8 +3,8 @@ import { RootState, useAppDispatch } from "@/libs/stores";
 import { getOrdersThunk } from "@/libs/stores/orderManager/thunk";
 import { OrderData } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -97,9 +97,9 @@ export default function OrderList() {
   const loading = useSelector((state: RootState) => state.manageOrder.loading);
   const [refreshing, setRefreshing] = React.useState(false);
 
-  useFocusEffect(() => {
+  useEffect(() => {
     dispatch(getOrdersThunk());
-  });
+  }, [dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);
