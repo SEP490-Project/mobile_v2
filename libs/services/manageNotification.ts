@@ -13,6 +13,7 @@ const manageNotification = {
   }) => api.get("/notifications", { params }),
   getDetailNotification: (id: string) => api.get(`/notifications/${id}`),
   readAllNotifications: () => api.put("/notifications/read-all"),
+  readOneNotification: (id: string) => api.put(`/notifications/${id}/read`),
   readNotification: (id: string) => api.put(`/notifications/${id}/read`),
   subscribeRealTime: () => api.get("/notifications/sse"),
 };

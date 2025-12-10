@@ -8,7 +8,6 @@ import * as Notifications from "expo-notifications";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Appearance } from "react-native";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -40,8 +39,6 @@ export default function RootLayout() {
       }
     };
     setupNavBar();
-
-    Appearance.setColorScheme("light");
   }, []);
 
   return (
@@ -182,7 +179,10 @@ function RootLayoutContent() {
           <Stack.Screen name="(notification)" options={{ headerShown: false }} />
           <Stack.Screen name="blog" options={{ headerShown: false }} />
           <Stack.Screen name="(cart)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(auth)"
+            options={{ headerShown: false, animation: "slide_from_bottom" }}
+          />
           <Stack.Screen name="(user)" options={{ headerShown: false }} />
           <Stack.Screen name="(setting)" options={{ headerShown: false }} />
           <Stack.Screen name="(general)" options={{ headerShown: false }} />

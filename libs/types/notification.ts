@@ -3,6 +3,7 @@ export interface Notifications {
   user_id: string;
   type: string;
   status: string;
+  is_read: boolean;
   delivery_attempts: [
     {
       timestamp: string;

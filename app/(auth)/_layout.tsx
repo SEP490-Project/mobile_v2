@@ -1,6 +1,6 @@
 import { useAuth } from "@/libs/hooks/useAuthen";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Redirect, Stack } from "expo-router";
+import { Redirect, Stack, router } from "expo-router"; // 👈 thêm router
 import React from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
@@ -26,19 +26,29 @@ export default function AuthStackLayout() {
         headerTitleAlign: "center",
         headerTintColor: "#ff9fb2",
         headerShadowVisible: false,
+        animation: "slide_from_bottom",
         headerLeft: ({ canGoBack }) => {
-          if (route.name === "index") {
-            return (
-              <TouchableOpacity onPress={() => navigation.navigate("(tabs)")}>
-                <MaterialIcons name="chevron-left" size={28} color="#ff9fb2" />
-              </TouchableOpacity>
-            );
-          }
+          const handleBack = () => {
+            if (router.canGoBack()) {
+              router.back();
+              return;
+            }
 
-          if (!canGoBack) return null;
+            if (canGoBack) {
+              navigation.goBack();
+              return;
+            }
+
+            navigation.navigate("(tabs)");
+          };
+
           return (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <MaterialIcons name="chevron-left" size={32} color="#ff9fb2" />
+            <TouchableOpacity onPress={handleBack}>
+              <MaterialIcons
+                name="chevron-left"
+                size={route.name === "index" ? 28 : 32}
+                color="#ff9fb2"
+              />
             </TouchableOpacity>
           );
         },

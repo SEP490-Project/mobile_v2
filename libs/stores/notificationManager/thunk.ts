@@ -25,4 +25,25 @@ const getNotificationThunk = createAsyncThunk(
     }
   },
 );
-export { getNotificationThunk };
+
+const markAsReadAll = createAsyncThunk("markAsReadAll", async (_, { rejectWithValue }) => {
+  try {
+    const response = await manageNotification.readAllNotifications();
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return rejectWithValue(error);
+  }
+});
+
+const markAsReadOne = createAsyncThunk("markAsReadOne", async (id: string, { rejectWithValue }) => {
+  try {
+    const response = await manageNotification.readOneNotification(id);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return rejectWithValue(error);
+  }
+});
+
+export { getNotificationThunk, markAsReadAll, markAsReadOne };
