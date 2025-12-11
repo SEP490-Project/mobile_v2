@@ -14,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DetailRow from "./DetailRows";
+import ProductReviews from "./ProductReviews";
 
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 220;
@@ -507,6 +508,9 @@ const ViewProductModal = ({
               </View>
             )}
           </View>
+
+          {/* Reviews Section */}
+          <ProductReviews productId={productDetail.id} className="px-4" />
         </ScrollView>
         {/* Action Buttons */}
         <View className="px-4 pt-4 border-t border-gray-100 bg-white">

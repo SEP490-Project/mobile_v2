@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -138,6 +139,7 @@ function Section({
 function HomeScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const { loading: productsLoading, products } = useSelector(
     (state: RootState) => state.manageProducts,
@@ -153,7 +155,7 @@ function HomeScreen() {
   const parentCategories = categoriesData.filter((item) => !item.parent_category);
   const currentDate = new Date();
 
-  useEffect(() => {
+  const loadData = React.useCallback(() => {
     dispatch(getAllProductsThunk());
     dispatch(getAllCategoriesThunk());
     dispatch(
@@ -165,6 +167,32 @@ function HomeScreen() {
       }),
     );
   }, [dispatch]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        dispatch(getAllProductsThunk()).unwrap(),
+        dispatch(getAllCategoriesThunk()).unwrap(),
+        dispatch(
+          getAllContents({
+            page: 1,
+            limit: 5,
+            sort_by: "created_at",
+            sort_order: "desc",
+          }),
+        ).unwrap(),
+      ]);
+    } catch (error) {
+      console.warn("Refresh error:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (productsLoading && categoriesLoading) {
     return (
@@ -187,6 +215,14 @@ function HomeScreen() {
       className="flex-1 bg-white"
       // style={{ paddingTop: insets.top + 10 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#ff9fb2"]}
+          tintColor="#ff9fb2"
+        />
+      }
     >
       {/* Categories */}
       <FlatList

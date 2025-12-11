@@ -5,9 +5,10 @@ import { getAllContents } from "@/libs/stores/contentManager/thunk";
 import type { ListContent } from "@/libs/types/content";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Animated, Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { setSearchToggleListener } from "./_layout";
 
 function BlogsScreen() {
   const router = useRouter();
@@ -17,6 +18,8 @@ function BlogsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchAnimation] = useState(new Animated.Value(0));
 
   const getTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -70,6 +73,27 @@ function BlogsScreen() {
     loadContents(1, searchText);
   }, [searchText, loadContents]);
 
+  const toggleSearch = useCallback(() => {
+    const toValue = showSearch ? 0 : 1;
+    setShowSearch(!showSearch);
+
+    Animated.timing(searchAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showSearch, searchAnimation]);
+
+  useEffect(() => {
+    // Set up the search toggle listener
+    setSearchToggleListener(toggleSearch);
+
+    // Cleanup on unmount
+    return () => {
+      setSearchToggleListener(() => {});
+    };
+  }, [toggleSearch]);
+
   useFocusEffect(
     useCallback(() => {
       loadContents(1, searchQuery);
@@ -78,37 +102,66 @@ function BlogsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="px-4 py-3 border-b border-gray-100">
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-2xl font-extrabold text-gray-900">Beauty Blogs</Text>
-          <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-            <MaterialIcons name="notifications-none" size={22} color="#4B5563" />
-          </TouchableOpacity>
-        </View>
-
-        <View className="flex-row items-center bg-gray-50 rounded-lg px-3 py-2">
-          <MaterialIcons name="search" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Search blogs..."
-            value={searchText}
-            onChangeText={setSearchText}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity
-              onPress={() => {
-                setSearchText("");
-                setSearchQuery("");
-                loadContents(1, "");
-              }}
-            >
-              <MaterialIcons name="clear" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      {/* Floating Search Bar */}
+      {showSearch && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            transform: [
+              {
+                translateY: searchAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-100, 0],
+                }),
+              },
+            ],
+            opacity: searchAnimation,
+          }}
+          className="bg-white shadow-lg border-b border-gray-200"
+        >
+          <View className="px-4 py-3">
+            <View className="flex-row items-center bg-gray-50 rounded-lg px-3 py-2">
+              <MaterialIcons name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                className="flex-1 ml-2 text-gray-700"
+                placeholder="Search blogs..."
+                value={searchText}
+                onChangeText={setSearchText}
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+                autoFocus={showSearch}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (searchText.length > 0) {
+                    // Clear search text and reset results
+                    setSearchText("");
+                    setSearchQuery("");
+                    loadContents(1, "");
+                  } else {
+                    // Close search bar if no text
+                    toggleSearch();
+                  }
+                }}
+                className="ml-2"
+              >
+                <MaterialIcons
+                  name={searchText.length > 0 ? "clear" : "close"}
+                  size={20}
+                  color="#9CA3AF"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity className="ml-2">
+                <MaterialIcons name="mic" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      )}
 
       <InfiniteScrollList<ListContent>
         data={contents || []}

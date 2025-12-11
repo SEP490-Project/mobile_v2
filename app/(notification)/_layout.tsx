@@ -7,9 +7,9 @@ const NotificationLayout = () => {
       screenOptions={{
         headerShown: true,
         headerTitleAlign: "center",
-        headerTintColor: "#fff",
+        headerTintColor: "#ff9fb2",
         headerStyle: {
-          backgroundColor: "#ff9fb2",
+          backgroundColor: "#fff",
         },
       }}
     >
