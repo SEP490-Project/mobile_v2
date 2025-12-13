@@ -58,6 +58,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      "expo-speech-recognition",
       "expo-secure-store",
       "expo-video",
       [

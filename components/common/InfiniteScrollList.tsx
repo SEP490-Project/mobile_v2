@@ -25,7 +25,7 @@ interface InfiniteScrollListProps<T> {
   emptyText?: string;
 }
 
-export default function InfiniteScrollList<T>({
+export function InfiniteScrollList<T>({
   data,
   renderItem,
   keyExtractor,

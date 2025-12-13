@@ -1,5 +1,6 @@
-import InfiniteScrollList from "@/components/common/InfiniteScrollList";
+import { InfiniteScrollList, SpeechRecognitionModal } from "@/components/common";
 import { useContent } from "@/libs/hooks/useContent";
+import { useSpeechRecognitionModal } from "@/libs/hooks/useSpeechRecognitionModal";
 import { useAppDispatch } from "@/libs/stores";
 import { getAllContents } from "@/libs/stores/contentManager/thunk";
 import type { ListContent } from "@/libs/types/content";
@@ -21,19 +22,6 @@ function BlogsScreen() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchAnimation] = useState(new Animated.Value(0));
 
-  const getTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const createdDate = new Date(dateString);
-    const diffInMs = now.getTime() - createdDate.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInHours < 1) return "Just now";
-    if (diffInHours < 24) return `${diffInHours}H ago`;
-    if (diffInDays < 7) return `${diffInDays}D ago`;
-    return `${Math.floor(diffInDays / 7)}W ago`;
-  };
-
   const loadContents = useCallback(
     async (page: number = 1, search: string = "") => {
       const filter: any = {
@@ -52,6 +40,37 @@ function BlogsScreen() {
     },
     [dispatch],
   );
+
+  const handleSearchSubmit = useCallback(
+    (text: string) => {
+      setSearchText(text);
+      setSearchQuery(text);
+      loadContents(1, text);
+    },
+    [loadContents],
+  );
+
+  const speechRecognitionModal = useSpeechRecognitionModal({
+    language: "en-US",
+    onSearchSubmit: handleSearchSubmit,
+    autoStopTimeout: 10000,
+    interimResults: true,
+    continuous: false,
+    maxAlternatives: 1,
+  });
+
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const createdDate = new Date(dateString);
+    const diffInMs = now.getTime() - createdDate.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInHours < 1) return "Just now";
+    if (diffInHours < 24) return `${diffInHours}H ago`;
+    if (diffInDays < 7) return `${diffInDays}D ago`;
+    return `${Math.floor(diffInDays / 7)}W ago`;
+  };
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -84,15 +103,18 @@ function BlogsScreen() {
     }).start();
   }, [showSearch, searchAnimation]);
 
+  const handleMicPress = useCallback(() => {
+    speechRecognitionModal.showModal();
+  }, [speechRecognitionModal.showModal]);
+
   useEffect(() => {
-    // Set up the search toggle listener
     setSearchToggleListener(toggleSearch);
 
-    // Cleanup on unmount
     return () => {
       setSearchToggleListener(() => {});
+      speechRecognitionModal.cleanup();
     };
-  }, [toggleSearch]);
+  }, [toggleSearch, speechRecognitionModal.cleanup]);
 
   useFocusEffect(
     useCallback(() => {
@@ -102,7 +124,6 @@ function BlogsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Floating Search Bar */}
       {showSearch && (
         <Animated.View
           style={{
@@ -138,12 +159,10 @@ function BlogsScreen() {
               <TouchableOpacity
                 onPress={() => {
                   if (searchText.length > 0) {
-                    // Clear search text and reset results
                     setSearchText("");
                     setSearchQuery("");
                     loadContents(1, "");
                   } else {
-                    // Close search bar if no text
                     toggleSearch();
                   }
                 }}
@@ -155,8 +174,8 @@ function BlogsScreen() {
                   color="#9CA3AF"
                 />
               </TouchableOpacity>
-              <TouchableOpacity className="ml-2">
-                <MaterialIcons name="mic" size={20} color="#9CA3AF" />
+              <TouchableOpacity className="ml-2" onPress={handleMicPress}>
+                <MaterialIcons name="mic-none" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -228,6 +247,15 @@ function BlogsScreen() {
             </View>
           </TouchableOpacity>
         )}
+      />
+
+      <SpeechRecognitionModal
+        visible={speechRecognitionModal.isModalVisible}
+        isRecording={speechRecognitionModal.isRecording}
+        recognizedText={speechRecognitionModal.recognizedText}
+        onClose={speechRecognitionModal.hideModal}
+        onStartRecording={speechRecognitionModal.startRecording}
+        onStopRecording={speechRecognitionModal.stopRecording}
       />
     </SafeAreaView>
   );

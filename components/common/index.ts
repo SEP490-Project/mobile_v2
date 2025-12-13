@@ -1,1 +1,2 @@
-export { default as InfiniteScrollList } from "./InfiniteScrollList";
+export { InfiniteScrollList } from "./InfiniteScrollList";
+export { SpeechRecognitionModal } from "./SpeechRecognitionModal";
