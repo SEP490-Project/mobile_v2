@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DetailRow from "./DetailRows";
+import ProductReviews from "./ProductReviews";
 
 const { width } = Dimensions.get("window");
 
@@ -269,6 +270,9 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
               </View>
             </View>
           </View>
+
+          {/* Reviews Section */}
+          <ProductReviews productId={productDetail?.id || ""} />
         </View>
       </ScrollView>
 
