@@ -302,26 +302,27 @@ const PreOrderDetailScreen = () => {
             </View>
 
             {/* Review Button for RECEIVED or COMPLETED Status */}
-            {(preOrder.status.toLowerCase() === "received" ||
-              preOrder.status.toLowerCase() === "completed") && (
-              <TouchableOpacity
-                className="mt-4 bg-primary rounded-lg py-3 px-4 items-center"
-                onPress={() =>
-                  router.push({
-                    pathname: "/(review)",
-                    params: {
-                      referenceId: preOrder.id,
-                      orderType: "PREORDER",
-                      productName: `${preOrder.capacity} ${preOrder.capacity_unit} (${preOrder.container_type} - ${preOrder.dispenser_type})`,
-                      imageUrl: preOrder.images?.[0]?.image_url || "",
-                    },
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                <Text className="text-white font-semibold">Write a Review</Text>
-              </TouchableOpacity>
-            )}
+            {preOrder.is_reviewed === false &&
+              (preOrder.status.toLowerCase() === "received" ||
+                preOrder.status.toLowerCase() === "completed") && (
+                <TouchableOpacity
+                  className="mt-4 bg-primary rounded-lg py-3 px-4 items-center"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(review)",
+                      params: {
+                        referenceId: preOrder.id,
+                        orderType: "PREORDER",
+                        productName: `${preOrder.capacity} ${preOrder.capacity_unit} (${preOrder.container_type} - ${preOrder.dispenser_type})`,
+                        imageUrl: preOrder.images?.[0]?.image_url || "",
+                      },
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-white font-semibold">Write a Review</Text>
+                </TouchableOpacity>
+              )}
           </View>
         </View>
 

@@ -281,26 +281,27 @@ const OrderDetailScreen = () => {
                   </Text>
                 </View>
               </View>
-              {(order.status.toLowerCase() === "received" ||
-                order.status.toLowerCase() === "completed") && (
-                <TouchableOpacity
-                  className="mt-3 bg-primary rounded-lg py-2 px-4 items-center"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(review)",
-                      params: {
-                        referenceId: item.id,
-                        orderType: "ORDER",
-                        productName: `${item.capacity} ${item.capacity_unit} (${item.container_type} - ${item.dispenser_type})`,
-                        imageUrl: item.images?.[0]?.image_url || "",
-                      },
-                    })
-                  }
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-white font-semibold">Write a Review</Text>
-                </TouchableOpacity>
-              )}
+              {item.is_reviewed === false &&
+                (order.status.toLowerCase() === "received" ||
+                  order.status.toLowerCase() === "completed") && (
+                  <TouchableOpacity
+                    className="mt-3 bg-primary rounded-lg py-2 px-4 items-center"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(review)",
+                        params: {
+                          referenceId: item.id,
+                          orderType: "ORDER",
+                          productName: `${item.capacity} ${item.capacity_unit} (${item.container_type} - ${item.dispenser_type})`,
+                          imageUrl: item.images?.[0]?.image_url || "",
+                        },
+                      })
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-white font-semibold">Write a Review</Text>
+                  </TouchableOpacity>
+                )}
             </View>
           ))}
         </View>

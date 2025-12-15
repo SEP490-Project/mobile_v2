@@ -76,6 +76,7 @@ export interface OrderItem {
   width: number;
   product_name: string;
   description: string;
+  is_reviewed: boolean;
   product_type: string;
   limited_properties?: LimitedProperties;
   attributes_description: AttributesDescription[];
