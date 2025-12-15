@@ -30,6 +30,7 @@ export interface PreOrderData {
   uses: string;
   manufacturing_date: string;
   expiry_date: string;
+  is_reviewed: boolean;
   instructions: string;
   attributes_description: any;
   weight: number;

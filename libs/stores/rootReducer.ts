@@ -9,6 +9,7 @@ import { manageLocationReducer } from "./locationManager/slice";
 import { manageNotificationReducer } from "./notificationManager/slice";
 import { manageOrderReducer } from "./orderManager/slice";
 import { managerProductsReducer } from "./productManager/slice";
+import { manageReviewReducer } from "./reviewManager/slice";
 import { manageUserReducer } from "./userManager/slice";
 
 export const rootReducer = combineReducers({
@@ -23,4 +24,5 @@ export const rootReducer = combineReducers({
   manageContent: manageContentReducer,
   manageNotification: manageNotificationReducer,
   manageDeviceToken: manageDeviceTokenReducer,
+  manageReview: manageReviewReducer,
 });
