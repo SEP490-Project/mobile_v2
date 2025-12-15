@@ -189,6 +189,7 @@ function RootLayoutContent() {
           <Stack.Screen name="(checkout)" options={{ headerShown: false }} />
           <Stack.Screen name="(order)" options={{ headerShown: false }} />
           <Stack.Screen name="(payment)" options={{ headerShown: false }} />
+          <Stack.Screen name="(review)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="dark" />

@@ -252,33 +252,55 @@ const OrderDetailScreen = () => {
           {order.order_items.map((item: OrderItem, index: number) => (
             <View
               key={item.id}
-              className={`flex-row py-3 ${
+              className={`py-3 ${
                 index !== order.order_items.length - 1 ? "border-b border-gray-100" : ""
               }`}
             >
-              <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center">
-                <Image
-                  source={{ uri: item.images?.[0]?.image_url }}
-                  style={{ width: 64, height: 64, borderRadius: 12 }}
-                />
-              </View>
-              <View className="flex-1 ml-3">
-                <Text className="font-semibold text-gray-800">
-                  {item.capacity} {item.capacity_unit} - {item.container_type}
-                </Text>
-                <Text className="text-sm text-gray-500 mt-1">
-                  {item.dispenser_type && `Dispenser: ${item.dispenser_type}`}
-                </Text>
-                <View className="flex-row justify-between items-center mt-2">
-                  <Text className="text-sm text-gray-500">Qty: {item.quantity}</Text>
-                  <Text className="text-primary font-semibold">
-                    {convertNumberToVND(item.unit_price)}
+              <View className="flex-row">
+                <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center">
+                  <Image
+                    source={{ uri: item.images?.[0]?.image_url }}
+                    style={{ width: 64, height: 64, borderRadius: 12 }}
+                  />
+                </View>
+                <View className="flex-1 ml-3">
+                  <Text className="font-semibold text-gray-800">
+                    {item.capacity} {item.capacity_unit} - {item.container_type}
+                  </Text>
+                  <Text className="text-sm text-gray-500 mt-1">
+                    {item.dispenser_type && `Dispenser: ${item.dispenser_type}`}
+                  </Text>
+                  <View className="flex-row justify-between items-center mt-2">
+                    <Text className="text-sm text-gray-500">Qty: {item.quantity}</Text>
+                    <Text className="text-primary font-semibold">
+                      {convertNumberToVND(item.unit_price)}
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-gray-400 mt-1">
+                    Subtotal: {convertNumberToVND(item.subtotal)}
                   </Text>
                 </View>
-                <Text className="text-xs text-gray-400 mt-1">
-                  Subtotal: {convertNumberToVND(item.subtotal)}
-                </Text>
               </View>
+              {(order.status.toLowerCase() === "received" ||
+                order.status.toLowerCase() === "completed") && (
+                <TouchableOpacity
+                  className="mt-3 bg-primary rounded-lg py-2 px-4 items-center"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(review)",
+                      params: {
+                        referenceId: item.id,
+                        orderType: "ORDER",
+                        productName: `${item.capacity} ${item.capacity_unit} (${item.container_type} - ${item.dispenser_type})`,
+                        imageUrl: item.images?.[0]?.image_url || "",
+                      },
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-white font-semibold">Write a Review</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ))}
         </View>
@@ -404,6 +426,17 @@ const OrderDetailScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* {order.status.toLowerCase() === "received" && (
+        <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
+          <TouchableOpacity
+            className="rounded-lg py-4 items-center border border-primary flex-1"
+            onPress={() => setCompensateModalVisible(true)}
+          >
+            <Text className="text-primary font-bold text-base">Review & Rate</Text>
+          </TouchableOpacity>
+        </View>
+      )} */}
 
       <CompensateModal
         visible={compensateModalVisible}

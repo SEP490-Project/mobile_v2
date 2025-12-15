@@ -357,6 +357,18 @@ const ProductDetailsModal = ({
                 />
               </>
             )}
+            <View className="py-2">
+              <Text className="text-gray-600 text-sm">Attributes:</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {selectedVariant.attributes.map((attr) => (
+                  <View key={attr.ingredient} className="bg-gray-200 rounded-md px-2 py-1 mt-1">
+                    <Text className="text-gray-800 text-sm font-medium">
+                      {`${attr.ingredient}: ${attr.value} ${attr.unit}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
             <View>
               <TouchableOpacity
                 onPress={onClose}

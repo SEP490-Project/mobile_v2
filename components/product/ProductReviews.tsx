@@ -1,55 +1,9 @@
+import { RootState, useAppDispatch } from "@/libs/stores";
+import { getReviewThunk } from "@/libs/stores/reviewManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-
-const mockReviews = [
-  {
-    id: "1",
-    userName: "Sarah Johnson",
-    rating: 5,
-    comment:
-      "Amazing product! The quality is outstanding and it works perfectly. Highly recommend to everyone!",
-    date: "2024-12-10",
-    images: [
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3hWAKJbiafXXZmeLtzx5QUKEHR-wt5dQfGg&s",
-    ],
-  },
-  {
-    id: "2",
-    userName: "Michael Chen",
-    rating: 4,
-    comment: "Good value for money. The product meets my expectations and arrived quickly.",
-    date: "2024-12-08",
-    images: [],
-  },
-  {
-    id: "3",
-    userName: "Emma Davis",
-    rating: 3,
-    comment: "It's okay, nothing special but does the job. Could be better for the price point.",
-    date: "2024-12-05",
-    images: [],
-  },
-  {
-    id: "4",
-    userName: "James Wilson",
-    rating: 2,
-    comment: "Not as described. The quality could be much better. Disappointed with this purchase.",
-    date: "2024-12-03",
-    images: [],
-  },
-  {
-    id: "5",
-    userName: "Lisa Brown",
-    rating: 5,
-    comment:
-      "Absolutely love this! Exceeded my expectations. The packaging was perfect and product quality is top-notch.",
-    date: "2024-12-01",
-    images: [
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3hWAKJbiafXXZmeLtzx5QUKEHR-wt5dQfGg&s",
-    ],
-  },
-];
+import { useSelector } from "react-redux";
 
 interface ProductReviewsProps {
   productId: string;
@@ -57,27 +11,16 @@ interface ProductReviewsProps {
 }
 
 const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, className = "" }) => {
-  const [reviewSortBy, setReviewSortBy] = useState<"newest" | "oldest" | "highest" | "lowest">(
-    "newest",
-  );
+  const dispatch = useAppDispatch();
+  const [reviewSortBy, setReviewSortBy] = useState<"asc" | "desc">("asc");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
-  const getSortedReviews = () => {
-    // TODO: Replace with API call using productId
-    const sorted = [...mockReviews];
-    switch (reviewSortBy) {
-      case "newest":
-        return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      case "oldest":
-        return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      case "highest":
-        return sorted.sort((a, b) => b.rating - a.rating);
-      case "lowest":
-        return sorted.sort((a, b) => a.rating - b.rating);
-      default:
-        return sorted;
-    }
-  };
+  const { reviews, loading } = useSelector((state: RootState) => state.manageReview);
+  const reviewsData = reviews?.data || [];
+
+  useEffect(() => {
+    dispatch(getReviewThunk({ productId, params: { order_direction: reviewSortBy } }));
+  }, [productId, dispatch, reviewSortBy]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (
@@ -106,8 +49,9 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, className = 
   };
 
   const getAverageRating = () => {
-    // TODO: Calculate from actual reviews data
-    return 4.0;
+    if (!reviewsData || reviewsData.length === 0) return 0;
+    const total = reviewsData.reduce((sum, review) => sum + review.rating_stars, 0);
+    return total / reviewsData.length;
   };
 
   return (
@@ -132,10 +76,8 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, className = 
           {showSortDropdown && (
             <View className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-36">
               {[
-                { key: "newest", label: "Newest First" },
-                { key: "oldest", label: "Oldest First" },
-                { key: "highest", label: "Highest Rating" },
-                { key: "lowest", label: "Lowest Rating" },
+                { key: "asc", label: "Oldest First" },
+                { key: "desc", label: "Newest First" },
               ].map((option) => (
                 <TouchableOpacity
                   key={option.key}
@@ -158,7 +100,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, className = 
           )}
         </View>
       </View>
-
       {/* Average Rating */}
       <View className="flex-row items-center mb-4 p-3 bg-gray-50 rounded-lg">
         <View className="flex-row items-center">
@@ -167,45 +108,56 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, className = 
             {getAverageRating().toFixed(1)} out of 5
           </Text>
         </View>
-        <Text className="ml-auto text-gray-600 text-sm">({mockReviews.length} reviews)</Text>
+        <Text className="ml-auto text-gray-600 text-sm">({reviewsData?.length} reviews)</Text>
       </View>
-
-      {/* Reviews List */}
-      <FlatList
-        data={getSortedReviews()}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <View className="mb-4 p-4 border border-gray-100 rounded-lg">
-            <View className="flex-row justify-between items-start mb-2">
-              <View className="flex-1">
-                <Text className="font-semibold text-gray-800">{item.userName}</Text>
-                <View className="flex-row items-center mt-1">
-                  {renderStars(item.rating)}
-                  <Text className="ml-2 text-gray-500 text-sm">
-                    {new Date(item.date).toLocaleDateString()}
-                  </Text>
+      {loading ? (
+        <View className="items-center justify-center py-10">
+          <Text className="text-gray-500">Loading reviews...</Text>
+        </View>
+      ) : (
+        <View>
+          {/* Reviews List */}
+          <FlatList
+            data={reviewsData || []}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <View className="mb-4 p-4 border border-gray-100 rounded-lg">
+                <View className="flex-row justify-between items-start mb-2">
+                  <View className="flex-row items-start justify-between w-full">
+                    <View>
+                      <Text className="font-semibold text-gray-800">{item.user_name}</Text>
+                      <Text className="text-gray-500 text-sm w-[200px]">
+                        {item.product_variant_name}
+                      </Text>
+                    </View>
+                    <View>
+                      <View className="flex-row items-center mt-1">
+                        {renderStars(item.rating_stars)}
+                      </View>
+                      <Text className="ml-2 text-gray-500 text-sm">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
+
+                <Text className="text-gray-700 mb-3">{item.comment}</Text>
+
+                {item.assets_url ? (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <Image
+                      source={{ uri: item.assets_url }}
+                      className="w-20 h-20 rounded-lg mr-2"
+                      resizeMode="cover"
+                    />
+                  </ScrollView>
+                ) : null}
               </View>
-            </View>
-
-            <Text className="text-gray-700 mb-3">{item.comment}</Text>
-
-            {item.images.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {item.images.map((imageUrl, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: imageUrl }}
-                    className="w-20 h-20 rounded-lg mr-2"
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
             )}
-          </View>
-        )}
-      />
+          />
+        </View>
+      )}
     </View>
   );
 };
