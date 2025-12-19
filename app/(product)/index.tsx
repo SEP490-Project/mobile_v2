@@ -1,6 +1,6 @@
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
-import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
+import { getFilteredProductsThunk } from "@/libs/stores/productManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
@@ -11,16 +11,18 @@ const ProductScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const { products, loading } = useSelector((state: RootState) => state.manageProducts || []);
+  const { filteredProducts, loadingFiltered } = useSelector(
+    (state: RootState) => state.manageProducts || [],
+  );
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const { type, category } = useLocalSearchParams();
 
-  const productData = products?.data || [];
+  const productData = filteredProducts?.data || [];
   const currentDate = new Date();
 
   useFocusEffect(() => {
-    dispatch(getAllProductsThunk({ category_id: category as string, type: type as string }));
+    dispatch(getFilteredProductsThunk({ category_id: category as string, type: type as string }));
   });
 
   const filterLimitedProducts = productData.filter(
@@ -31,7 +33,7 @@ const ProductScreen = () => {
           currentDate <= new Date(item.limited_product.availability_end_date))),
   );
 
-  if (loading) {
+  if (loadingFiltered) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#ff9fb2" />

@@ -25,6 +25,14 @@ export default function StackLayout() {
         options={{ title: "Help Center & FAQs", headerTitleAlign: "left" }}
       />
       <Stack.Screen name="about" options={{ title: "About Us", headerTitleAlign: "left" }} />
+      <Stack.Screen
+        name="privacy-policy"
+        options={{ title: "Privacy Policy", headerTitleAlign: "left" }}
+      />
+      <Stack.Screen
+        name="terms-of-service"
+        options={{ title: "Terms of Service", headerTitleAlign: "left" }}
+      />
     </Stack>
   );
 }

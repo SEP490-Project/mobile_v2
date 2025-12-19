@@ -20,7 +20,7 @@ export default function ProductDetail() {
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const productDetail = useSelector((state: RootState) => state.manageProducts.productDetail?.data);
-  const loading = useSelector((state: RootState) => state.manageProducts.loading);
+  const loading = useSelector((state: RootState) => state.manageProducts.loadingDetail);
 
   useEffect(() => {
     if (productId && typeof productId === "string") {
