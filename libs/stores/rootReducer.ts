@@ -10,6 +10,7 @@ import { manageNotificationReducer } from "./notificationManager/slice";
 import { manageOrderReducer } from "./orderManager/slice";
 import { managerProductsReducer } from "./productManager/slice";
 import { manageReviewReducer } from "./reviewManager/slice";
+import { manageTermPolicyReducer } from "./termPolicyManager/slice";
 import { manageUserReducer } from "./userManager/slice";
 
 export const rootReducer = combineReducers({
@@ -25,4 +26,5 @@ export const rootReducer = combineReducers({
   manageNotification: manageNotificationReducer,
   manageDeviceToken: manageDeviceTokenReducer,
   manageReview: manageReviewReducer,
+  manageTermPolicy: manageTermPolicyReducer,
 });
