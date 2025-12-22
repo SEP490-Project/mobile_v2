@@ -1,10 +1,15 @@
+import { CommentSection, ReactionButton } from "@/components/blog";
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { useContent } from "@/libs/hooks/useContent";
+import { useEngagement } from "@/libs/hooks/useEngagement";
 import { useAppDispatch } from "@/libs/stores";
 import { contentDetail } from "@/libs/stores/contentManager/thunk";
+import { contentEngagementThunk } from "@/libs/stores/engagementManager/thunk";
+import { EngagementSummary } from "@/libs/types/engagement";
 import TiptapRenderer from "@/libs/utils/tiptap/renderTiptapContent";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -21,12 +26,44 @@ function BlogDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { content, loading } = useContent();
+  const { contentEngagement } = useEngagement();
+  const { user } = useAuth();
+  const [engagementSummary, setEngagementSummary] = useState<EngagementSummary | null>(null);
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: content?.title ?? "",
+      headerTitleAlign: "center",
+
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 12 }}>
+          <MaterialIcons name="arrow-back" size={24} color="#374151" />
+        </TouchableOpacity>
+      ),
+
+      headerRight: () =>
+        content ? (
+          <TouchableOpacity onPress={onShare} style={{ marginRight: 12 }}>
+            <MaterialIcons name="share" size={24} color="#ff9fb2" />
+          </TouchableOpacity>
+        ) : null,
+    });
+  }, [content]);
 
   useEffect(() => {
     if (id) {
       dispatch(contentDetail(id));
+      dispatch(contentEngagementThunk(id));
     }
   }, [id, dispatch]);
+
+  useEffect(() => {
+    if (contentEngagement) {
+      setEngagementSummary(contentEngagement);
+    }
+  }, [contentEngagement]);
 
   // Share blog link
   const onShare = async () => {
@@ -57,14 +94,6 @@ function BlogDetailScreen() {
   if (loading || !content) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="px-4 py-3 border-b border-gray-100">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full">
-              <MaterialIcons name="arrow-back" size={24} color="#374151" />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 ml-2">Blog Detail</Text>
-          </View>
-        </View>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#ff9fb2" />
           <Text className="text-gray-500 mt-2">Loading blog content...</Text>
@@ -75,25 +104,6 @@ function BlogDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-100">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full">
-              <MaterialIcons name="arrow-back" size={24} color="#374151" />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 ml-2" numberOfLines={1}>
-              {content.title}
-            </Text>
-          </View>
-          <View className="flex-row">
-            <TouchableOpacity className="p-2 bg-gray-100 rounded-full mr-2" onPress={onShare}>
-              <MaterialIcons name="share" size={20} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -174,6 +184,44 @@ function BlogDetailScreen() {
                 <Text className="text-white text-center font-semibold">Visit Store</Text>
               </TouchableOpacity>
             </View>
+          )}
+
+          {/* Engagement Section */}
+          {id && (
+            <>
+              <ReactionButton
+                contentId={id}
+                onSummaryUpdate={(summary) => setEngagementSummary(summary)}
+              />
+
+              {!user && (
+                <View className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
+                  <View className="items-center">
+                    <View className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center mb-4">
+                      <MaterialIcons name="login" size={24} color="white" />
+                    </View>
+                    <Text className="text-lg font-bold text-gray-900 mb-2">
+                      Join the conversation
+                    </Text>
+                    <Text className="text-gray-600 text-center mb-4 leading-5">
+                      Login to react to this post and share your thoughts with the community
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => router.push("/(auth)/")}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 rounded-full shadow-lg"
+                    >
+                      <Text className="text-white font-semibold">Login Now</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              <CommentSection
+                contentId={id}
+                comments={engagementSummary?.comments || []}
+                onCommentsUpdate={(summary) => setEngagementSummary(summary)}
+              />
+            </>
           )}
         </View>
       </ScrollView>

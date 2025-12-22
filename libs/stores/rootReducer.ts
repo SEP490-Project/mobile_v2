@@ -4,6 +4,7 @@ import { manageCartReducer } from "./cartManager/slice";
 import { manageCategoriesReducer } from "./categoryManager/slice";
 import { manageContentReducer } from "./contentManager/slice";
 import { manageDeviceTokenReducer } from "./deviceTokenManager/slice";
+import { manageEngagementReducer } from "./engagementManager/slice";
 import { ghnServiceManagerReducer } from "./ghnServiceManager/slice";
 import { manageLocationReducer } from "./locationManager/slice";
 import { manageNotificationReducer } from "./notificationManager/slice";
@@ -27,4 +28,5 @@ export const rootReducer = combineReducers({
   manageDeviceToken: manageDeviceTokenReducer,
   manageReview: manageReviewReducer,
   manageTermPolicy: manageTermPolicyReducer,
+  manageEngagement: manageEngagementReducer,
 });
