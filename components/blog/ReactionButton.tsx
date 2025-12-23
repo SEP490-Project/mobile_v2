@@ -8,6 +8,7 @@ import {
 } from "@/libs/stores/engagementManager/thunk";
 import { EngagementSummary } from "@/libs/types/engagement";
 import { MaterialIcons } from "@expo/vector-icons";
+import { AnimatePresence, MotiView } from "moti";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -48,123 +49,76 @@ export const REACTION_TYPES = ["LIKE", "LOVE", "HAHA", "WOW", "SAD", "ANGRY", "T
 
 export const ReactionButton: React.FC<ReactionButtonProps> = ({ contentId, onSummaryUpdate }) => {
   const dispatch = useAppDispatch();
-  const { contentEngagement, userEngagementStatus, loading } = useEngagement();
+  const { contentEngagement, userEngagementStatus } = useEngagement();
   const { isAuthenticated, user } = useAuth();
-  const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [processingReaction, setProcessingReaction] = useState(false);
+
+  const [showPicker, setShowPicker] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    if (contentId) {
-      dispatch(contentEngagementThunk(contentId));
-      if (isAuthenticated && user) {
-        dispatch(userEngagementStatusThunk(contentId));
-      }
+    if (!contentId) return;
+    dispatch(contentEngagementThunk(contentId));
+    if (isAuthenticated && user) {
+      dispatch(userEngagementStatusThunk(contentId));
     }
   }, [contentId, dispatch, isAuthenticated, user]);
 
   const handleReaction = async (type: string) => {
-    if (processingReaction || !isAuthenticated || !user) return;
+    if (processing || !isAuthenticated || !user) return;
 
-    setProcessingReaction(true);
-    setShowReactionPicker(false);
+    setProcessing(true);
+    setShowPicker(false);
 
     try {
-      // If clicking the same reaction, remove it
       const isRemoving =
         userEngagementStatus?.has_reacted && userEngagementStatus.like_type === type;
-      const action = isRemoving ? "remove_reaction" : "add_reaction";
 
       await dispatch(
         postEngagementThunk({
           id: contentId,
           req: {
-            action,
+            action: isRemoving ? "remove_reaction" : "add_reaction",
             reaction_type: isRemoving ? undefined : type,
           },
         }),
       ).unwrap();
 
-      // Refresh data after action
-      const updatedEngagement = await dispatch(contentEngagementThunk(contentId)).unwrap();
-      if (isAuthenticated && user) {
-        await dispatch(userEngagementStatusThunk(contentId));
-      }
+      const updated = await dispatch(contentEngagementThunk(contentId)).unwrap();
 
-      onSummaryUpdate?.(updatedEngagement);
-    } catch (error) {
+      dispatch(userEngagementStatusThunk(contentId));
+      onSummaryUpdate?.(updated);
+    } catch (e) {
       Alert.alert("Error", "Failed to update reaction");
-      console.error(error);
+      console.error(e);
     } finally {
-      setProcessingReaction(false);
+      setProcessing(false);
     }
   };
 
-  const handleDefaultClick = () => {
-    if (userEngagementStatus?.has_reacted) {
-      handleReaction(userEngagementStatus.like_type || "LIKE");
-    } else {
-      handleReaction("LIKE");
-    }
-  };
+  const currentReaction = userEngagementStatus?.has_reacted
+    ? {
+        icon: REACTION_ICONS[userEngagementStatus.like_type!],
+        label: REACTION_LABELS[userEngagementStatus.like_type!],
+      }
+    : { icon: "👍", label: "Like" };
 
-  const getCurrentReaction = () => {
-    if (userEngagementStatus?.has_reacted && userEngagementStatus.like_type) {
-      return {
-        icon: REACTION_ICONS[userEngagementStatus.like_type],
-        label: REACTION_LABELS[userEngagementStatus.like_type],
-      };
-    }
-    return { icon: "👍", label: "Like" };
-  };
-
-  const currentReaction = getCurrentReaction();
-
-  // Chỉ hiển thị khi đã đăng nhập
   if (!isAuthenticated || !user) {
-    return (
-      <View className="py-3 border-t border-gray-200 my-4">
-        <View className="px-4">
-          {contentEngagement?.total_reactions && contentEngagement.total_reactions > 0 ? (
-            <View className="flex-row items-center mb-3">
-              <View className="bg-white rounded-full px-2 py-1 flex-row items-center shadow-sm">
-                {Object.entries(contentEngagement.reactions_by_type || {})
-                  .slice(0, 3)
-                  .map(([type, count]: [string, any], idx) => (
-                    <View
-                      key={type}
-                      className="w-5 h-5 rounded-full bg-white items-center justify-center"
-                      style={{ marginLeft: idx > 0 ? -4 : 0 }}
-                    >
-                      <Text className="text-xs">{REACTION_ICONS[type]}</Text>
-                    </View>
-                  ))}
-                <Text className="text-xs text-gray-600 ml-2 font-medium">
-                  {contentEngagement.total_reactions}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-          <View className="border-t border-gray-200 pt-1">
-            <Text className="text-xs text-gray-400 text-center">Login to react</Text>
-          </View>
-        </View>
-      </View>
-    );
+    return null;
   }
 
   return (
-    <View className="py-3 border-t border-gray-200 my-4">
-      {/* Reaction Summary */}
-      {contentEngagement?.total_reactions && contentEngagement.total_reactions > 0 ? (
-        <View className="flex-row items-center px-4 mb-3">
-          <View className="bg-white rounded-full px-2 py-1 flex-row items-center shadow-sm">
+    <View className="py-3 border-t border-gray-200">
+      {/* Reaction count */}
+      {contentEngagement?.total_reactions ? (
+        <View className="px-4 mb-2">
+          <View className="flex-row items-center bg-white px-2 py-1 rounded-full shadow-sm self-start">
             {Object.entries(contentEngagement.reactions_by_type || {})
               .slice(0, 3)
-              .map(([type, count]: [string, any], idx) => (
+              .map(([type], idx) => (
                 <View
                   key={type}
-                  className="w-5 h-5 rounded-full bg-white items-center justify-center"
-                  style={{ marginLeft: idx > 0 ? -4 : 0 }}
+                  className="w-5 h-5 items-center justify-center bg-white rounded-full"
+                  style={{ marginLeft: idx ? -4 : 0 }}
                 >
                   <Text className="text-xs">{REACTION_ICONS[type]}</Text>
                 </View>
@@ -176,76 +130,92 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ contentId, onSum
         </View>
       ) : null}
 
-      {/* Action Buttons */}
-      <View className="border-t border-gray-200 pt-1 px-4">
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={handleDefaultClick}
-            onLongPress={() => setShowReactionPicker(true)}
-            className="flex-1 flex-row items-center justify-center py-2"
-            disabled={processingReaction}
-          >
-            {processingReaction ? (
-              <ActivityIndicator size="small" color="#3b82f6" />
-            ) : (
-              <>
-                {userEngagementStatus?.has_reacted ? (
-                  <Text className="text-xl mr-1">{currentReaction.icon}</Text>
-                ) : (
-                  <MaterialIcons name="thumb-up-off-alt" size={20} color="#6B7280" />
-                )}
-                <Text
-                  className={`font-semibold text-sm ml-1 ${
-                    userEngagementStatus?.has_reacted ? "text-blue-600" : "text-gray-600"
-                  }`}
-                >
-                  {userEngagementStatus?.has_reacted ? currentReaction.label : "Like"}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Reaction Picker Modal */}
-      <Modal
-        visible={showReactionPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowReactionPicker(false)}
+      {/* Like button */}
+      <TouchableOpacity
+        onPress={() => handleReaction(userEngagementStatus?.like_type || "LIKE")}
+        onLongPress={() => setShowPicker(true)}
+        disabled={processing}
+        className="flex-row items-center justify-center py-2"
       >
-        <Pressable
-          className="flex-1 justify-center items-center"
-          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-          onPress={() => setShowReactionPicker(false)}
-        >
-          <View className="bg-white rounded-full px-3 py-3 shadow-2xl" style={{ elevation: 10 }}>
-            <View className="flex-row items-center space-x-1">
-              {REACTION_TYPES.map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  onPress={() => handleReaction(type)}
-                  className="w-12 h-12 items-center justify-center active:scale-125"
-                  disabled={processingReaction}
-                  style={{
-                    transform: [{ scale: userEngagementStatus?.like_type === type ? 1.1 : 1 }],
-                  }}
-                >
-                  <Text
-                    className="text-3xl"
-                    style={{
-                      textShadowColor: "rgba(0,0,0,0.1)",
-                      textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 2,
-                    }}
-                  >
-                    {REACTION_ICONS[type]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </Pressable>
+        {processing ? (
+          <ActivityIndicator size="small" color="#3b82f6" />
+        ) : (
+          <>
+            {userEngagementStatus?.has_reacted ? (
+              <Text className="text-xl mr-1">{currentReaction.icon}</Text>
+            ) : (
+              <MaterialIcons name="thumb-up-off-alt" size={20} color="#6B7280" />
+            )}
+            <Text
+              className={`ml-1 text-sm font-semibold ${
+                userEngagementStatus?.has_reacted ? "text-blue-600" : "text-gray-600"
+              }`}
+            >
+              {currentReaction.label}
+            </Text>
+          </>
+        )}
+      </TouchableOpacity>
+
+      {/* Reaction Picker */}
+      <Modal transparent visible={showPicker} animationType="none">
+        <AnimatePresence>
+          {showPicker && (
+            <MotiView
+              from={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 100 }}
+              className="flex-1 justify-center items-center"
+              style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
+            >
+              <Pressable className="absolute inset-0" onPress={() => setShowPicker(false)} />
+
+              <MotiView
+                from={{ translateY: 12, scale: 0.95, opacity: 0 }}
+                animate={{ translateY: 0, scale: 1, opacity: 1 }}
+                exit={{ translateY: 8, scale: 0.96, opacity: 0 }}
+                transition={{ duration: 160 }}
+                className="bg-white px-3 py-2 rounded-full shadow-2xl flex-row"
+              >
+                {REACTION_TYPES.map((type, index) => {
+                  const active = userEngagementStatus?.like_type === type;
+
+                  return (
+                    <MotiView
+                      key={type}
+                      from={{ scale: 0.85, opacity: 0, translateY: 6 }}
+                      animate={{ scale: 1, opacity: 1, translateY: 0 }}
+                      transition={{
+                        duration: 120,
+                        delay: index * 25,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => handleReaction(type)}
+                        className="w-12 h-12 items-center justify-center"
+                      >
+                        <MotiView
+                          animate={{
+                            scale: active ? 1.35 : 1,
+                            translateY: active ? -6 : 0,
+                          }}
+                          transition={{
+                            type: "spring",
+                            damping: 15,
+                            stiffness: 250,
+                          }}
+                        >
+                          <Text className="text-3xl">{REACTION_ICONS[type]}</Text>
+                        </MotiView>
+                      </TouchableOpacity>
+                    </MotiView>
+                  );
+                })}
+              </MotiView>
+            </MotiView>
+          )}
+        </AnimatePresence>
       </Modal>
     </View>
   );
