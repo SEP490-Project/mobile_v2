@@ -128,9 +128,9 @@ const OrderDetailScreen = () => {
     }
   };
 
-  const handleCopyToClipboard = (text: string | undefined) => {
+  const handleCopyToClipboard = async (text: string | undefined) => {
     if (text) {
-      Clipboard.setStringAsync(text);
+      await Clipboard.setStringAsync(text);
     }
   };
 
