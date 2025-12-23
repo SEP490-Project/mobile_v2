@@ -8,7 +8,7 @@ import {
 } from "@/libs/stores/orderManager/thunk";
 import { OrderData, OrderItem } from "@/libs/types/order";
 import { MaterialIcons } from "@expo/vector-icons";
-
+import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -128,6 +128,12 @@ const OrderDetailScreen = () => {
     }
   };
 
+  const handleCopyToClipboard = (text: string | undefined) => {
+    if (text) {
+      Clipboard.setStringAsync(text);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-white">
@@ -158,7 +164,21 @@ const OrderDetailScreen = () => {
             <Text className="text-sm text-gray-500">Order ID</Text>
             <Text className="font-mono text-sm text-gray-700">#{order.id.slice(0, 8)}</Text>
           </View>
-          <View className="flex-row justify-between items-center">
+          {order.ghn_order_code && (
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex flex-row gap-2">
+                <Text className="text-sm text-gray-500">Order Code</Text>
+                <TouchableOpacity
+                  onPress={() => handleCopyToClipboard(order.ghn_order_code)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name="content-copy" size={14} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+              <Text className="text-sm text-gray-700">{order.ghn_order_code}</Text>
+            </View>
+          )}
+          <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-500">Status</Text>
             <View
               className={`px-3 py-1 rounded-full ${getStatusColor(order.status).split(" ")[1]}`}
@@ -170,13 +190,26 @@ const OrderDetailScreen = () => {
               </Text>
             </View>
           </View>
-          <View className="flex-row justify-between items-center mt-2">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-sm text-gray-500">Order Type</Text>
+            <View
+              className={`px-3 py-1 rounded-full ${order.order_type === "LIMITED" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100"}`}
+            >
+              <Text
+                className={`text-sm font-medium ${order.order_type === "LIMITED" ? "text-yellow-700" : "text-gray-700"}`}
+              >
+                {order.order_type === "LIMITED" ? "Limited Order" : "Standard Order"}
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-500">Picked Up</Text>
             <Text className="text-sm text-gray-700">
-              {order.is_self_picked_up ? "At place" : "Shipping to address"}
+              {order.is_self_picked_up ? "At place" : "Delivery"}
             </Text>
           </View>
-          <View className="flex-row justify-between items-center mt-2">
+
+          <View className="flex-row justify-between items-center">
             <Text className="text-sm text-gray-500">Order Date</Text>
             <Text className="text-sm text-gray-700">
               {new Date(order.created_at).toLocaleDateString("en-US", {

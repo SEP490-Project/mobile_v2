@@ -1,4 +1,4 @@
-import InfiniteScrollList from "@/components/common/InfiniteScrollList";
+import { InfiniteScrollList } from "@/components/common/InfiniteScrollList";
 import { useAuth } from "@/libs/hooks/useAuthen";
 import { useNotification } from "@/libs/hooks/useNotification";
 import { useAppDispatch } from "@/libs/stores";
