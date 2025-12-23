@@ -193,12 +193,12 @@ export const NotificationProvider: React.FC<Props> = ({
 
         const isNotification = Boolean(
           title ||
-            body ||
-            (data && Object.keys(data).length > 0) ||
-            payload?.event ||
-            payload?.type ||
-            payload?.msg ||
-            payload?.message,
+          body ||
+          (data && Object.keys(data).length > 0) ||
+          payload?.event ||
+          payload?.type ||
+          payload?.msg ||
+          payload?.message,
         );
 
         if (isNotification) {
