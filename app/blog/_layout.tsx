@@ -38,7 +38,13 @@ const BlogLayout = () => {
           ),
         })}
       />
-      <Stack.Screen name="[id]" />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          headerShown: true,
+          headerBackVisible: false,
+        }}
+      />
     </Stack>
   );
 };

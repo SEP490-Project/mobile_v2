@@ -1,10 +1,15 @@
+import { CommentSection, ReactionButton } from "@/components/blog";
+import { useAuth } from "@/libs/hooks/useAuthen";
 import { useContent } from "@/libs/hooks/useContent";
+import { useEngagement } from "@/libs/hooks/useEngagement";
 import { useAppDispatch } from "@/libs/stores";
 import { contentDetail } from "@/libs/stores/contentManager/thunk";
+import { contentEngagementThunk, postEngagementThunk } from "@/libs/stores/engagementManager/thunk";
+import { EngagementSummary } from "@/libs/types/engagement";
 import TiptapRenderer from "@/libs/utils/tiptap/renderTiptapContent";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -21,26 +26,74 @@ function BlogDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { content, loading } = useContent();
+  const { contentEngagement } = useEngagement();
+  const { user } = useAuth();
+  const [engagementSummary, setEngagementSummary] = useState<EngagementSummary | null>(null);
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: content?.title ?? "",
+      headerTitleAlign: "center",
+
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 12 }}>
+          <MaterialIcons name="arrow-back" size={24} color="#374151" />
+        </TouchableOpacity>
+      ),
+
+      headerRight: () =>
+        content ? (
+          <TouchableOpacity onPress={onShare} style={{ marginRight: 12 }}>
+            <MaterialIcons name="share" size={24} color="#ff9fb2" />
+          </TouchableOpacity>
+        ) : null,
+    });
+  }, [content]);
 
   useEffect(() => {
     if (id) {
       dispatch(contentDetail(id));
+      dispatch(contentEngagementThunk(id));
     }
   }, [id, dispatch]);
 
-  // Share blog link
+  useEffect(() => {
+    if (contentEngagement) {
+      setEngagementSummary(contentEngagement);
+    }
+  }, [contentEngagement]);
+
   const onShare = async () => {
     try {
       const url = `https://bshowsell.site/blog/${id}`;
-      await Share.share({
+      const result = await Share.share({
         message: `Check out this blog: ${content?.title}\n${url}`,
       });
+
+      if (result.action === Share.sharedAction && id && user) {
+        try {
+          await dispatch(
+            postEngagementThunk({
+              id: id,
+              req: {
+                action: "share",
+              },
+            }),
+          ).unwrap();
+
+          const updatedEngagement = await dispatch(contentEngagementThunk(id)).unwrap();
+          setEngagementSummary(updatedEngagement);
+        } catch (error) {
+          console.error("Error tracking share:", error);
+        }
+      }
     } catch (error: any) {
       console.error("Error sharing content:", error.message);
     }
   };
 
-  // Calculate time ago from created_at
   const getTimeAgo = (dateString: string) => {
     const now = new Date();
     const createdDate = new Date(dateString);
@@ -57,14 +110,6 @@ function BlogDetailScreen() {
   if (loading || !content) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="px-4 py-3 border-b border-gray-100">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full">
-              <MaterialIcons name="arrow-back" size={24} color="#374151" />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 ml-2">Blog Detail</Text>
-          </View>
-        </View>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#ff9fb2" />
           <Text className="text-gray-500 mt-2">Loading blog content...</Text>
@@ -75,31 +120,11 @@ function BlogDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-100">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full">
-              <MaterialIcons name="arrow-back" size={24} color="#374151" />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 ml-2" numberOfLines={1}>
-              {content.title}
-            </Text>
-          </View>
-          <View className="flex-row">
-            <TouchableOpacity className="p-2 bg-gray-100 rounded-full mr-2" onPress={onShare}>
-              <MaterialIcons name="share" size={20} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
       >
-        {/* Featured Image */}
         {content.thumbnail_url && (
           <Image
             source={{ uri: content.thumbnail_url }}
@@ -109,10 +134,8 @@ function BlogDetailScreen() {
         )}
 
         <View className="px-4">
-          {/* Title */}
           <Text className="text-2xl font-bold text-gray-900 mt-4 mb-3">{content.title}</Text>
 
-          {/* Meta Information */}
           <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-100">
             <View className="flex-row items-center">
               <View className="flex-row items-center mr-4">
@@ -143,14 +166,12 @@ function BlogDetailScreen() {
             )}
           </View>
 
-          {/* Excerpt */}
           {content.blog?.excerpt && (
             <View className="mb-4">
               <Text className="text-lg text-gray-700 leading-7 italic">{content.blog.excerpt}</Text>
             </View>
           )}
 
-          {/* Tags */}
           {content.blog?.tags && content.blog.tags.length > 0 && (
             <View className="flex-row flex-wrap mb-6">
               {content.blog.tags.map((tag, index) => (
@@ -161,12 +182,10 @@ function BlogDetailScreen() {
             </View>
           )}
 
-          {/* Content Body */}
           {content.body && typeof content.body === "object" && (
             <TiptapRenderer content={content.body as any} />
           )}
 
-          {/* Affiliate Link */}
           {content.affiliate_link && (
             <View className="mt-6 p-4 bg-rose-50 rounded-xl border border-rose-100">
               <Text className="text-rose-800 font-semibold mb-2">Shop Now</Text>
@@ -174,6 +193,21 @@ function BlogDetailScreen() {
                 <Text className="text-white text-center font-semibold">Visit Store</Text>
               </TouchableOpacity>
             </View>
+          )}
+
+          {id && (
+            <>
+              <ReactionButton
+                contentId={id}
+                onSummaryUpdate={(summary) => setEngagementSummary(summary)}
+              />
+
+              <CommentSection
+                contentId={id}
+                comments={engagementSummary?.comments || []}
+                onCommentsUpdate={(summary) => setEngagementSummary(summary)}
+              />
+            </>
           )}
         </View>
       </ScrollView>

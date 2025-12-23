@@ -199,6 +199,20 @@ const commonMenuItems = [
     iconColor: "#06B6D4",
   },
   {
+    iconName: "security",
+    name: "Privacy Policy",
+    route: "/(general)/privacy-policy",
+    bgColor: "#DCFCE7",
+    iconColor: "#16A34A",
+  },
+  {
+    iconName: "article",
+    name: "Terms of Service",
+    route: "/(general)/terms-of-service",
+    bgColor: "#F1F5F9",
+    iconColor: "#475569",
+  },
+  {
     iconName: "info-outline",
     name: "About Us",
     route: "/(general)/about",

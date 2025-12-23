@@ -141,7 +141,7 @@ function HomeScreen() {
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const { loading: productsLoading, products } = useSelector(
+  const { loadingAll: productsLoading, allProducts } = useSelector(
     (state: RootState) => state.manageProducts,
   );
   const { loading: categoriesLoading, categories } = useSelector(
@@ -149,7 +149,7 @@ function HomeScreen() {
   );
   const { contents } = useContent();
 
-  const productsData: Product[] = products?.data || [];
+  const productsData: Product[] = allProducts?.data || [];
   const categoriesData: Category[] = categories?.data || [];
 
   const parentCategories = categoriesData.filter((item) => !item.parent_category);

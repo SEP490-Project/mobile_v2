@@ -4,12 +4,14 @@ import { manageCartReducer } from "./cartManager/slice";
 import { manageCategoriesReducer } from "./categoryManager/slice";
 import { manageContentReducer } from "./contentManager/slice";
 import { manageDeviceTokenReducer } from "./deviceTokenManager/slice";
+import { manageEngagementReducer } from "./engagementManager/slice";
 import { ghnServiceManagerReducer } from "./ghnServiceManager/slice";
 import { manageLocationReducer } from "./locationManager/slice";
 import { manageNotificationReducer } from "./notificationManager/slice";
 import { manageOrderReducer } from "./orderManager/slice";
 import { managerProductsReducer } from "./productManager/slice";
 import { manageReviewReducer } from "./reviewManager/slice";
+import { manageTermPolicyReducer } from "./termPolicyManager/slice";
 import { manageUserReducer } from "./userManager/slice";
 
 export const rootReducer = combineReducers({
@@ -25,4 +27,6 @@ export const rootReducer = combineReducers({
   manageNotification: manageNotificationReducer,
   manageDeviceToken: manageDeviceTokenReducer,
   manageReview: manageReviewReducer,
+  manageTermPolicy: manageTermPolicyReducer,
+  manageEngagement: manageEngagementReducer,
 });

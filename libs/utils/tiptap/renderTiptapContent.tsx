@@ -1,5 +1,4 @@
 // components/common/TiptapRenderer.tsx
-import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { Dimensions, Image, Linking, Text, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
@@ -99,13 +98,14 @@ export const renderTiptapContent = (node: any, key?: number): React.ReactNode =>
 
     case "heading": {
       const level = node.attrs?.level || 1;
-      const baseClass = "text-center";
       const classNames =
         level === 1
-          ? `${baseClass} text-5xl font-extrabold mt-4 mb-2`
+          ? "text-3xl font-extrabold text-gray-900 mt-6 mb-4"
           : level === 2
-            ? `${baseClass} text-2xl font-bold mt-4 mb-2`
-            : `${baseClass} text-xl font-semibold mt-3 mb-2`;
+            ? "text-2xl font-bold text-gray-900 mt-5 mb-3"
+            : level === 3
+              ? "text-xl font-semibold text-gray-900 mt-4 mb-2"
+              : "text-lg font-semibold text-gray-900 mt-3 mb-2";
 
       return (
         <Text key={key} className={classNames}>
@@ -178,21 +178,18 @@ export const renderTiptapContent = (node: any, key?: number): React.ReactNode =>
 
     case "bulletList":
       return (
-        <View key={key} className="mb-3 ml-2">
+        <View key={key} className="mb-4 ml-1">
           {node.content?.map((item: any, i: number) => renderTiptapContent(item, i))}
         </View>
       );
 
     case "listItem":
       return (
-        <View key={key} className="flex-row items-start mb-1">
-          <MaterialIcons
-            name="fiber-manual-record"
-            size={8}
-            color="#6B7280"
-            style={{ marginTop: 8, marginRight: 8 }}
-          />
-          <Text className="text-gray-700 flex-1 leading-6">{itemContent(node.content)}</Text>
+        <View key={key} className="flex-row items-start mb-2">
+          <View className="w-2 h-2 bg-gray-600 rounded-full mt-2.5 mr-3 flex-shrink-0" />
+          <View className="flex-1">
+            {node.content?.map((child: any, i: number) => renderTiptapContent(child, i))}
+          </View>
         </View>
       );
 
