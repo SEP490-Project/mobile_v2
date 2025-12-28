@@ -102,7 +102,7 @@ const LimitedProductDetails = ({ productDetail }: { productDetail: Product }) =>
 
         <View className="bg-white rounded-t-xl -mt-2">
           <View className="flex-row justify-between items-center p-4 ">
-            <Text className="font-bold text-xl">{productDetail.concept.name}</Text>
+            <Text className="font-bold text-xl w-[50%]">{productDetail.concept.name}</Text>
             <View className="bg-red-600 rounded-xl">
               <Text className="font-semibold text-lg px-4 text-white">{endDays} days left</Text>
             </View>
