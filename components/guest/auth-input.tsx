@@ -37,6 +37,7 @@ export default function AuthInput({
       >
         <TextInput
           className="flex-1 py-3"
+          style={{ color: "#111827" }}
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isSecure}

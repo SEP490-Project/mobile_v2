@@ -83,4 +83,6 @@ export interface Concept {
 export interface ProductFilter extends QueryParams {
   category_id?: string;
   type?: string;
+  page?: number;
+  limit?: number;
 }

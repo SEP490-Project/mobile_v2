@@ -1,9 +1,10 @@
+import { InfiniteScrollList } from "@/components/common/InfiniteScrollList";
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getFilteredProductsThunk } from "@/libs/stores/productManager/thunk";
-import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -11,22 +12,63 @@ const ProductScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const { filteredProducts, loadingFiltered } = useSelector(
-    (state: RootState) => state.manageProducts || [],
+  const [refreshing, setRefreshing] = useState(false);
+  const [limit] = useState(6);
+
+  const { filteredProducts, loadingFiltered, pagination } = useSelector(
+    (state: RootState) => state.manageProducts,
   );
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const { type, category } = useLocalSearchParams();
 
-  const productData = filteredProducts?.data || [];
+  const productData: any[] = filteredProducts || [];
   const currentDate = new Date();
 
-  useFocusEffect(() => {
-    dispatch(getFilteredProductsThunk({ category_id: category as string, type: type as string }));
-  });
+  const loadData = useCallback(
+    async (pageNum = 1, searchType = type, searchCategory = category) => {
+      try {
+        await dispatch(
+          getFilteredProductsThunk({
+            category_id: searchCategory as string,
+            type: searchType as string,
+            page: pageNum,
+            limit,
+          }),
+        ).unwrap();
+      } catch (error) {
+        console.warn("Load data error:", error);
+      }
+    },
+    [dispatch, limit, type, category],
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData(1);
+    setRefreshing(false);
+  }, [loadData]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!pagination) return;
+    if (loadingFiltered) return;
+    if (pagination.page >= pagination.total_pages) return;
+
+    const nextPage = pagination.page + 1;
+    await loadData(nextPage);
+  }, [pagination, loadingFiltered, loadData]);
+
+  // const nextPage = pagination.page + 1;
+  // await loadContents(nextPage, searchQuery);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData(1);
+    }, [loadData]),
+  );
 
   const filterLimitedProducts = productData.filter(
-    (item) =>
+    (item: any) =>
       item.type === "LIMITED" &&
       (!item.limited_product?.premiere_date ||
         (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
@@ -42,8 +84,8 @@ const ProductScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 10 }}>
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+    <View className="flex-1 bg-white">
+      {/* <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center gap-4">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -73,17 +115,22 @@ const ProductScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
 
-      <FlatList
+      <InfiniteScrollList
         data={type === "LIMITED" ? filterLimitedProducts : productData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: any) => item.id}
         numColumns={2}
+        onLoadMore={handleLoadMore}
+        onRefresh={handleRefresh}
+        loading={loadingFiltered}
+        refreshing={refreshing}
+        hasMore={pagination ? pagination.page < pagination.total_pages : false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        renderItem={({ item }) => (
-          <View className="w-[48%] mb-4">
+        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
+        emptyText="No products found"
+        renderItem={({ item }: { item: any }) => (
+          <View className="mb-4">
             <ProductCard
               product={item}
               onPress={() =>
@@ -92,12 +139,6 @@ const ProductScreen = () => {
             />
           </View>
         )}
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-20">
-            <MaterialIcons name="shopping-bag" size={64} color="#E5E7EB" />
-            <Text className="text-gray-400 text-lg mt-4">No products found</Text>
-          </View>
-        }
       />
     </View>
   );

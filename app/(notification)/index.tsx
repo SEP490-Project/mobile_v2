@@ -18,12 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 function NotificationScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const {
-    notifications = [],
-    loading = false,
-    loadingMore = false,
-    pagination = null,
-  } = useNotification();
+  const { notifications = [], loading = false, pagination = null } = useNotification();
   const [refreshing, setRefreshing] = useState(false);
   const [isReadFilter, setIsReadFilter] = useState<boolean | undefined>(undefined);
   const [startDate, setStartDate] = useState<string>("");
@@ -84,12 +79,12 @@ function NotificationScreen() {
 
   const handleLoadMore = useCallback(async () => {
     if (!pagination) return;
-    if (loading || loadingMore) return;
+    if (loading) return;
     if (pagination.page >= pagination.total_pages) return;
 
     const nextPage = pagination.page + 1;
     await loadNotifications(nextPage, isReadFilter);
-  }, [pagination, loading, loadingMore, loadNotifications, isReadFilter]);
+  }, [pagination, loading, loadNotifications, isReadFilter]);
 
   useFocusEffect(
     useCallback(() => {
@@ -291,7 +286,6 @@ function NotificationScreen() {
         onLoadMore={handleLoadMore}
         onRefresh={handleRefresh}
         loading={loading}
-        loadingMore={loadingMore}
         refreshing={refreshing}
         hasMore={pagination ? pagination.page < pagination.total_pages : false}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}

@@ -11,10 +11,12 @@ import { Animated, Image, Text, TextInput, TouchableOpacity, View } from "react-
 import { SafeAreaView } from "react-native-safe-area-context";
 import { setSearchToggleListener } from "./_layout";
 
+const notfound300x200 = require("@/assets/images/not-found/300x200.png");
+
 function BlogsScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { contents = [], loading = false, loadingMore = false, pagination = null } = useContent();
+  const { contents = [], loading = false, pagination = null } = useContent();
 
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -80,12 +82,12 @@ function BlogsScreen() {
 
   const handleLoadMore = useCallback(async () => {
     if (!pagination) return;
-    if (loading || loadingMore) return;
+    if (loading) return;
     if (pagination.page >= pagination.total_pages) return;
 
     const nextPage = pagination.page + 1;
     await loadContents(nextPage, searchQuery);
-  }, [pagination, loading, loadingMore, loadContents, searchQuery]);
+  }, [pagination, loading, loadContents, searchQuery]);
 
   const handleSearch = useCallback(() => {
     setSearchQuery(searchText);
@@ -188,7 +190,6 @@ function BlogsScreen() {
         onLoadMore={handleLoadMore}
         onRefresh={handleRefresh}
         loading={loading}
-        loadingMore={loadingMore}
         refreshing={refreshing}
         hasMore={pagination ? pagination.page < pagination.total_pages : false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
@@ -201,7 +202,7 @@ function BlogsScreen() {
           >
             <View className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm">
               <Image
-                source={{ uri: item.thumbnail_url || "https://via.placeholder.com/400x200" }}
+                source={item.thumbnail_url ? { uri: item.thumbnail_url } : notfound300x200}
                 className="w-full h-48"
                 resizeMode="cover"
               />

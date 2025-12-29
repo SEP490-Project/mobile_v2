@@ -4,6 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
+const notfound150 = require("@/assets/images/not-found/150.png");
+
 interface ProductCardProps {
   product: Product;
   onPress?: () => void;
@@ -25,7 +27,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
       activeOpacity={0.7}
     >
       <Image
-        source={{ uri: product.thumbnail_url?.[0] || "https://via.placeholder.com/150" }}
+        source={product.thumbnail_url?.[0] ? { uri: product.thumbnail_url[0] } : notfound150}
         className="w-full h-40 rounded-lg mb-3"
         resizeMode="cover"
       />
