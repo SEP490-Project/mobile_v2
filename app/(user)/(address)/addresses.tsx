@@ -6,7 +6,7 @@ import {
 import { ShippingAddressData } from "@/libs/types/location";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,11 +69,19 @@ const MyAddresses = () => {
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
 
+  const onCall = React.useCallback(() => {
+    dispatch(getShippingAddressesThunk());
+  }, [dispatch]);
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     dispatch(getShippingAddressesThunk());
     setRefreshing(false);
   }, [dispatch]);
+
+  useEffect(() => {
+    onCall();
+  }, [onCall]);
 
   const handleSetDefault = async (addressId: string) => {
     try {

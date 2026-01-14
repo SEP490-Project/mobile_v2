@@ -183,7 +183,7 @@ function HomeScreen() {
   const currentDate = new Date();
 
   const loadData = React.useCallback(() => {
-    dispatch(getAllProductsThunk());
+    dispatch(getAllProductsThunk({ limit: 20 }));
     dispatch(getAllCategoriesThunk());
     dispatch(
       getAllContents({
@@ -199,7 +199,7 @@ function HomeScreen() {
     setRefreshing(true);
     try {
       await Promise.all([
-        dispatch(getAllProductsThunk()).unwrap(),
+        dispatch(getAllProductsThunk({ limit: 20 })).unwrap(),
         dispatch(getAllCategoriesThunk()).unwrap(),
         dispatch(
           getAllContents({
