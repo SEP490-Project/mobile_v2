@@ -8,11 +8,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
 
 const LoginSchema = yup.object().shape({
-  login_identifier: yup.string().required("Email or Username is required"),
+  login_identifier: yup.string().required("Email or Username is required").trim(),
   password: yup
     .string()
     .min(8, "Password must be at least 8 characters long.")
-    .required("Password is required"),
+    .required("Password is required")
+    .trim(),
 });
 
 function LoginScreen() {
@@ -53,13 +54,6 @@ function LoginScreen() {
     }
   };
 
-  const handleChangeText =
-    (setter: React.Dispatch<React.SetStateAction<string>>, field: keyof typeof errors) =>
-    (text: string) => {
-      setter(text.trim());
-      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-    };
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="height" style={{ flex: 1 }} keyboardVerticalOffset={50}>
@@ -81,7 +75,7 @@ function LoginScreen() {
                 label="Your Email or Username"
                 placeholder="Enter your email or username"
                 value={login_identifier}
-                onChangeText={handleChangeText(setLoginIdentifier, "login_identifier")}
+                onChangeText={setLoginIdentifier}
                 error={errors.login_identifier}
               />
               <AuthInput
@@ -89,7 +83,7 @@ function LoginScreen() {
                 placeholder="Enter your password"
                 isPassword
                 value={password}
-                onChangeText={handleChangeText(setPassword, "password")}
+                onChangeText={setPassword}
                 error={errors.password}
               />
 

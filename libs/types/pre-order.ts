@@ -22,7 +22,7 @@ export interface PreOrderData {
   district_name: string;
   ward_name: string;
   is_self_picked_up: boolean;
-  action_notes?: ActionNote[];
+  action_notes: ActionNote[];
   capacity: number;
   capacity_unit: string;
   container_type: string;
@@ -30,25 +30,32 @@ export interface PreOrderData {
   uses: string;
   manufacturing_date: string;
   expiry_date: string;
-  is_reviewed: boolean;
   instructions: string;
   attributes_description: any;
   weight: number;
   height: number;
   length: number;
   width: number;
+  is_reviewed: boolean;
   product_name: string;
   description: string;
   product_type: string;
+  limited_properties: LimitedProperties;
   created_at: string;
   updated_at: string;
-  images?: Image[];
+  images: Image[];
   brand: Brand;
   category: Category;
   PaymentTx: PaymentTx;
   confirmation_image?: string;
   user_resource?: string;
   staff_resource?: string;
+}
+
+export interface LimitedProperties {
+  premiere_date: string;
+  availability_start_date: string;
+  availability_end_date: string;
 }
 
 export interface Image {

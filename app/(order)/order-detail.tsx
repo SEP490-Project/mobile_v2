@@ -445,7 +445,7 @@ const OrderDetailScreen = () => {
             className="rounded-lg py-4 items-center bg-primary flex-1"
             onPress={handleReceiveOrder}
           >
-            <Text className="text-white font-bold text-base">Received Order</Text>
+            <Text className="text-white font-bold text-base">Receive Order</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -456,21 +456,10 @@ const OrderDetailScreen = () => {
             className="rounded-lg py-4 items-center border border-primary flex-1"
             onPress={handleRequestRefund}
           >
-            <Text className="text-primary font-bold text-base">Request Refund</Text>
+            <Text className="text-primary font-bold text-base">Refund Order</Text>
           </TouchableOpacity>
         </View>
       )}
-
-      {/* {order.status.toLowerCase() === "received" && (
-        <View className="flex-row bg-white px-4 py-3 border-t border-gray-200 gap-2">
-          <TouchableOpacity
-            className="rounded-lg py-4 items-center border border-primary flex-1"
-            onPress={() => setCompensateModalVisible(true)}
-          >
-            <Text className="text-primary font-bold text-base">Review & Rate</Text>
-          </TouchableOpacity>
-        </View>
-      )} */}
 
       <CompensateModal
         visible={compensateModalVisible}

@@ -491,16 +491,16 @@ const PreOrderDetailScreen = () => {
         <View className="bg-white px-4 py-3 border-t border-gray-200">
           <View className="flex-row gap-3">
             <TouchableOpacity
+              className="flex-1 border border-primary rounded-lg py-4 items-center"
+              onPress={() => setShowCompensateModal(true)}
+            >
+              <Text className="text-primary font-bold text-base">Compensate Pre-order</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               className="flex-1 bg-primary rounded-lg py-4 items-center"
               onPress={handleReceivePreOrder}
             >
-              <Text className="text-white font-bold text-base">Received</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-1 border border-orange-500 rounded-lg py-4 items-center"
-              onPress={() => setShowCompensateModal(true)}
-            >
-              <Text className="text-orange-500 font-bold text-base">Request Compensate</Text>
+              <Text className="text-white font-bold text-base">Receive Pre-order</Text>
             </TouchableOpacity>
           </View>
         </View>
