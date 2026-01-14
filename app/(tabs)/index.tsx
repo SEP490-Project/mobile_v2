@@ -71,6 +71,34 @@ function Section({
     return defaultVariant?.price || product.variants[0].price;
   };
 
+  if (products.length === 0) {
+    return (
+      <View className="mt-6">
+        <View className="flex-row justify-between items-center px-4 mb-3">
+          <Text className="text-xl font-bold text-gray-800">{title}</Text>
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() => router.push({ pathname: "(product)", params: { type } })}
+          >
+            <Text className="text-rose-500 font-medium mr-1">See all</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+          </TouchableOpacity>
+        </View>
+        <View className="mx-4 py-8 bg-rose-50 rounded-2xl border border-rose-100 items-center">
+          <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3 shadow-sm">
+            <MaterialIcons name="inventory-2" size={32} color="#FDA4AF" />
+          </View>
+          <Text className="text-gray-700 font-semibold text-base mb-1">No Products Yet</Text>
+          <Text className="text-gray-400 text-sm text-center px-6">
+            {type === "LIMITED"
+              ? "Stay tuned for exclusive limited edition releases!"
+              : "New products are coming soon. Check back later!"}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="mt-6">
       <View className="flex-row justify-between items-center px-4 mb-3">
@@ -91,7 +119,6 @@ function Section({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
         renderItem={({ item, index }) => {
-          if (index >= 5) return null;
           return (
             <MotiView
               from={{ opacity: 0, translateY: 15 }}
@@ -210,6 +237,8 @@ function HomeScreen() {
           currentDate <= new Date(item.limited_product.availability_end_date))),
   );
 
+  const filterStandardProducts = productsData.filter((item) => item.type === "STANDARD");
+
   return (
     <ScrollView
       className="flex-1 bg-white"
@@ -244,7 +273,7 @@ function HomeScreen() {
       {/* Sections */}
       <Section
         title="Standard Products"
-        products={productsData.filter((item) => item.type === "STANDARD")}
+        products={filterStandardProducts}
         delay={100}
         router={router}
         type="STANDARD"

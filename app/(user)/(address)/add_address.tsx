@@ -29,16 +29,17 @@ import { useSelector } from "react-redux";
 import * as yup from "yup";
 
 const addAddressSchema = yup.object().shape({
-  full_name: yup.string().required("Full name is required"),
+  full_name: yup.string().required("Full name is required").trim(),
   phone_number: yup
     .string()
     .matches(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits")
-    .required("Phone number is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  street: yup.string().required("Street address is required"),
-  address_line_2: yup.string().optional(),
-  city: yup.string().required("City is required"),
-  country: yup.string().required("Country is required"),
+    .required("Phone number is required")
+    .trim(),
+  email: yup.string().email("Invalid email").required("Email is required").trim(),
+  street: yup.string().required("Street address is required").trim(),
+  address_line_2: yup.string().optional().trim(),
+  city: yup.string().required("City is required").trim(),
+  country: yup.string().required("Country is required").trim(),
   ghn_province_id: yup.number().required("Province is required"),
   ghn_district_id: yup.number().required("District is required"),
   ghn_ward_code: yup.string().required("Ward is required"),
