@@ -180,9 +180,7 @@ const OrderDetailScreen = () => {
           )}
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-500">Status</Text>
-            <View
-              className={`px-3 py-1 rounded-full ${getStatusColor(order.status).split(" ")[1]}`}
-            >
+            <View className={`px-3 rounded-full ${getStatusColor(order.status).split(" ")[1]}`}>
               <Text
                 className={`text-xs font-semibold ${getStatusColor(order.status).split(" ")[0]}`}
               >
@@ -193,19 +191,21 @@ const OrderDetailScreen = () => {
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-500">Order Type</Text>
             <View
-              className={`px-3 py-1 rounded-full ${order.order_type === "LIMITED" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100"}`}
+              className={`px-3 rounded-full ${order.order_type === "LIMITED" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100"}`}
             >
               <Text
                 className={`text-sm font-medium ${order.order_type === "LIMITED" ? "text-yellow-700" : "text-gray-700"}`}
               >
-                {order.order_type === "LIMITED" ? "Limited Order" : "Standard Order"}
+                {order.order_type === "LIMITED" ? "Limited" : "Standard"}
               </Text>
             </View>
           </View>
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-sm text-gray-500">Picked Up</Text>
-            <Text className="text-sm text-gray-700">
-              {order.is_self_picked_up ? "At place" : "Delivery"}
+            <Text className="text-sm text-gray-500">Pickup Method</Text>
+            <Text
+              className={`text-sm font-medium rounded-full px-3 ${order.is_self_picked_up ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"}`}
+            >
+              {order.is_self_picked_up ? "In-Store Pickup" : "Home Delivery"}
             </Text>
           </View>
 
@@ -371,7 +371,7 @@ const OrderDetailScreen = () => {
               </View>
             </View>
             <View className="flex-row justify-between py-2">
-              <Text className="text-gray-600">Created Date</Text>
+              <Text className="text-gray-600">Transaction Date</Text>
               <Text className="text-gray-800 font-medium">
                 {new Date(order.payment_transaction.transaction_date).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -382,7 +382,7 @@ const OrderDetailScreen = () => {
                 })}
               </Text>
             </View>
-            <View className="flex-row justify-between py-2">
+            {/* <View className="flex-row justify-between py-2">
               <Text className="text-gray-600">Last Updated</Text>
               <Text className="text-gray-800 font-medium">
                 {new Date(order.payment_transaction.updated_at).toLocaleDateString("en-US", {
@@ -393,7 +393,7 @@ const OrderDetailScreen = () => {
                   minute: "2-digit",
                 })}
               </Text>
-            </View>
+            </View> */}
           </View>
         </View>
 

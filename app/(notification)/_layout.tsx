@@ -14,7 +14,7 @@ const NotificationLayout = () => {
       }}
     >
       <Stack.Screen name="index" options={{ title: "My Notifications" }} />
-      <Stack.Screen name="[id]" options={{ title: "Detail" }} />
+      <Stack.Screen name="[id]" options={{ title: "Notification Detail" }} />
     </Stack>
   );
 };

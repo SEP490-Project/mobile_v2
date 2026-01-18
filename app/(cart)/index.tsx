@@ -34,6 +34,11 @@ const CartScreen = () => {
       return;
     }
 
+    if (totalCost > 5000000) {
+      Alert.alert("Invalid Order", "Total cost cannot exceed 5,000,000 VND.");
+      return;
+    }
+
     Alert.alert(
       "Make Order",
       `You are about to order ${totalItems} item(s) for ${convertNumberToVND(totalCost)}`,
@@ -162,6 +167,9 @@ const CartScreen = () => {
             onPress={handleMakeOrder}
             className="flex-1 bg-rose-500 rounded-xl py-4 items-center justify-center shadow-lg"
             activeOpacity={0.7}
+            disabled={
+              totalCost > 5000000 || cartItems.length === 0 || totalItems === 0 || totalCost === 0
+            }
           >
             <View className="flex-row items-center">
               <MaterialIcons name="shopping-bag" size={20} color="white" />
