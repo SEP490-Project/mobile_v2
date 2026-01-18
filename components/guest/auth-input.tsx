@@ -42,7 +42,7 @@ export default function AuthInput({
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isSecure}
           value={value}
-          onChangeText={(text) => onChangeText(text.trim())}
+          onChangeText={onChangeText}
         />
         {isPassword && (
           <TouchableOpacity onPress={toggleSecureEntry} className="p-1 ml-2">

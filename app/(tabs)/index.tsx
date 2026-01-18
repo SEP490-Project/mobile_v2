@@ -4,16 +4,17 @@ import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
 import { getAllContents } from "@/libs/stores/contentManager/thunk";
 import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
-import type { Category } from "@/libs/types/category";
-import type { Product } from "@/libs/types/product";
+import { Category } from "@/libs/types/category";
+import { ListContent } from "@/libs/types/content";
+import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { LegendList } from "@legendapp/list";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
+  FlatList,
+  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -22,42 +23,150 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 
-/* -------------------------------------------------------------------------- */
-/*                                   ASSETS                                   */
-/* -------------------------------------------------------------------------- */
+// --- Category Item ---
+function CategoryItem({
+  name,
+  icon,
+  categoryId,
+  router,
+}: {
+  name: string;
+  icon: string;
+  categoryId: string;
+  router: any;
+}) {
+  return (
+    <TouchableOpacity
+      className="items-center mr-4"
+      onPress={() => {
+        router.push({ pathname: "(product)", params: { category: categoryId } });
+      }}
+    >
+      <View className="h-16 w-16 flex items-center justify-center bg-rose-50 border border-rose-100 p-3 rounded-full mb-1">
+        <MaterialIcons name={icon as any} size={24} color="#F43F5E" />
+      </View>
+      <Text className="text-gray-600 text-xs font-medium">{name}</Text>
+    </TouchableOpacity>
+  );
+}
 
-const notfound150 = require("@/assets/images/not-found/150.png");
-const notfound300x200 = require("@/assets/images/not-found/300x200.png");
+// --- Section Item ---
+function Section({
+  title,
+  products,
+  delay = 0,
+  router,
+  type,
+}: {
+  title: string;
+  products: Product[];
+  delay?: number;
+  router: any;
+  type: "STANDARD" | "LIMITED";
+}) {
+  // Get price from the first variant or default variant
+  const getProductPrice = (product: Product) => {
+    if (!product.variants || product.variants.length === 0) return 0;
+    const defaultVariant = product.variants.find((v) => v.is_default);
+    return defaultVariant?.price || product.variants[0].price;
+  };
 
-/* -------------------------------------------------------------------------- */
-/*                                   UTILS                                    */
-/* -------------------------------------------------------------------------- */
-
-function getImageSource(url?: string, fallback?: any) {
-  if (url && typeof url === "string" && url.startsWith("http")) {
-    return { uri: url };
+  if (products.length === 0) {
+    return (
+      <View className="mt-6">
+        <View className="flex-row justify-between items-center px-4 mb-3">
+          <Text className="text-xl font-bold text-gray-800">{title}</Text>
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() => router.push({ pathname: "(product)", params: { type } })}
+          >
+            <Text className="text-rose-500 font-medium mr-1">See all</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+          </TouchableOpacity>
+        </View>
+        <View className="mx-4 py-8 bg-rose-50 rounded-2xl border border-rose-100 items-center">
+          <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3 shadow-sm">
+            <MaterialIcons name="inventory-2" size={32} color="#FDA4AF" />
+          </View>
+          <Text className="text-gray-700 font-semibold text-base mb-1">No Products Yet</Text>
+          <Text className="text-gray-400 text-sm text-center px-6">
+            {type === "LIMITED"
+              ? "Stay tuned for exclusive limited edition releases!"
+              : "New products are coming soon. Check back later!"}
+          </Text>
+        </View>
+      </View>
+    );
   }
-  return fallback;
+
+  return (
+    <View className="mt-6">
+      <View className="flex-row justify-between items-center px-4 mb-3">
+        <Text className="text-xl font-bold text-gray-800">{title}</Text>
+        <TouchableOpacity
+          className="flex-row items-center"
+          onPress={() => router.push({ pathname: "(product)", params: { type } })}
+        >
+          <Text className="text-rose-500 font-medium mr-1">See all</Text>
+          <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        renderItem={({ item, index }) => {
+          return (
+            <MotiView
+              from={{ opacity: 0, translateY: 15 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ delay: delay + index * 120, type: "timing" }}
+              className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-44"
+            >
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: "/(product)/[product]", params: { product: item.id } })
+                }
+                className="relative"
+              >
+                <Image
+                  source={{ uri: item.thumbnail_url?.[0] }}
+                  className="w-full h-40 rounded-lg mb-3"
+                />
+                <Text numberOfLines={1} className="font-semibold text-gray-800 text-base">
+                  {item.name}
+                </Text>
+                {item.brand_name && (
+                  <View className="flex-row items-center my-1">
+                    <MaterialIcons name="business" size={18} color="#9CA3AF" />
+                    <Text className=" text-gray-600text-sm ml-1">{item.brand_name}</Text>
+                  </View>
+                )}
+                <Text className="text-rose-600 font-bold text-lg mt-1">
+                  {convertNumberToVND(getProductPrice(item))}
+                </Text>
+                {type === "LIMITED" && (
+                  <View className="absolute top-2 right-2 bg-rose-500 px-3 py-1 rounded-full">
+                    <Text className="text-white text-xs font-bold">LIMITED</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </MotiView>
+          );
+        }}
+      />
+    </View>
+  );
 }
 
-function timeAgo(dateString: string) {
-  const now = Date.now();
-  const created = new Date(dateString).getTime();
-  const hours = Math.floor((now - created) / 36e5);
-  if (hours < 1) return "Just now";
-  if (hours < 24) return `${hours}H ago`;
-  if (hours < 168) return `${Math.floor(hours / 24)}D ago`;
-  return `${Math.floor(hours / 168)}W ago`;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   SCREEN                                   */
-/* -------------------------------------------------------------------------- */
-
-export default function HomeScreen() {
+// --- HomeScreen ---
+function HomeScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const { loadingAll: productsLoading, allProducts } = useSelector(
     (state: RootState) => state.manageProducts,
@@ -67,42 +176,14 @@ export default function HomeScreen() {
   );
   const { contents } = useContent();
 
-  /* ------------------------------- MEMO DATA ------------------------------- */
+  const productsData: Product[] = allProducts?.data || [];
+  const categoriesData: Category[] = categories?.data || [];
 
-  const productsData = useMemo<Product[]>(() => allProducts?.data || [], [allProducts?.data]);
+  const parentCategories = categoriesData.filter((item) => !item.parent_category);
+  const currentDate = new Date();
 
-  const categoriesData = useMemo<Category[]>(() => categories?.data || [], [categories?.data]);
-
-  const parentCategories = useMemo(
-    () => categoriesData.filter((c) => !c.parent_category),
-    [categoriesData],
-  );
-
-  const standardProducts = useMemo(
-    () => productsData.filter((p) => p.type === "STANDARD").slice(0, 5),
-    [productsData],
-  );
-
-  const limitedProducts = useMemo(() => {
-    const now = Date.now();
-    return productsData
-      .filter((p) => {
-        if (p.type !== "LIMITED") return false;
-        const start = p.limited_product?.premiere_date
-          ? new Date(p.limited_product.premiere_date).getTime()
-          : -Infinity;
-        const end = p.limited_product?.availability_end_date
-          ? new Date(p.limited_product.availability_end_date).getTime()
-          : Infinity;
-        return now >= start && now <= end;
-      })
-      .slice(0, 5);
-  }, [productsData]);
-
-  /* ------------------------------ DATA LOADING ------------------------------ */
-
-  const loadData = useCallback(() => {
-    dispatch(getAllProductsThunk());
+  const loadData = React.useCallback(() => {
+    dispatch(getAllProductsThunk({ limit: 20 }));
     dispatch(getAllCategoriesThunk());
     dispatch(
       getAllContents({
@@ -114,12 +195,12 @@ export default function HomeScreen() {
     );
   }, [dispatch]);
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
-        dispatch(getAllProductsThunk()),
-        dispatch(getAllCategoriesThunk()),
+        dispatch(getAllProductsThunk({ limit: 20 })).unwrap(),
+        dispatch(getAllCategoriesThunk()).unwrap(),
         dispatch(
           getAllContents({
             page: 1,
@@ -127,8 +208,10 @@ export default function HomeScreen() {
             sort_by: "created_at",
             sort_order: "desc",
           }),
-        ),
+        ).unwrap(),
       ]);
+    } catch (error) {
+      console.warn("Refresh error:", error);
     } finally {
       setRefreshing(false);
     }
@@ -146,15 +229,21 @@ export default function HomeScreen() {
     );
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*                                   RENDER                                   */
-  /* -------------------------------------------------------------------------- */
+  const filterLimitedProducts = productsData.filter(
+    (item) =>
+      item.type === "LIMITED" &&
+      (!item.limited_product?.premiere_date ||
+        (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
+          currentDate <= new Date(item.limited_product.availability_end_date))),
+  );
+
+  const filterStandardProducts = productsData.filter((item) => item.type === "STANDARD");
 
   return (
     <ScrollView
       className="flex-1 bg-white"
-      removeClippedSubviews
-      scrollEventThrottle={16}
+      // style={{ paddingTop: insets.top + 10 }}
+      showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -164,85 +253,96 @@ export default function HomeScreen() {
         />
       }
     >
-      {/* ----------------------------- CATEGORIES ----------------------------- */}
-      <LegendList
+      {/* Categories */}
+      <FlatList
         data={parentCategories}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            className="items-center mr-4"
-            onPress={() => router.push({ pathname: "/(product)", params: { category: item.id } })}
-          >
-            <View className="h-16 w-16 items-center justify-center bg-rose-50 border border-rose-100 rounded-full mb-1">
-              <MaterialIcons name={(item.icon || "spa") as any} size={24} color="#F43F5E" />
-            </View>
-            <Text className="text-gray-600 text-xs font-medium">{item.name}</Text>
-          </TouchableOpacity>
+          <CategoryItem
+            name={item.name}
+            icon={item?.icon || "spa"}
+            categoryId={item.id}
+            router={router}
+          />
         )}
       />
 
-      {/* -------------------------- STANDARD PRODUCTS -------------------------- */}
+      {/* Sections */}
       <Section
         title="Standard Products"
-        products={standardProducts}
-        type="STANDARD"
+        products={filterStandardProducts}
+        delay={100}
         router={router}
+        type="STANDARD"
       />
-
-      {/* -------------------------- LIMITED PRODUCTS --------------------------- */}
       <Section
         title="Limited Edition Products"
-        products={limitedProducts}
-        type="LIMITED"
+        products={filterLimitedProducts}
+        delay={400}
         router={router}
+        type="LIMITED"
       />
 
-      {/* -------------------------------- BLOG -------------------------------- */}
+      {/* Beauty Blog */}
       <View className="mt-6 pb-8">
-        <Header title="Latest Blog" onPress={() => router.push("/blog")} />
+        <View className="flex-row justify-between items-center px-4 mb-3">
+          <Text className="text-xl font-bold text-gray-800">Latest Blog</Text>
+          <TouchableOpacity className="flex-row items-center" onPress={() => router.push("/blog")}>
+            <Text className="text-rose-500 font-medium mr-1">See all</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
+          </TouchableOpacity>
+        </View>
 
-        <LegendList
+        <FlatList
           data={contents || []}
           keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
-          renderItem={({ item, index }) => {
-            const Card = (
-              <TouchableOpacity
-                onPress={() => router.push({ pathname: "/blog/[id]", params: { id: item.id } })}
-                className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm w-64"
-              >
-                <Image
-                  source={getImageSource(item.thumbnail_url, notfound300x200)}
-                  style={{ width: "100%", height: 160, borderRadius: 12, marginBottom: 12 }}
-                  contentFit="cover"
-                  cachePolicy="disk"
-                />
-                <Text numberOfLines={2} className="font-semibold text-gray-800 text-base mb-2">
-                  {item.title}
-                </Text>
-                <View className="flex-row items-center">
-                  <MaterialIcons name="access-time" size={16} color="#9CA3AF" />
-                  <Text className="text-gray-500 text-sm ml-1">{timeAgo(item.created_at)}</Text>
-                </View>
-              </TouchableOpacity>
-            );
+          renderItem={({ item, index }: { item: ListContent; index: number }) => {
+            // Calculate time ago from created_at
+            const getTimeAgo = (dateString: string) => {
+              const now = new Date();
+              const createdDate = new Date(dateString);
+              const diffInMs = now.getTime() - createdDate.getTime();
+              const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+              const diffInDays = Math.floor(diffInHours / 24);
 
-            return index === 0 ? (
+              if (diffInHours < 1) return "Just now";
+              if (diffInHours < 24) return `${diffInHours}H ago`;
+              if (diffInDays < 7) return `${diffInDays}D ago`;
+              return `${Math.floor(diffInDays / 7)}W ago`;
+            };
+
+            return (
               <MotiView
-                from={{ opacity: 0, translateY: 12 }}
+                from={{ opacity: 0, translateY: 15 }}
                 animate={{ opacity: 1, translateY: 0 }}
-                transition={{ duration: 300 }}
-                className="mr-4"
+                transition={{ delay: 700 + index * 120, type: "timing" }}
+                className="bg-white rounded-xl p-3 mr-4 border border-gray-100 shadow-sm w-64"
               >
-                {Card}
+                <TouchableOpacity
+                  onPress={() => router.push({ pathname: "/blog/[id]", params: { id: item.id } })}
+                  className="relative"
+                >
+                  <Image
+                    source={{ uri: item.thumbnail_url || "https://via.placeholder.com/300x200" }}
+                    className="w-full h-40 rounded-lg mb-3"
+                  />
+                  <Text numberOfLines={2} className="font-semibold text-gray-800 text-base mb-2">
+                    {item.title}
+                  </Text>
+                  <View className="flex-row items-center">
+                    <MaterialIcons name="access-time" size={16} color="#9CA3AF" />
+                    <Text className="text-gray-500 text-sm ml-1">
+                      {getTimeAgo(item.created_at)}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
               </MotiView>
-            ) : (
-              <View className="mr-4">{Card}</View>
             );
           }}
         />
@@ -251,100 +351,4 @@ export default function HomeScreen() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*                               SUB COMPONENTS                               */
-/* -------------------------------------------------------------------------- */
-
-function Header({ title, onPress }: { title: string; onPress: () => void }) {
-  return (
-    <View className="flex-row justify-between items-center px-4 mb-3">
-      <Text className="text-xl font-bold text-gray-800">{title}</Text>
-      <TouchableOpacity className="flex-row items-center" onPress={onPress}>
-        <Text className="text-rose-500 font-medium mr-1">See all</Text>
-        <MaterialIcons name="chevron-right" size={20} color="#F43F5E" />
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-function Section({
-  title,
-  products,
-  type,
-  router,
-}: {
-  title: string;
-  products: Product[];
-  type: "STANDARD" | "LIMITED";
-  router: any;
-}) {
-  const getPrice = (p: Product) =>
-    p.variants?.find((v) => v.is_default)?.price ?? p.variants?.[0]?.price ?? 0;
-
-  return (
-    <View className="mt-6">
-      <Header
-        title={title}
-        onPress={() => router.push({ pathname: "(product)", params: { type } })}
-      />
-
-      <LegendList
-        data={products}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        renderItem={({ item, index }) => {
-          const Card = (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/(product)/[product]",
-                  params: { product: item.id },
-                })
-              }
-              className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm w-44"
-            >
-              <Image
-                source={getImageSource(item.thumbnail_url?.[0], notfound150)}
-                style={{ width: "100%", height: 160, borderRadius: 12, marginBottom: 12 }}
-                contentFit="cover"
-                cachePolicy="disk"
-              />
-              <Text numberOfLines={1} className="font-semibold text-gray-800 text-base">
-                {item.name}
-              </Text>
-              {item.brand_name && (
-                <View className="flex-row items-center my-1">
-                  <MaterialIcons name="business" size={16} color="#9CA3AF" />
-                  <Text className="text-gray-600 text-sm ml-1">{item.brand_name}</Text>
-                </View>
-              )}
-              <Text className="text-rose-600 font-bold text-lg mt-1">
-                {convertNumberToVND(getPrice(item))}
-              </Text>
-              {type === "LIMITED" && (
-                <View className="absolute top-2 right-2 bg-rose-500 px-3 py-1 rounded-full">
-                  <Text className="text-white text-xs font-bold">LIMITED</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-
-          return index === 0 ? (
-            <MotiView
-              from={{ opacity: 0, translateY: 12 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ duration: 300 }}
-              className="mr-4"
-            >
-              {Card}
-            </MotiView>
-          ) : (
-            <View className="mr-4">{Card}</View>
-          );
-        }}
-      />
-    </View>
-  );
-}
+export default HomeScreen;

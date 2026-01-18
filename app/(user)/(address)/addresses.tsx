@@ -6,8 +6,16 @@ import {
 import { ShippingAddressData } from "@/libs/types/location";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -54,16 +62,26 @@ const ShippingAddressCard: React.FC<{
 
 const MyAddresses = () => {
   const dispatch = useAppDispatch();
-  const { shippingAddresses, errors } = useSelector((state: RootState) => state.manageLocation);
+  const { shippingAddresses, errors, loading } = useSelector(
+    (state: RootState) => state.manageLocation,
+  );
   const shippingAddressesData = shippingAddresses?.data || [];
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const onCall = React.useCallback(() => {
+    dispatch(getShippingAddressesThunk());
+  }, [dispatch]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     dispatch(getShippingAddressesThunk());
     setRefreshing(false);
   }, [dispatch]);
+
+  useEffect(() => {
+    onCall();
+  }, [onCall]);
 
   const handleSetDefault = async (addressId: string) => {
     try {
@@ -74,6 +92,14 @@ const MyAddresses = () => {
       Alert.alert("Error", error || "Failed to set default address. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#ff9fb2" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">

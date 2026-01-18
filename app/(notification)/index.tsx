@@ -7,7 +7,7 @@ import {
   markAsReadAll,
   markAsReadOne,
 } from "@/libs/stores/notificationManager/thunk";
-import { Notifications } from "@/libs/types/notification";
+import { Notification } from "@/libs/types/notification";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -147,7 +147,7 @@ function NotificationScreen() {
   }, [dispatch, loadNotifications, isReadFilter]);
 
   const handleNotificationPress = useCallback(
-    async (item: Notifications) => {
+    async (item: Notification) => {
       try {
         if (!item.is_read) {
           await dispatch(markAsReadOne(item.id)).unwrap();
@@ -280,7 +280,7 @@ function NotificationScreen() {
         />
       )}
 
-      <InfiniteScrollList<Notifications>
+      <InfiniteScrollList<Notification>
         data={notifications || []}
         keyExtractor={(item) => item.id}
         onLoadMore={handleLoadMore}
@@ -298,7 +298,7 @@ function NotificationScreen() {
           >
             <View
               className={`bg-white rounded-2xl shadow-sm border-l-4 overflow-hidden ${
-                item.is_read ? "border-l-gray-300 bg-white" : "border-l-red-500 bg-red-50"
+                item.is_read ? "border-l-green-500 bg-white" : "border-l-red-500 bg-red-50"
               }`}
               style={{
                 shadowColor: "#000",
@@ -312,7 +312,7 @@ function NotificationScreen() {
                 <View className="flex-row items-start">
                   <View className="mr-3 mt-1">
                     {item.is_read ? (
-                      <View className="w-3 h-3 rounded-full bg-gray-300" />
+                      <View className="w-3 h-3 rounded-full bg-green-500" />
                     ) : (
                       <View className="w-3 h-3 rounded-full bg-red-500">
                         <View className="w-full h-full rounded-full bg-red-400 animate-pulse" />
@@ -340,13 +340,13 @@ function NotificationScreen() {
                       <View
                         className={`px-2 py-1 rounded-full ${
                           item.is_read
-                            ? "bg-gray-100 border border-gray-200"
+                            ? "bg-green-100 border border-green-200"
                             : "bg-red-100 border border-red-200"
                         }`}
                       >
                         <Text
                           className={`text-xs font-medium ${
-                            item.is_read ? "text-gray-600" : "text-red-700"
+                            item.is_read ? "text-green-700" : "text-red-700"
                           }`}
                         >
                           {item.is_read ? "Read" : "New"}
