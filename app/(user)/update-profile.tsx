@@ -3,6 +3,7 @@ import { AppDispatch, RootState } from "@/libs/stores";
 import { uploadFilesThunk } from "@/libs/stores/fileManager/thunk";
 import { getUserProfileThunk, updateProfileThunk } from "@/libs/stores/userManager/thunk";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -90,6 +91,8 @@ function UpdateProfileScreen() {
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageAsset, setSelectedImageAsset] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (profile) {
@@ -103,6 +106,14 @@ function UpdateProfileScreen() {
         phone: profile.phone || "",
         username: profile.username || "",
       });
+
+      // Set initial date for picker
+      if (profile.date_of_birth) {
+        const date = new Date(profile.date_of_birth);
+        if (!isNaN(date.getTime())) {
+          setSelectedDate(date);
+        }
+      }
     }
   }, [profile]);
 
@@ -113,10 +124,37 @@ function UpdateProfileScreen() {
   }, [dispatch, profile]);
 
   const handleInputChange = (field: keyof UpdateProfileData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value.trim() }));
+    let processedValue = value;
+
+    // Special handling for account holder name
+    if (field === "bank_account_holder") {
+      // Don't trim while typing, allow spaces, but convert to uppercase
+      processedValue = value.toUpperCase();
+    } else {
+      // For other fields, trim as usual
+      processedValue = value.trim();
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
     if (errors[field]) {
       setErrors((prev: any) => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      setFormData((prev) => ({ ...prev, date_of_birth: formattedDate }));
+      if (errors.date_of_birth) {
+        setErrors((prev: any) => ({ ...prev, date_of_birth: "" }));
+      }
+    }
+  };
+
+  const showDatePickerModal = () => {
+    setShowDatePicker(true);
   };
 
   const getChangedFields = () => {
@@ -126,11 +164,17 @@ function UpdateProfileScreen() {
 
     Object.keys(formData).forEach((key) => {
       const field = key as keyof UpdateProfileData;
-      const originalValue = profile[field] || "";
-      const currentValue = formData[field] || "";
+      let originalValue = profile[field] || "";
+      let currentValue = formData[field] || "";
+
+      // Special handling for account holder name - trim for comparison
+      if (field === "bank_account_holder") {
+        originalValue = originalValue.trim();
+        currentValue = currentValue.trim();
+      }
 
       if (originalValue !== currentValue) {
-        changedData[field] = currentValue;
+        changedData[field] = field === "bank_account_holder" ? currentValue : formData[field];
       }
     });
 
@@ -143,8 +187,10 @@ function UpdateProfileScreen() {
     setErrors({});
 
     try {
+      // Prepare data for validation with properly trimmed account holder name
       const dataToValidate = {
         ...formData,
+        bank_account_holder: formData.bank_account_holder?.trim() || "",
         date_of_birth: formData.date_of_birth,
       };
 
@@ -158,8 +204,9 @@ function UpdateProfileScreen() {
         return;
       }
 
-      if (changedData.avatar_url !== undefined) {
-        if (selectedImageAsset) {
+      // Handle avatar upload if changed
+      if (changedData.avatar_url !== undefined && selectedImageAsset) {
+        try {
           const file = {
             uri: selectedImageAsset.uri,
             name: selectedImageAsset.fileName || `avatar_${Date.now()}.jpg`,
@@ -180,9 +227,18 @@ function UpdateProfileScreen() {
               changedData.avatar_url = typeof first === "string" ? first : (first?.url ?? "");
             }
           } else {
+            console.error("Upload failed:", uploadResult);
             throw new Error("Failed to upload image. Please try again.");
           }
+        } catch (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw new Error("Failed to upload image. Please try again.");
         }
+      }
+
+      // Ensure account holder name is properly trimmed before sending
+      if (changedData.bank_account_holder !== undefined) {
+        changedData.bank_account_holder = changedData.bank_account_holder.trim();
       }
 
       const result = await dispatch(updateProfileThunk(changedData));
@@ -193,9 +249,12 @@ function UpdateProfileScreen() {
         ]);
         setSelectedImageAsset(null);
       } else {
-        throw new Error((result.payload as string) || "Update failed");
+        console.error("Update profile failed:", result);
+        const errorMessage = (result.payload as string) || "Update failed";
+        throw new Error(errorMessage);
       }
     } catch (err) {
+      console.error("HandleSubmit error:", err);
       if (err instanceof yup.ValidationError) {
         const newErrors: any = {};
         err.inner.forEach((error) => {
@@ -370,13 +429,29 @@ function UpdateProfileScreen() {
                   error={errors.phone}
                 />
 
-                <AuthInput
-                  label="Date of Birth * (YYYY-MM-DD)"
-                  placeholder="1990-01-01"
-                  value={formData.date_of_birth}
-                  onChangeText={handleInputChange("date_of_birth")}
-                  error={errors.date_of_birth}
-                />
+                {/* Date of Birth Picker */}
+                <View className="mb-4">
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Date of Birth *</Text>
+                  <TouchableOpacity
+                    onPress={showDatePickerModal}
+                    className="border border-gray-300 rounded-lg px-3 py-3 bg-white"
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <Text
+                        className={`text-base ${
+                          formData.date_of_birth ? "text-gray-900" : "text-gray-400"
+                        }`}
+                      >
+                        {formData.date_of_birth || "Select date of birth"}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={20} color="#6b7280" />
+                    </View>
+                  </TouchableOpacity>
+                  {errors.date_of_birth && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.date_of_birth}</Text>
+                  )}
+                </View>
               </View>
 
               <View className="bg-white rounded-2xl p-4 shadow-sm shadow-black/5 border border-slate-100">
@@ -395,7 +470,7 @@ function UpdateProfileScreen() {
 
                 <AuthInput
                   label="Account Holder Name"
-                  placeholder="Trần Dần"
+                  placeholder="Account Holder Name"
                   value={formData.bank_account_holder}
                   onChangeText={handleInputChange("bank_account_holder")}
                   error={errors.bank_account_holder}
@@ -442,6 +517,18 @@ function UpdateProfileScreen() {
                   </Text>
                 </View>
               </View>
+            )}
+
+            {/* DateTimePicker Modal */}
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={onDateChange}
+                maximumDate={new Date()}
+                minimumDate={new Date(1900, 0, 1)}
+              />
             )}
           </View>
         </TouchableWithoutFeedback>

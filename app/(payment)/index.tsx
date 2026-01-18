@@ -36,7 +36,7 @@ const PaymentWebViewScreen = () => {
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
           <MaterialIcons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: "600", marginLeft: 12 }}>Thanh toán</Text>
+        <Text style={{ fontSize: 18, fontWeight: "600", marginLeft: 12 }}>Payment</Text>
       </View>
 
       <WebView
