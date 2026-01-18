@@ -4,7 +4,6 @@ import { contentDetail, getAllContents } from "./thunk";
 
 interface stateType {
   loading: boolean;
-  loadingMore: boolean;
   contents: ListContent[];
   content: ListContent | null;
   pagination: {
@@ -19,7 +18,6 @@ interface stateType {
 
 const initialState: stateType = {
   loading: false,
-  loadingMore: false,
   contents: [],
   content: null,
   pagination: null,
@@ -32,16 +30,10 @@ export const manageContentSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getAllContents.pending, (state, action) => {
-        const page = (action.meta && (action.meta.arg as any)?.page) || 1;
-        if (page && page > 1) {
-          state.loadingMore = true;
-        } else {
-          state.loading = true;
-        }
+        state.loading = true;
       })
       .addCase(getAllContents.fulfilled, (state, action) => {
         state.loading = false;
-        state.loadingMore = false;
 
         const pagination = action.payload?.pagination || null;
         const page = pagination?.page ?? ((action.meta && (action.meta.arg as any)?.page) || 1);
@@ -57,7 +49,6 @@ export const manageContentSlice = createSlice({
       })
       .addCase(getAllContents.rejected, (state) => {
         state.loading = false;
-        state.loadingMore = false;
       })
 
       .addCase(contentDetail.pending, (state) => {

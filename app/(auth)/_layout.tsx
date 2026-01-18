@@ -1,6 +1,6 @@
 import { useAuth } from "@/libs/hooks/useAuthen";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Redirect, Stack, router } from "expo-router"; // 👈 thêm router
+import { Redirect, Stack, router } from "expo-router";
 import React from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
