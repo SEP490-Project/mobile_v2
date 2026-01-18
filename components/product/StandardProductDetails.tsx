@@ -69,6 +69,14 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
       return;
     }
 
+    if (quantity * selectedVariant.price > 5000000) {
+      Alert.alert(
+        "Error",
+        "Maximum order value is 5,000,000 VND. Please reduce the quantity or choose a different variant.",
+      );
+      return;
+    }
+
     router.push({
       pathname: "/(checkout)",
       params: {
@@ -237,12 +245,12 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
               <TouchableOpacity
                 onPress={incrementQuantity}
                 className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center"
-                disabled={!selectedVariant || quantity >= 10}
+                disabled={!selectedVariant}
               >
                 <MaterialIcons
                   name="add"
                   size={24}
-                  color={!selectedVariant || quantity >= 10 ? "#D1D5DB" : "#374151"}
+                  color={!selectedVariant ? "#D1D5DB" : "#374151"}
                 />
               </TouchableOpacity>
             </View>

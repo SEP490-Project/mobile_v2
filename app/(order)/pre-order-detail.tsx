@@ -189,7 +189,7 @@ const PreOrderDetailScreen = () => {
             <Text
               className={`text-sm font-medium rounded-full px-3 ${preOrder.is_self_picked_up ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"}`}
             >
-              {preOrder.is_self_picked_up ? "Self Pickup" : "Delivery"}
+              {preOrder.is_self_picked_up ? "In-Store Pickup" : "Home Delivery"}
             </Text>
           </View>
           <View className="flex-row justify-between items-center mt-2">
@@ -284,10 +284,6 @@ const PreOrderDetailScreen = () => {
                 <Text className="text-gray-800 font-medium">
                   {preOrder.dispenser_type || "N/A"}
                 </Text>
-              </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Uses</Text>
-                <Text className="text-gray-800 font-medium">{preOrder.uses || "N/A"}</Text>
               </View>
               <View className="flex-row justify-between py-2">
                 <Text className="text-gray-600">Quantity</Text>
@@ -423,10 +419,10 @@ const PreOrderDetailScreen = () => {
                   {preOrder.PaymentTx.transaction_date}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
+              {/* <View className="flex-row justify-between py-2">
                 <Text className="text-gray-600">Updated At</Text>
                 <Text className="text-gray-800 font-medium">{preOrder.PaymentTx.updated_at}</Text>
-              </View>
+              </View> */}
             </View>
           </View>
         )}
