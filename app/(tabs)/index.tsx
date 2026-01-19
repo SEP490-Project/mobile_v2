@@ -3,14 +3,17 @@ import { useContent } from "@/libs/hooks/useContent";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import { getAllCategoriesThunk } from "@/libs/stores/categoryManager/thunk";
 import { getAllContents } from "@/libs/stores/contentManager/thunk";
-import { getAllProductsThunk } from "@/libs/stores/productManager/thunk";
+import {
+  getAllLimitedProductsThunk,
+  getAllStandardProductsThunk,
+} from "@/libs/stores/productManager/thunk";
 import { Category } from "@/libs/types/category";
 import { ListContent } from "@/libs/types/content";
 import { Product } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { MotiView } from "moti";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -168,7 +171,7 @@ function HomeScreen() {
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const { loadingAll: productsLoading, allProducts } = useSelector(
+  const { loadingLimited, loadingStandard, allLimitedProducts, allStandardProducts } = useSelector(
     (state: RootState) => state.manageProducts,
   );
   const { loading: categoriesLoading, categories } = useSelector(
@@ -176,30 +179,20 @@ function HomeScreen() {
   );
   const { contents } = useContent();
 
-  const productsData: Product[] = allProducts?.data || [];
+  const standardProductsData: Product[] = allStandardProducts?.data || [];
+  const limitedProductsData: Product[] = allLimitedProducts?.data || [];
   const categoriesData: Category[] = categories?.data || [];
 
   const parentCategories = categoriesData.filter((item) => !item.parent_category);
   const currentDate = new Date();
 
-  const loadData = React.useCallback(() => {
-    dispatch(getAllProductsThunk({ limit: 20 }));
-    dispatch(getAllCategoriesThunk());
-    dispatch(
-      getAllContents({
-        page: 1,
-        limit: 5,
-        sort_by: "created_at",
-        sort_order: "desc",
-      }),
-    );
-  }, [dispatch]);
-
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
-        dispatch(getAllProductsThunk({ limit: 20 })).unwrap(),
+        dispatch(getAllLimitedProductsThunk({ limit: 5 })),
+        dispatch(getAllStandardProductsThunk({ limit: 5 })),
+
         dispatch(getAllCategoriesThunk()).unwrap(),
         dispatch(
           getAllContents({
@@ -217,11 +210,24 @@ function HomeScreen() {
     }
   }, [dispatch]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(getAllLimitedProductsThunk({ limit: 5 }));
+      dispatch(getAllStandardProductsThunk({ limit: 5 }));
 
-  if (productsLoading && categoriesLoading) {
+      dispatch(getAllCategoriesThunk());
+      dispatch(
+        getAllContents({
+          page: 1,
+          limit: 5,
+          sort_by: "created_at",
+          sort_order: "desc",
+        }),
+      );
+    }, [dispatch]),
+  );
+
+  if (loadingLimited && loadingStandard && categoriesLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#ff9fb2" />
@@ -229,15 +235,13 @@ function HomeScreen() {
     );
   }
 
-  const filterLimitedProducts = productsData.filter(
+  const filterLimitedProducts = limitedProductsData.filter(
     (item) =>
       item.type === "LIMITED" &&
       (!item.limited_product?.premiere_date ||
         (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
           currentDate <= new Date(item.limited_product.availability_end_date))),
   );
-
-  const filterStandardProducts = productsData.filter((item) => item.type === "STANDARD");
 
   return (
     <ScrollView
@@ -273,7 +277,7 @@ function HomeScreen() {
       {/* Sections */}
       <Section
         title="Standard Products"
-        products={filterStandardProducts}
+        products={standardProductsData}
         delay={100}
         router={router}
         type="STANDARD"
