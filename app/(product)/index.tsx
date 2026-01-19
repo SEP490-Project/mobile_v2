@@ -1,8 +1,12 @@
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
-import { getFilteredProductsThunk } from "@/libs/stores/productManager/thunk";
+import {
+  getAllLimitedProductsThunk,
+  getAllStandardProductsThunk,
+} from "@/libs/stores/productManager/thunk";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -11,19 +15,48 @@ const ProductScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const { filteredProducts, loadingFiltered } = useSelector(
+  const { type, category } = useLocalSearchParams();
+
+  const { allLimitedProducts, allStandardProducts, loadingLimited, loadingStandard } = useSelector(
     (state: RootState) => state.manageProducts || [],
   );
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const { type, category } = useLocalSearchParams();
 
-  const productData = filteredProducts?.data || [];
+  const hasMore =
+    type === "LIMITED"
+      ? allLimitedProducts?.pagination?.has_next
+      : allStandardProducts?.pagination?.has_next;
+  const isLoadingMore =
+    type === "LIMITED"
+      ? loadingLimited && (allLimitedProducts?.pagination?.page ?? 0) > 0
+      : loadingStandard && (allStandardProducts?.pagination?.page ?? 0) > 0;
+  const isInitialLoading =
+    type === "LIMITED"
+      ? loadingLimited && !allLimitedProducts?.data?.length
+      : loadingStandard && !allStandardProducts?.data?.length;
+  const standardProductData = allStandardProducts?.data || [];
+  const limitedProductData = allLimitedProducts?.data || [];
+  const productData = type === "LIMITED" ? limitedProductData : standardProductData;
   const currentDate = new Date();
 
-  useFocusEffect(() => {
-    dispatch(getFilteredProductsThunk({ category_id: category as string, type: type as string }));
-  });
+  useFocusEffect(
+    useCallback(() => {
+      if (type === "LIMITED") {
+        dispatch(
+          getAllLimitedProductsThunk({ limit: 10, category_id: category as string, page: 1 }),
+        );
+      } else {
+        dispatch(
+          getAllStandardProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: 1,
+          }),
+        );
+      }
+    }, [type, category, dispatch]),
+  );
 
   const filterLimitedProducts = productData.filter(
     (item) =>
@@ -33,7 +66,38 @@ const ProductScreen = () => {
           currentDate <= new Date(item.limited_product.availability_end_date))),
   );
 
-  if (loadingFiltered) {
+  const handleLoadMore = () => {
+    if (hasMore && !loadingLimited && !loadingStandard) {
+      if (type === "LIMITED") {
+        dispatch(
+          getAllLimitedProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: (allLimitedProducts?.pagination?.page ?? 0) + 1,
+          }),
+        );
+      } else {
+        dispatch(
+          getAllStandardProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: (allStandardProducts?.pagination?.page ?? 0) + 1,
+          }),
+        );
+      }
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color="#ff9fb2" />
+      </View>
+    );
+  };
+
+  if (isInitialLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#ff9fb2" />
@@ -81,7 +145,10 @@ const ProductScreen = () => {
         numColumns={2}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         columnWrapperStyle={{ justifyContent: "space-between" }}
+        ListFooterComponent={renderFooter}
         renderItem={({ item }) => (
           <View className="w-[48%] mb-4">
             <ProductCard
