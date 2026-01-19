@@ -1,6 +1,6 @@
 import manageProducts from "@/libs/services/mangeProducts";
 import { Response } from "@/libs/types/common";
-import { Product, ProductFilter } from "@/libs/types/product";
+import { LimitedProductParams, Product, ProductFilter, ProductParams } from "@/libs/types/product";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
@@ -49,4 +49,40 @@ const getProductDetailsThunk = createAsyncThunk(
   },
 );
 
-export { getAllProductsThunk, getFilteredProductsThunk, getProductDetailsThunk };
+const getAllStandardProductsThunk = createAsyncThunk(
+  "productManager/getAllStandardProducts",
+  async (params: ProductParams | undefined, { rejectWithValue }) => {
+    try {
+      const response = await manageProducts.getAllStandardProducts(params || {});
+      return response.data as Response<Product[]>;
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      return rejectWithValue(
+        err.response?.data?.message || err.message || "Failed to fetch standard products",
+      );
+    }
+  },
+);
+
+const getAllLimitedProductsThunk = createAsyncThunk(
+  "productManager/getAllLimitedProducts",
+  async (params: LimitedProductParams | undefined, { rejectWithValue }) => {
+    try {
+      const response = await manageProducts.getAllLimitedProducts(params || {});
+      return response.data as Response<Product[]>;
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      return rejectWithValue(
+        err.response?.data?.message || err.message || "Failed to fetch limited products",
+      );
+    }
+  },
+);
+
+export {
+  getAllLimitedProductsThunk,
+  getAllProductsThunk,
+  getAllStandardProductsThunk,
+  getFilteredProductsThunk,
+  getProductDetailsThunk,
+};
