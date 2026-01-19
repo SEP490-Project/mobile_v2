@@ -1,10 +1,13 @@
-import { InfiniteScrollList } from "@/components/common/InfiniteScrollList";
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
-import { getFilteredProductsThunk } from "@/libs/stores/productManager/thunk";
+import {
+  getAllLimitedProductsThunk,
+  getAllStandardProductsThunk,
+} from "@/libs/stores/productManager/thunk";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useCallback } from "react";
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -12,70 +15,89 @@ const ProductScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = useState(false);
-  const [limit] = useState(6);
+  const { type, category } = useLocalSearchParams();
 
-  const { filteredProducts, loadingFiltered, pagination } = useSelector(
-    (state: RootState) => state.manageProducts,
+  const { allLimitedProducts, allStandardProducts, loadingLimited, loadingStandard } = useSelector(
+    (state: RootState) => state.manageProducts || [],
   );
   const cartItems = useSelector((state: RootState) => state.manageCart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const { type, category } = useLocalSearchParams();
 
-  const productData: any[] = filteredProducts || [];
+  const hasMore =
+    type === "LIMITED"
+      ? allLimitedProducts?.pagination?.has_next
+      : allStandardProducts?.pagination?.has_next;
+  const isLoadingMore =
+    type === "LIMITED"
+      ? loadingLimited && (allLimitedProducts?.pagination?.page ?? 0) > 0
+      : loadingStandard && (allStandardProducts?.pagination?.page ?? 0) > 0;
+  const isInitialLoading =
+    type === "LIMITED"
+      ? loadingLimited && !allLimitedProducts?.data?.length
+      : loadingStandard && !allStandardProducts?.data?.length;
+  const standardProductData = allStandardProducts?.data || [];
+  const limitedProductData = allLimitedProducts?.data || [];
+  const productData = type === "LIMITED" ? limitedProductData : standardProductData;
   const currentDate = new Date();
-
-  const loadData = useCallback(
-    async (pageNum = 1, searchType = type, searchCategory = category) => {
-      try {
-        await dispatch(
-          getFilteredProductsThunk({
-            category_id: searchCategory as string,
-            type: searchType as string,
-            page: pageNum,
-            limit,
-          }),
-        ).unwrap();
-      } catch (error) {
-        console.warn("Load data error:", error);
-      }
-    },
-    [dispatch, limit, type, category],
-  );
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData(1);
-    setRefreshing(false);
-  }, [loadData]);
-
-  const handleLoadMore = useCallback(async () => {
-    if (!pagination) return;
-    if (loadingFiltered) return;
-    if (pagination.page >= pagination.total_pages) return;
-
-    const nextPage = pagination.page + 1;
-    await loadData(nextPage);
-  }, [pagination, loadingFiltered, loadData]);
-
-  // const nextPage = pagination.page + 1;
-  // await loadContents(nextPage, searchQuery);
 
   useFocusEffect(
     useCallback(() => {
-      loadData(1);
-    }, [loadData]),
+      if (type === "LIMITED") {
+        dispatch(
+          getAllLimitedProductsThunk({ limit: 10, category_id: category as string, page: 1 }),
+        );
+      } else {
+        dispatch(
+          getAllStandardProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: 1,
+          }),
+        );
+      }
+    }, [type, category, dispatch]),
   );
 
   const filterLimitedProducts = productData.filter(
-    (item: any) =>
+    (item) =>
       item.type === "LIMITED" &&
       (!item.limited_product?.premiere_date ||
         (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
           currentDate <= new Date(item.limited_product.availability_end_date))),
   );
 
-  if (loadingFiltered) {
+  const handleLoadMore = () => {
+    if (hasMore && !loadingLimited && !loadingStandard) {
+      if (type === "LIMITED") {
+        dispatch(
+          getAllLimitedProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: (allLimitedProducts?.pagination?.page ?? 0) + 1,
+          }),
+        );
+      } else {
+        dispatch(
+          getAllStandardProductsThunk({
+            limit: 10,
+            category_id: category as string,
+            page: (allStandardProducts?.pagination?.page ?? 0) + 1,
+          }),
+        );
+      }
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color="#ff9fb2" />
+      </View>
+    );
+  };
+
+  if (isInitialLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#ff9fb2" />
@@ -84,8 +106,8 @@ const ProductScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      {/* <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 10 }}>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center gap-4">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -115,22 +137,20 @@ const ProductScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View> */}
+      </View>
 
-      <InfiniteScrollList
+      <FlatList
         data={type === "LIMITED" ? filterLimitedProducts : productData}
-        keyExtractor={(item: any) => item.id}
+        keyExtractor={(item) => item.id}
         numColumns={2}
-        onLoadMore={handleLoadMore}
-        onRefresh={handleRefresh}
-        loading={loadingFiltered}
-        refreshing={refreshing}
-        hasMore={pagination ? pagination.page < pagination.total_pages : false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
-        emptyText="No products found"
-        renderItem={({ item }: { item: any }) => (
-          <View className="mb-4">
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        ListFooterComponent={renderFooter}
+        renderItem={({ item }) => (
+          <View className="w-[48%] mb-4">
             <ProductCard
               product={item}
               onPress={() =>
@@ -139,6 +159,12 @@ const ProductScreen = () => {
             />
           </View>
         )}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-20">
+            <MaterialIcons name="shopping-bag" size={64} color="#E5E7EB" />
+            <Text className="text-gray-400 text-lg mt-4">No products found</Text>
+          </View>
+        }
       />
     </View>
   );

@@ -86,3 +86,24 @@ export interface ProductFilter extends QueryParams {
   page?: number;
   limit?: number;
 }
+
+export interface ProductParams {
+  limit?: number;
+  page?: number;
+  search?: string;
+  type?: string;
+  category_id?: string;
+  brand_id?: string;
+  status?: string;
+  user_id?: string;
+}
+
+export interface LimitedProductParams extends ProductParams {
+  filter_preorder?: boolean;
+  filter_order?: boolean;
+  premiere_date_to?: string;
+  availability_start_date_from?: string;
+  availability_start_date_to?: string;
+  availability_end_date_from?: string;
+  availability_end_date_to?: string;
+}
