@@ -1,13 +1,13 @@
-import { InfiniteScrollList } from "@/components/common/InfiniteScrollList";
 import { ProductCard } from "@/components/ui";
 import { RootState, useAppDispatch } from "@/libs/stores";
 import {
   getAllLimitedProductsThunk,
   getAllStandardProductsThunk,
 } from "@/libs/stores/productManager/thunk";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
@@ -59,7 +59,7 @@ const ProductScreen = () => {
   );
 
   const filterLimitedProducts = productData.filter(
-    (item: any) =>
+    (item) =>
       item.type === "LIMITED" &&
       (!item.limited_product?.premiere_date ||
         (currentDate >= new Date(item.limited_product?.premiere_date || "") &&
@@ -106,8 +106,8 @@ const ProductScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      {/* <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 10 }}>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center gap-4">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -137,17 +137,12 @@ const ProductScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View> */}
+      </View>
 
-      <InfiniteScrollList
+      <FlatList
         data={type === "LIMITED" ? filterLimitedProducts : productData}
-        keyExtractor={(item: any) => item.id}
+        keyExtractor={(item) => item.id}
         numColumns={2}
-        onLoadMore={handleLoadMore}
-        onRefresh={handleRefresh}
-        loading={loadingFiltered}
-        refreshing={refreshing}
-        hasMore={pagination ? pagination.page < pagination.total_pages : false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         onEndReached={handleLoadMore}
@@ -164,6 +159,12 @@ const ProductScreen = () => {
             />
           </View>
         )}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-20">
+            <MaterialIcons name="shopping-bag" size={64} color="#E5E7EB" />
+            <Text className="text-gray-400 text-lg mt-4">No products found</Text>
+          </View>
+        }
       />
     </View>
   );
