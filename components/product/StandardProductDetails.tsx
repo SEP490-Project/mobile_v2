@@ -150,10 +150,12 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
           <Text className="text-2xl font-bold text-gray-900 mb-2">{productDetail?.name}</Text>
 
           {/* Brand */}
-          {productDetail?.brand_name && (
+          {productDetail?.brand_name_placeholder && (
             <View className="flex-row items-center mb-3">
               <MaterialIcons name="business" size={18} color="#9CA3AF" />
-              <Text className="text-gray-600 ml-2 text-base">{productDetail?.brand_name}</Text>
+              <Text className="text-gray-600 ml-2 text-base">
+                {productDetail?.brand_name_placeholder}
+              </Text>
             </View>
           )}
 
