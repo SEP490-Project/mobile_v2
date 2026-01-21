@@ -5,7 +5,8 @@ export interface Product {
   id: string;
   brand_id: string;
   brand_logo_url: string;
-  brand_name: string;
+  brand_name?: string;
+  brand_name_placeholder?: string;
   thumbnail_url: string[];
   is_active: boolean;
   category: Category;

@@ -26,6 +26,8 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 
+const notfound300x200 = require("@/assets/images/not-found/300x200.png");
+
 // --- Category Item ---
 function CategoryItem({
   name,
@@ -333,8 +335,9 @@ function HomeScreen() {
                   className="relative"
                 >
                   <Image
-                    source={{ uri: item.thumbnail_url || "https://via.placeholder.com/300x200" }}
+                    source={item.thumbnail_url ? { uri: item.thumbnail_url } : notfound300x200}
                     className="w-full h-40 rounded-lg mb-3"
+                    resizeMode="cover"
                   />
                   <Text numberOfLines={2} className="font-semibold text-gray-800 text-base mb-2">
                     {item.title}

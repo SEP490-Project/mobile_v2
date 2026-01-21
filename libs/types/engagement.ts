@@ -32,6 +32,7 @@ export interface EngagementSummary {
   reactions_by_type: Record<string, number>;
   total_comments: number;
   comments: ContentCommentResponse[];
+  user_engagement?: UserEngagementStatus;
 }
 
 export interface UserEngagementStatus {

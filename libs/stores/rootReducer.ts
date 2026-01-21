@@ -1,5 +1,6 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import { manageAuthenReducer } from "./authenManager/slice";
+import { manageBankReducer } from "./bankManager/slice";
 import { manageCartReducer } from "./cartManager/slice";
 import { manageCategoriesReducer } from "./categoryManager/slice";
 import { manageContentReducer } from "./contentManager/slice";
@@ -29,4 +30,5 @@ export const rootReducer = combineReducers({
   manageReview: manageReviewReducer,
   manageTermPolicy: manageTermPolicyReducer,
   manageEngagement: manageEngagementReducer,
+  manageBank: manageBankReducer,
 });

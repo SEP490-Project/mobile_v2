@@ -1,5 +1,8 @@
 import { AuthInput } from "@/components/guest";
+import { SearchableDropdown } from "@/components/ui/searchable-dropdown";
+import { useBank } from "@/libs/hooks/useBank";
 import { AppDispatch, RootState } from "@/libs/stores";
+import { bankList } from "@/libs/stores/bankManager/thunk";
 import { uploadFilesThunk } from "@/libs/stores/fileManager/thunk";
 import { getUserProfileThunk, updateProfileThunk } from "@/libs/stores/userManager/thunk";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,11 +38,21 @@ const UpdateProfileSchema = yup.object().shape({
     .required("Username is required"),
   phone: yup
     .string()
-    .matches(/^[+]?[1-9]\d{1,14}$/, "Please enter a valid phone number")
+    .test("phone-format", "Please enter a valid phone number", (value) => {
+      if (!value) return false;
+      // Accept both 0xxxxxxxxx and +84xxxxxxxxx formats
+      const phoneRegex = /^(0\d{9}|\+84\d{9})$/;
+      return phoneRegex.test(value.replace(/\s/g, ""));
+    })
     .required("Phone number is required"),
   date_of_birth: yup
     .string()
-    .matches(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+    .test("date-format", "Date of birth is required", (value) => {
+      if (!value) return false;
+      // Accept both YYYY-MM-DD and ISO format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}.\d{3}Z)?$/;
+      return dateRegex.test(value);
+    })
     .required("Date of birth is required"),
   avatar_url: yup
     .string()
@@ -71,11 +84,32 @@ interface UpdateProfileData {
   username: string;
 }
 
+// Phone formatting functions
+const formatPhoneForDisplay = (phone: string): string => {
+  if (!phone) return "";
+  // Convert +84xxxxxxxxx to 0xxxxxxxxx for display
+  if (phone.startsWith("+84")) {
+    return "0" + phone.substring(3);
+  }
+  return phone;
+};
+
+const formatPhoneForSubmit = (phone: string): string => {
+  if (!phone) return "";
+  const cleaned = phone.replace(/\s/g, "");
+  // Convert 0xxxxxxxxx to +84xxxxxxxxx for submit
+  if (cleaned.startsWith("0") && cleaned.length === 10) {
+    return "+84" + cleaned.substring(1);
+  }
+  return cleaned;
+};
+
 function UpdateProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile, loading } = useSelector((state: RootState) => state.manageUser);
+  const { bank: banks, loading: bankLoading } = useBank();
 
   const [formData, setFormData] = useState<UpdateProfileData>({
     avatar_url: "",
@@ -88,7 +122,7 @@ function UpdateProfileScreen() {
     username: "",
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageAsset, setSelectedImageAsset] = useState<any>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -98,12 +132,12 @@ function UpdateProfileScreen() {
     if (profile) {
       setFormData({
         avatar_url: profile.avatar_url || "",
-        bank_account: profile.bank_account || "",
-        bank_account_holder: profile.bank_account_holder || "",
-        bank_name: profile.bank_name || "",
+        bank_account: profile.bank_info?.bank_account_holder || "", // số tài khoản (1234567890)
+        bank_account_holder: profile.bank_info?.bank_account || "", // tên chủ tài khoản (TRANMAIQUANGKHAI)
+        bank_name: profile.bank_info?.bank_name || "",
         date_of_birth: profile.date_of_birth || "",
         full_name: profile.full_name || "",
-        phone: profile.phone || "",
+        phone: formatPhoneForDisplay(profile.phone || ""),
         username: profile.username || "",
       });
 
@@ -123,6 +157,10 @@ function UpdateProfileScreen() {
     }
   }, [dispatch, profile]);
 
+  useEffect(() => {
+    dispatch(bankList());
+  }, [dispatch]);
+
   const handleInputChange = (field: keyof UpdateProfileData) => (value: string) => {
     let processedValue = value;
 
@@ -130,6 +168,24 @@ function UpdateProfileScreen() {
     if (field === "bank_account_holder") {
       // Don't trim while typing, allow spaces, but convert to uppercase
       processedValue = value.toUpperCase();
+    } else if (field === "phone") {
+      // Format phone number as user types
+      const cleaned = value.replace(/\s/g, "");
+      // Only allow numbers and + at start
+      const phoneOnly = cleaned.replace(/[^0-9+]/g, "");
+
+      if (phoneOnly.startsWith("+84")) {
+        processedValue = phoneOnly;
+      } else if (phoneOnly.startsWith("0")) {
+        processedValue = phoneOnly;
+      } else if (phoneOnly.startsWith("84")) {
+        processedValue = "+" + phoneOnly;
+      } else {
+        processedValue = phoneOnly;
+      }
+    } else if (field === "full_name") {
+      // Don't trim full_name while typing, allow spaces
+      processedValue = value;
     } else {
       // For other fields, trim as usual
       processedValue = value.trim();
@@ -137,7 +193,7 @@ function UpdateProfileScreen() {
 
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
     if (errors[field]) {
-      setErrors((prev: any) => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -145,10 +201,11 @@ function UpdateProfileScreen() {
     setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
       setSelectedDate(selectedDate);
-      const formattedDate = selectedDate.toISOString().split("T")[0];
+      // Format as ISO string with timezone for server
+      const formattedDate = selectedDate.toISOString();
       setFormData((prev) => ({ ...prev, date_of_birth: formattedDate }));
       if (errors.date_of_birth) {
-        setErrors((prev: any) => ({ ...prev, date_of_birth: "" }));
+        setErrors((prev) => ({ ...prev, date_of_birth: "" }));
       }
     }
   };
@@ -164,17 +221,40 @@ function UpdateProfileScreen() {
 
     Object.keys(formData).forEach((key) => {
       const field = key as keyof UpdateProfileData;
-      let originalValue = profile[field] || "";
+      let originalValue = "";
       let currentValue = formData[field] || "";
+
+      // Map original values correctly from profile structure
+      if (field === "bank_account") {
+        originalValue = profile.bank_info?.bank_account_holder || ""; // số tài khoản
+      } else if (field === "bank_account_holder") {
+        originalValue = profile.bank_info?.bank_account || ""; // tên chủ tài khoản
+      } else if (field === "bank_name") {
+        originalValue = profile.bank_info?.bank_name || "";
+      } else {
+        originalValue = profile[field] || "";
+      }
 
       // Special handling for account holder name - trim for comparison
       if (field === "bank_account_holder") {
         originalValue = originalValue.trim();
         currentValue = currentValue.trim();
+      } else if (field === "phone") {
+        // Compare formatted phone numbers
+        originalValue = formatPhoneForDisplay(originalValue);
+        currentValue = formatPhoneForDisplay(currentValue);
       }
 
       if (originalValue !== currentValue) {
-        changedData[field] = field === "bank_account_holder" ? currentValue : formData[field];
+        if (field === "bank_account_holder") {
+          changedData[field] = currentValue;
+        } else if (field === "phone") {
+          changedData[field] = formatPhoneForSubmit(currentValue);
+        } else if (field === "full_name") {
+          changedData[field] = currentValue.trim(); // Only trim when submitting
+        } else {
+          changedData[field] = formData[field];
+        }
       }
     });
 
@@ -187,11 +267,13 @@ function UpdateProfileScreen() {
     setErrors({});
 
     try {
-      // Prepare data for validation with properly trimmed account holder name
+      // Prepare data for validation with properly formatted data
       const dataToValidate = {
         ...formData,
         bank_account_holder: formData.bank_account_holder?.trim() || "",
+        phone: formatPhoneForSubmit(formData.phone || ""),
         date_of_birth: formData.date_of_birth,
+        full_name: formData.full_name?.trim() || "",
       };
 
       await UpdateProfileSchema.validate(dataToValidate, { abortEarly: false });
@@ -241,6 +323,11 @@ function UpdateProfileScreen() {
         changedData.bank_account_holder = changedData.bank_account_holder.trim();
       }
 
+      // Ensure phone number is properly formatted before sending
+      if (changedData.phone !== undefined) {
+        changedData.phone = formatPhoneForSubmit(changedData.phone);
+      }
+
       const result = await dispatch(updateProfileThunk(changedData));
 
       if (updateProfileThunk.fulfilled.match(result)) {
@@ -250,7 +337,9 @@ function UpdateProfileScreen() {
         setSelectedImageAsset(null);
       } else {
         console.error("Update profile failed:", result);
-        const errorMessage = (result.payload as string) || "Update failed";
+        const errorMessage =
+          result.error?.message ||
+          (typeof result.payload === "string" ? result.payload : "Update failed");
         throw new Error(errorMessage);
       }
     } catch (err) {
@@ -262,10 +351,16 @@ function UpdateProfileScreen() {
         });
         setErrors(newErrors);
       } else {
-        const errorMessage =
-          typeof err === "string"
-            ? err
-            : ((err as any)?.message ?? "Failed to update profile. Please try again.");
+        let errorMessage = "Failed to update profile. Please try again.";
+
+        if (typeof err === "string") {
+          errorMessage = err;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (err && typeof err === "object" && "message" in err) {
+          errorMessage = String(err.message);
+        }
+
         Alert.alert("Error", errorMessage);
       }
     } finally {
@@ -316,6 +411,17 @@ function UpdateProfileScreen() {
   const removeAvatar = () => {
     setFormData((prev) => ({ ...prev, avatar_url: "" }));
     setSelectedImageAsset(null);
+  };
+
+  const handleBankSelect = (bank: { id: string | number; name: string }) => {
+    // Find the actual bank by ID and use its original name
+    const selectedBank = banks.find((b) => b.id === bank.id);
+    if (selectedBank) {
+      setFormData((prev) => ({ ...prev, bank_name: selectedBank.name }));
+    }
+    if (errors.bank_name) {
+      setErrors((prev) => ({ ...prev, bank_name: "" }));
+    }
   };
 
   if (loading && !profile) {
@@ -423,7 +529,7 @@ function UpdateProfileScreen() {
 
                 <AuthInput
                   label="Phone Number *"
-                  placeholder="+84901234567 or +1234567890"
+                  placeholder="0901234567"
                   value={formData.phone}
                   onChangeText={handleInputChange("phone")}
                   error={errors.phone}
@@ -443,7 +549,9 @@ function UpdateProfileScreen() {
                           formData.date_of_birth ? "text-gray-900" : "text-gray-400"
                         }`}
                       >
-                        {formData.date_of_birth || "Select date of birth"}
+                        {formData.date_of_birth
+                          ? new Date(formData.date_of_birth).toLocaleDateString()
+                          : "Select date of birth"}
                       </Text>
                       <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                     </View>
@@ -460,12 +568,17 @@ function UpdateProfileScreen() {
                   Used for payouts and refunds (optional).
                 </Text>
 
-                <AuthInput
+                <SearchableDropdown
                   label="Bank Name"
-                  placeholder="Techcombank, VietinBank, BIDV, etc."
-                  value={formData.bank_name}
-                  onChangeText={handleInputChange("bank_name")}
+                  placeholder="Select bank"
+                  data={banks.map((bank) => ({
+                    id: bank.id,
+                    name: `${bank.name} (${bank.shortName})`,
+                  }))}
+                  selectedValue={banks.find((bank) => bank.name === formData.bank_name)?.id || null}
+                  onSelect={handleBankSelect}
                   error={errors.bank_name}
+                  disabled={bankLoading}
                 />
 
                 <AuthInput
