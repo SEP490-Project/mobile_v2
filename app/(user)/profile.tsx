@@ -49,7 +49,9 @@ const MyProfile = () => {
         <View className="flex-1 justify-center items-center px-6">
           <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
           <Text className="mt-4 text-xl font-semibold text-gray-800">Error Loading Profile</Text>
-          <Text className="mt-2 text-gray-600 text-center">{error}</Text>
+          <Text className="mt-2 text-gray-600 text-center">
+            {typeof error === "string" ? error : "Something went wrong. Please try again."}
+          </Text>
           <TouchableOpacity
             onPress={() => dispatch(getUserProfileThunk())}
             className="mt-6 bg-blue-500 px-6 py-3 rounded-lg"

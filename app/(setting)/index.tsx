@@ -73,7 +73,7 @@ function SettingScreen() {
       if (finalStatus !== "granted") {
         Alert.alert(
           "Permission denied",
-          "You need to enable notification permissions in your device settings to receive push notifications.",
+          "You need to enable notification permissions in your device settings to received push notifications.",
         );
         setNotificationEnabled(false);
         return;
@@ -134,8 +134,8 @@ function SettingScreen() {
             <Text className="text-base font-semibold mb-1">Push Notifications</Text>
             <Text className="text-sm text-gray-600">
               {notificationEnabled
-                ? "You will receive notifications from the app."
-                : "Turn on to receive notifications from the app."}
+                ? "You will received notifications from the app."
+                : "Turn on to received notifications from the app."}
             </Text>
           </View>
 
