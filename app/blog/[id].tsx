@@ -45,13 +45,6 @@ function BlogDetailScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
       ),
-
-      headerRight: () =>
-        content ? (
-          <TouchableOpacity onPress={onShare} style={{ marginRight: 12 }}>
-            <MaterialIcons name="share" size={24} color="#ff9fb2" />
-          </TouchableOpacity>
-        ) : null,
     });
   }, [content]);
 
