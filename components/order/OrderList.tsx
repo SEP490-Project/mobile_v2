@@ -162,7 +162,9 @@ export default function OrderList() {
             <View className="flex-row gap-1">
               <View className={`px-3 py-1 rounded-full ${getStatusBgColor(item.status)}`}>
                 <Text className={`font-medium text-xs ${getStatusColor(item.status)}`}>
-                  {getStatusText(item.status)}
+                  {getStatusText(
+                    item.status.toLowerCase() === "shipped" ? "Picked Up" : item.status,
+                  )}
                 </Text>
               </View>
               {item.order_type && (

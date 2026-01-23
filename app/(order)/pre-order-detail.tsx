@@ -9,6 +9,7 @@ import {
 } from "@/libs/stores/orderManager/thunk";
 import { PreOrderData } from "@/libs/types/pre-order";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -29,6 +30,10 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "paid":
       return "text-green-800 bg-green-100";
+    case "refund_request":
+      return "text-blue-800 bg-blue-100";
+    case "refunded":
+      return "text-green-800 bg-green-100";
     case "pre_ordered":
       return "text-purple-800 bg-purple-100";
     case "awaiting_pickup":
@@ -37,6 +42,8 @@ const getStatusColor = (status: string) => {
       return "text-blue-800 bg-blue-100";
     case "delivered":
       return "text-green-800 bg-green-100";
+    case "shipped":
+      return "text-orange-800 bg-orange-100";
     case "received":
       return "text-teal-800 bg-teal-100";
     case "cancelled":
@@ -151,6 +158,12 @@ const PreOrderDetailScreen = () => {
     );
   }
 
+  const handleCopyToClipboard = async (text: string | undefined) => {
+    if (text) {
+      await Clipboard.setStringAsync(text);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
@@ -169,9 +182,32 @@ const PreOrderDetailScreen = () => {
         {/* Pre-Order Status Card */}
         <View className="bg-white px-4 py-4 mb-2">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-sm text-gray-500">Pre-Order ID</Text>
+            <View className="flex flex-row gap-2">
+              <Text className="text-sm text-gray-500">Pre-Order ID</Text>
+              <TouchableOpacity
+                onPress={() => handleCopyToClipboard(preOrder.id)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="content-copy" size={14} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
             <Text className="font-mono text-sm text-gray-700">#{preOrder.id.slice(0, 8)}</Text>
           </View>
+          {preOrder.ghn_order_code && (
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex flex-row gap-2">
+                <Text className="text-sm text-gray-500">GHN Order Code</Text>
+                <TouchableOpacity
+                  onPress={() => handleCopyToClipboard(preOrder.ghn_order_code)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name="content-copy" size={14} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+              <Text className="text-sm text-gray-700">{preOrder.ghn_order_code}</Text>
+            </View>
+          )}
+
           <View className="flex-row justify-between items-center">
             <Text className="text-sm text-gray-500">Status</Text>
             <View
@@ -180,7 +216,9 @@ const PreOrderDetailScreen = () => {
               <Text
                 className={`text-xs font-semibold ${getStatusColor(preOrder.status).split(" ")[0]}`}
               >
-                {getStatusText(preOrder.status)}
+                {getStatusText(
+                  preOrder.status.toLowerCase() === "shipped" ? "Picked Up" : preOrder.status,
+                )}
               </Text>
             </View>
           </View>
