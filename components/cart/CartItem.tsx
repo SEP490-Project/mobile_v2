@@ -4,7 +4,7 @@ import { removeFromCart, updateQuantity } from "@/libs/stores/cartManager/slice"
 import { CartItem as CartItemType } from "@/libs/types/cart";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface CartItemProps {
   item: CartItemType;
@@ -15,22 +15,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { product, variant, quantity } = item;
 
   const handleRemove = () => {
-    Alert.alert("Remove Item", `Remove ${product.name} from cart?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => dispatch(removeFromCart(item.id)),
-      },
-    ]);
+    dispatch(removeFromCart(item.id));
   };
 
   const handleIncrement = () => {
-    if (quantity < variant.current_stock) {
-      dispatch(updateQuantity({ id: item.id, quantity: quantity + 1 }));
-    } else {
-      Alert.alert("Stock Limit", "Cannot add more items than available in stock");
-    }
+    dispatch(updateQuantity({ id: item.id, quantity: quantity + 1 }));
   };
 
   const handleDecrement = () => {

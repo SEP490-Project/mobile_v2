@@ -34,22 +34,7 @@ const CartScreen = () => {
       return;
     }
 
-    if (totalCost > 5000000) {
-      Alert.alert("Invalid Order", "Total cost cannot exceed 5,000,000 VND.");
-      return;
-    }
-
-    Alert.alert(
-      "Make Order",
-      `You are about to order ${totalItems} item(s) for ${convertNumberToVND(totalCost)}`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Proceed",
-          onPress: () => router.push("/(checkout)"),
-        },
-      ],
-    );
+    router.push("/(checkout)");
   };
 
   const EmptyCart = () => (

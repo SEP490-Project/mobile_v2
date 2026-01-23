@@ -51,7 +51,8 @@ const CheckoutScreen = () => {
 
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [userNote, setUserNote] = useState<string>("");
-  const [isSelfPickup, setIsSelfPickup] = useState<boolean>(false);
+  const [isSelfPickup, setIsSelfPickup] = useState<boolean>(true);
+  const [isDoorToDoorDelivery, setIsDoorToDoorDelivery] = useState<boolean>(false);
 
   // Determine checkout items based on checkout type
   const checkoutItems = useMemo(() => {
@@ -324,22 +325,39 @@ const CheckoutScreen = () => {
           ))}
         </View>
 
-        {/*Selected self pickup*/}
+        {/* Door-to-Door Delivery Policy Checkbox */}
         <View className="bg-white px-4 py-4 mb-2">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-lg font-bold text-gray-800">Self Pickup</Text>
-            <TouchableOpacity
-              onPress={() => setIsSelfPickup((prev) => !prev)}
-              className={`w-6 h-6 rounded-full border-2 ${
-                isSelfPickup ? "border-primary bg-primary" : "border-gray-300 bg-white"
+          <TouchableOpacity
+            onPress={() => {
+              setIsDoorToDoorDelivery((prev) => !prev);
+              setIsSelfPickup((prev) => !prev);
+            }}
+            className="flex-row items-start"
+            activeOpacity={0.7}
+          >
+            <View
+              className={`w-5 h-5 rounded border-2 mt-0.5 ${
+                isDoorToDoorDelivery ? "border-primary bg-primary" : "border-gray-300 bg-white"
               } items-center justify-center`}
             >
-              {isSelfPickup && <View className="w-3 h-3 rounded-full bg-white" />}
-            </TouchableOpacity>
-          </View>
-          <Text className="text-gray-600">
-            Choose this option if you prefer to pick up your order yourself at our place.
-          </Text>
+              {isDoorToDoorDelivery && <MaterialIcons name="check" size={14} color="white" />}
+            </View>
+            <View className="flex-1 ml-3">
+              <Text className="text-gray-800 text-sm leading-5">
+                I choose door-to-door delivery in accordance with the{" "}
+                <Text
+                  className="text-primary font-medium underline"
+                  onPress={() => router.push("/(general)/privacy-policy")}
+                >
+                  Shipping & Delivery Policy
+                </Text>
+                .
+              </Text>
+              <Text className="text-gray-500 text-xs mt-1">
+                (If not selected, the system will default to on-site pickup.)
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* User Note */}

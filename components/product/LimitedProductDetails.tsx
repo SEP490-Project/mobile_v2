@@ -134,7 +134,7 @@ const LimitedProductDetails = ({ productDetail }: { productDetail: Product }) =>
             <Text className="font-semibold text-lg px-4 mb-2">Concept Banners</Text>
             {bannerImages.length > 0 && (
               <View className="mb-2 flex-row gap-4 p-2">
-                {bannerImages.map((url, index) => (
+                {bannerImages?.map((url, index) => (
                   <Image
                     key={index}
                     source={{ uri: url }}
@@ -242,7 +242,7 @@ const ViewProductModal = ({
 
   const getDisplayImages = () => {
     if (selectedVariant?.images && selectedVariant.images.length > 0) {
-      return selectedVariant.images.map((img) => img.image_url);
+      return selectedVariant.images?.map((img) => img.image_url);
     }
     return productDetail?.thumbnail_url || [];
   };
@@ -282,7 +282,7 @@ const ViewProductModal = ({
                 setSelectedImageIndex(index);
               }}
             >
-              {displayImages.map((imageUrl, index) => (
+              {displayImages?.map((imageUrl, index) => (
                 <Image
                   key={index}
                   source={{ uri: imageUrl }}
@@ -293,9 +293,9 @@ const ViewProductModal = ({
             </ScrollView>
 
             {/* Image Indicators */}
-            {displayImages.length > 1 && (
+            {displayImages?.length > 1 && (
               <View className="flex-row justify-center py-2">
-                {displayImages.map((_, index) => (
+                {displayImages?.map((_, index) => (
                   <View
                     key={index}
                     className={`h-2 w-2 rounded-full mx-1 ${
@@ -505,18 +505,23 @@ const ViewProductModal = ({
                     />
                   </>
                 )}
-                <View className="py-2">
-                  <Text className="text-gray-600 text-sm">Attributes:</Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {selectedVariant.attributes.map((attr) => (
-                      <View key={attr.ingredient} className="bg-gray-200 rounded-md px-2 py-1 mt-1">
-                        <Text className="text-gray-800 text-sm font-medium">
-                          {`${attr.ingredient}: ${attr.value} ${attr.unit}`}
-                        </Text>
-                      </View>
-                    ))}
+                {selectedVariant.attributes && selectedVariant.attributes.length > 0 && (
+                  <View className="py-2">
+                    <Text className="text-gray-600 text-sm">Attributes:</Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {selectedVariant.attributes?.map((attr) => (
+                        <View
+                          key={attr.ingredient}
+                          className="bg-gray-200 rounded-md px-2 py-1 mt-1"
+                        >
+                          <Text className="text-gray-800 text-sm font-medium">
+                            {`${attr.ingredient}: ${attr.value} ${attr.unit}`}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
-                </View>
+                )}
               </View>
             )}
           </View>

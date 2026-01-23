@@ -33,23 +33,14 @@ function AccountScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert("Log Out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await dispatch(logout()).unwrap();
-            Alert.alert("Logged out", "You have logged out of your account.");
+    try {
+      await dispatch(logout()).unwrap();
+      Alert.alert("Logged out", "You have logged out of your account.");
 
-            router.replace("/(tabs)");
-          } catch (err) {
-            Alert.alert("Logout failed", "Please try again later.");
-          }
-        },
-      },
-    ]);
+      router.replace("/(tabs)");
+    } catch (err) {
+      Alert.alert("Logout failed", "Please try again later.");
+    }
   };
 
   return (
