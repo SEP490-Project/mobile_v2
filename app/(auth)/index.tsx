@@ -32,8 +32,7 @@ function LoginScreen() {
       await LoginSchema.validate(body, { abortEarly: false });
       setLoading(true);
 
-      const user = await dispatch(login(body)).unwrap();
-      Alert.alert("Login successful!", `Hello ${user.user?.name || "User"}`);
+      await dispatch(login(body)).unwrap();
       router.replace("/(tabs)");
     } catch (err: any) {
       if (err.name === "ValidationError") {

@@ -45,14 +45,6 @@ function SettingScreen() {
     try {
       setIsLoading(true);
 
-      // if (!Device.isDevice) {
-      //   Alert.alert(
-      //     "Not supported",
-      //     "Push notifications only work on physical devices, not simulators/emulators.",
-      //   );
-      //   return;
-      // }
-
       if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("default", {
           name: "default",

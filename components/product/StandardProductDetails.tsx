@@ -6,16 +6,7 @@ import { Product, Variant } from "@/libs/types/product";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  Image,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DetailRow from "./DetailRows";
 import ProductReviews from "./ProductReviews";
@@ -49,31 +40,12 @@ const StandardProductDetails = ({ productDetail }: { productDetail: Product | un
         quantity,
       }),
     );
-
-    Alert.alert("Success", `Added ${quantity} ${productDetail.name} to cart`, [
-      {
-        text: "Continue Shopping",
-        style: "cancel",
-      },
-      {
-        text: "View Cart",
-        onPress: () => router.push("/(cart)"),
-      },
-    ]);
   };
 
   const handleBuyNow = () => {
     if (!productDetail || !selectedVariant) return;
     if (!user) {
       router.replace("/(auth)");
-      return;
-    }
-
-    if (quantity * selectedVariant.price > 5000000) {
-      Alert.alert(
-        "Error",
-        "Maximum order value is 5,000,000 VND. Please reduce the quantity or choose a different variant.",
-      );
       return;
     }
 

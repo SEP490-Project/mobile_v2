@@ -56,7 +56,7 @@ function RegisterScreen() {
 
     try {
       await RegisterSchema.validate(body, { abortEarly: false });
-      Alert.alert("Đăng ký thành công!");
+      Alert.alert("Registration successful!");
       router.back();
     } catch (err) {
       if (err instanceof yup.ValidationError) {
