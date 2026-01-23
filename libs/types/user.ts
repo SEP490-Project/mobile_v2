@@ -14,9 +14,13 @@ export interface UserProfile {
   current_login_device: string[];
   number_of_sessions: number;
   shipping_address: ShippingAddress[];
-  bank_account?: string;
-  bank_account_holder?: string;
-  bank_name?: string;
+  bank_info?: BankInfo;
+}
+
+export interface BankInfo {
+  bank_account: string;
+  bank_name: string;
+  bank_account_holder: string;
 }
 
 export interface ShippingAddress {

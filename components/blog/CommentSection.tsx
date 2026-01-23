@@ -164,31 +164,34 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   /* ---------------- RENDER ---------------- */
 
   return (
-    <View className="mt-6 pt-6 border-t border-gray-100">
-      <Text className="text-lg font-bold mb-4">Comments ({comments.length})</Text>
+    <View className="mt-4 pt-4 border-t border-gray-200">
+      <Text className="text-lg font-semibold text-gray-900 mb-4">Comments ({comments.length})</Text>
 
       {/* New comment */}
       {user && (
-        <View className="flex-row items-center mb-5">
-          <View className="w-8 h-8 bg-blue-500 rounded-full mr-2 items-center justify-center">
-            <Text className="text-white text-xs font-bold">
+        <View className="flex-row items-start mb-6 px-2">
+          <View className="w-8 h-8 bg-rose-500 rounded-full mr-3 items-center justify-center">
+            <Text className="text-white text-xs font-semibold">
               {user.username?.[0]?.toUpperCase()}
             </Text>
           </View>
 
-          <View className="flex-1 bg-gray-100 rounded-full px-4 py-2 flex-row">
+          <View className="flex-1 bg-gray-50 rounded-full px-4 py-3 flex-row items-center border border-gray-200">
             <TextInput
               placeholder="Write a comment..."
               value={newComment}
               onChangeText={setNewComment}
-              className="flex-1"
+              className="flex-1 text-gray-900"
+              placeholderTextColor="#9CA3AF"
+              multiline
+              style={{ maxHeight: 100 }}
             />
             {newComment.trim() && (
-              <TouchableOpacity onPress={handleSubmit}>
+              <TouchableOpacity onPress={handleSubmit} className="ml-2">
                 {submitting ? (
-                  <ActivityIndicator size="small" />
+                  <ActivityIndicator size="small" color="#ef4444" />
                 ) : (
-                  <MaterialIcons name="send" size={18} color="#2563EB" />
+                  <MaterialIcons name="send" size={20} color="#ef4444" />
                 )}
               </TouchableOpacity>
             )}
@@ -197,24 +200,26 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
       )}
 
       {/* Comment list */}
-      <ScrollView>
+      <ScrollView className="px-2">
         {comments.map((comment) => (
           <View key={comment.id} className="mb-4">
-            <View className="flex-row">
-              <View className="w-8 h-8 bg-blue-500 rounded-full mr-2 items-center justify-center">
-                <Text className="text-white text-xs font-bold">
+            <View className="flex-row items-start">
+              <View className="w-8 h-8 bg-gray-400 rounded-full mr-3 items-center justify-center">
+                <Text className="text-white text-xs font-semibold">
                   {comment.username?.[0]?.toUpperCase()}
                 </Text>
               </View>
 
               <View className="flex-1">
-                <View className="bg-gray-100 rounded-2xl p-3">
-                  <Text className="font-semibold text-sm">{comment.username}</Text>
-                  <Text>{comment.comment}</Text>
+                <View className="bg-gray-100 rounded-2xl px-4 py-3">
+                  <Text className="font-semibold text-sm text-gray-900 mb-1">
+                    {comment.username}
+                  </Text>
+                  <Text className="text-gray-800 leading-5">{comment.comment}</Text>
                 </View>
 
-                <View className="flex-row items-center ml-2 mt-1">
-                  <Text className="text-xs text-gray-500 mr-3">
+                <View className="flex-row items-center ml-4 mt-2">
+                  <Text className="text-xs text-gray-500 mr-4">
                     {getTimeAgo(comment.created_at)}
                   </Text>
 
@@ -226,15 +231,35 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                         currentReaction: comment.user_reaction,
                       })
                     }
-                    className="flex-row items-center"
+                    className="flex-row items-center py-1 px-2 rounded-lg"
+                    activeOpacity={0.7}
                   >
-                    <Text className="mr-1">
+                    <Text className="mr-1 text-base">
                       {comment.user_reaction ? REACTION_ICONS[comment.user_reaction] : "👍"}
                     </Text>
-                    <Text className="text-xs font-semibold text-gray-600">
+                    <Text
+                      className={`text-xs font-medium ${
+                        comment.user_reaction ? "text-rose-600" : "text-gray-600"
+                      }`}
+                    >
                       {comment.user_reaction ? REACTION_LABELS[comment.user_reaction] : "Like"}
                     </Text>
                   </TouchableOpacity>
+
+                  {/* Show reaction count if any */}
+                  {comment.reactions &&
+                    Object.values(comment.reactions).some((count: any) => count > 0) && (
+                      <View className="flex-row items-center ml-3">
+                        {Object.entries(comment.reactions).map(([type, count]: [string, any]) =>
+                          count > 0 ? (
+                            <View key={type} className="flex-row items-center mr-2">
+                              <Text className="text-xs">{REACTION_ICONS[type]}</Text>
+                              <Text className="text-xs text-gray-500 ml-1">{count}</Text>
+                            </View>
+                          ) : null,
+                        )}
+                      </View>
+                    )}
                 </View>
               </View>
             </View>
@@ -242,7 +267,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         ))}
       </ScrollView>
 
-      {/* Reaction Picker */}
+      {/* Reaction Picker Modal */}
       <Modal transparent visible={!!reactionTarget} animationType="none">
         <AnimatePresence>
           {reactionTarget && (
@@ -250,17 +275,19 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
               from={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 120 }}
+              transition={{ duration: 150 }}
               className="flex-1 justify-center items-center"
-              style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
+              style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
             >
               <Pressable className="absolute inset-0" onPress={() => setReactionTarget(null)} />
 
               <MotiView
-                from={{ translateY: 10, scale: 0.95 }}
-                animate={{ translateY: 0, scale: 1 }}
-                transition={{ duration: 160 }}
-                className="bg-white px-3 py-2 rounded-full flex-row shadow-2xl"
+                from={{ translateY: 20, scale: 0.9, opacity: 0 }}
+                animate={{ translateY: 0, scale: 1, opacity: 1 }}
+                exit={{ translateY: 20, scale: 0.9, opacity: 0 }}
+                transition={{ duration: 200, type: "timing" }}
+                className="bg-white px-4 py-3 rounded-full flex-row shadow-xl border border-gray-200"
+                style={{ elevation: 10 }}
               >
                 {REACTION_TYPES.map((type, idx) => {
                   const active = reactionTarget.currentReaction === type;
@@ -268,30 +295,35 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   return (
                     <MotiView
                       key={type}
-                      from={{ scale: 0.85, opacity: 0 }}
+                      from={{ scale: 0.7, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{
-                        duration: 120,
-                        delay: idx * 25,
+                        duration: 180,
+                        delay: idx * 30,
+                        type: "timing",
                       }}
                     >
                       <TouchableOpacity
                         onPress={() => handleCommentReaction(reactionTarget.commentId, type)}
-                        className="w-12 h-12 items-center justify-center"
+                        className="w-12 h-12 items-center justify-center mx-1"
+                        activeOpacity={0.7}
                       >
                         <MotiView
                           animate={{
-                            scale: active ? 1.35 : 1,
-                            translateY: active ? -6 : 0,
+                            scale: active ? 1.4 : 1,
+                            translateY: active ? -8 : 0,
                           }}
                           transition={{
                             type: "spring",
-                            damping: 15,
-                            stiffness: 250,
+                            damping: 12,
+                            stiffness: 200,
                           }}
                         >
                           <Text className="text-3xl">{REACTION_ICONS[type]}</Text>
                         </MotiView>
+                        {active && (
+                          <View className="absolute -bottom-1 w-8 h-1 bg-rose-500 rounded-full" />
+                        )}
                       </TouchableOpacity>
                     </MotiView>
                   );
