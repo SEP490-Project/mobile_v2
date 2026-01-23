@@ -26,6 +26,8 @@ const getStatusColor = (status: string) => {
       return "text-purple-800";
     case "awaiting_pickup":
       return "text-yellow-800";
+    case "shipped":
+      return "text-orange-800 ";
     case "in_transit":
       return "text-blue-800";
     case "delivered":
@@ -55,6 +57,8 @@ const getStatusBgColor = (status: string) => {
       return "bg-yellow-100";
     case "in_transit":
       return "bg-blue-100";
+    case "shipped":
+      return "bg-orange-100";
     case "delivered":
       return "bg-green-100";
     case "received":
@@ -149,7 +153,7 @@ export default function PreOrderList() {
             </Text>
             <View className={`px-3 py-1 rounded-full ${getStatusBgColor(item.status)}`}>
               <Text className={`font-medium text-xs ${getStatusColor(item.status)}`}>
-                {getStatusText(item.status)}
+                {getStatusText(item.status.toLowerCase() === "shipped" ? "Picked Up" : item.status)}
               </Text>
             </View>
           </View>

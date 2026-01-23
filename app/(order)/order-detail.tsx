@@ -161,13 +161,18 @@ const OrderDetailScreen = () => {
         {/* Order Status Card */}
         <View className="bg-white px-4 py-4 mb-2">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-sm text-gray-500">Order ID</Text>
+            <View className="flex flex-row gap-2">
+              <Text className="text-sm text-gray-500">Order ID</Text>
+              <TouchableOpacity onPress={() => handleCopyToClipboard(order.id)} activeOpacity={0.7}>
+                <MaterialIcons name="content-copy" size={14} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
             <Text className="font-mono text-sm text-gray-700">#{order.id.slice(0, 8)}</Text>
           </View>
           {order.ghn_order_code && (
             <View className="flex-row justify-between items-center mb-2">
               <View className="flex flex-row gap-2">
-                <Text className="text-sm text-gray-500">Order Code</Text>
+                <Text className="text-sm text-gray-500">GHN Order Code</Text>
                 <TouchableOpacity
                   onPress={() => handleCopyToClipboard(order.ghn_order_code)}
                   activeOpacity={0.7}
@@ -184,7 +189,9 @@ const OrderDetailScreen = () => {
               <Text
                 className={`text-xs font-semibold ${getStatusColor(order.status).split(" ")[0]}`}
               >
-                {getStatusText(order.status)}
+                {getStatusText(
+                  order.status.toLowerCase() === "shipped" ? "Picked Up" : order.status,
+                )}
               </Text>
             </View>
           </View>

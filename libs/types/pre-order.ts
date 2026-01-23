@@ -13,6 +13,7 @@ export interface PreOrderData {
   phone_number: string;
   email: string;
   street: string;
+  ghn_order_code?: string;
   address_line2: string;
   city: string;
   ghn_province_id: number;
