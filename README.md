@@ -1,50 +1,120 @@
-# Welcome to your Expo app 👋
+# SEP490 Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Customer-facing mobile app for **BShowSell** — an e-commerce and social media management platform. Built with React Native and Expo, allowing customers to browse products, read blog content, place orders, and manage their account.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+- **Framework**: React Native + Expo (file-based routing via Expo Router)
+- **Language**: TypeScript
+- **State management**: Redux Toolkit
+- **Styling**: NativeWind (Tailwind CSS for React Native)
+- **Forms**: React Hook Form
+- **Animations**: Moti, Lottie
+- **Lists**: @legendapp/list (infinite scroll)
+- **Media**: Expo Image, Expo Video, Expo Camera
+- **Notifications**: Expo Notifications (push)
+- **Storage**: Expo Secure Store, AsyncStorage
+- **Voice**: Expo Speech Recognition
+- **HTTP client**: Axios
+- **Tooling**: ESLint, Prettier, Husky, lint-staged
 
-   ```bash
-   npm install
-   ```
+## Project Structure
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app/
+  (auth)/             Login, signup, forgot/reset password
+  (tabs)/             Main bottom-tab navigation (home, orders, account)
+  (product)/          Product listing & detail
+  (cart)/             Shopping cart
+  (checkout)/         Checkout flow
+  (order)/            Order & pre-order details
+  (payment)/          Payment success/failed pages
+  (review)/           Product reviews
+  (search)/           Search
+  (notification)/     Notification list & detail
+  (user)/             Profile, update profile, addresses
+  (setting)/          Settings
+  (change-password)/  Change password
+  (general)/          About, privacy policy, terms of service
+  blog/               Blog list & detail
+components/
+  ui/                 Reusable UI components (product card, dropdown, etc.)
+  blog/               Blog comments & reactions
+  cart/               Cart item components
+  order/              Order/pre-order lists, refund & compensate modals
+  product/            Product detail components
+  layout/             Header and layout components
+  guest/              Auth inputs & buttons
+  common/             Shared components (infinite scroll, speech recognition modal)
+libs/
+  stores/             Redux slices & thunks (one folder per domain)
+  services/           API service definitions per domain
+  hooks/              Custom hooks (useAuthen, useContent, useEngagement, ...)
+  types/              Shared TypeScript types
+  helper/             Currency & date helpers
+  utils/              Token storage, push notification registration, Tiptap renderer
+  context/            React contexts (notifications)
+constants/            Theme constants
+assets/               Images, fonts, animations
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Features
 
-## Learn more
+| Module             | Description                                                       |
+| ------------------ | ------------------------------------------------------------------ |
+| **Auth**           | Login, signup, forgot/reset password                              |
+| **Home**           | Browse products and content feed                                  |
+| **Products**       | Standard, limited, and pre-order product listings & details        |
+| **Cart & Checkout**| Add to cart, manage cart items, checkout flow                     |
+| **Orders**         | Order & pre-order history, refund and compensation requests       |
+| **Payments**       | Payment flow with success/failed result pages                     |
+| **Reviews**        | Product reviews                                                    |
+| **Blog**           | Blog list, detail, comments, and reactions                        |
+| **Search**         | Product/content search                                             |
+| **Notifications**  | Push notifications and in-app notification center                  |
+| **Profile**        | View/update profile, manage addresses, change password, settings   |
+| **General**        | About, privacy policy, terms of service                            |
+| **Voice search**   | Speech-to-text input via Expo Speech Recognition                    |
 
-To learn more about developing your project with Expo, look at the following resources:
+## Prerequisites
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Node.js** 18 or later
+- **Expo CLI** (`npx expo`)
+- Expo Go app or a development build for testing on a device/emulator
 
-## Join the community
+## Configuration
 
-Join our community of developers creating universal apps.
+Create a `.env` file in the project root:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```env
+EXPO_PUBLIC_API_URL=
+```
+
+## Installation & Running
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run the development server
+
+```bash
+npx expo start
+```
+
+From the Expo CLI output, you can open the app in a development build, an Android emulator, an iOS simulator, or Expo Go.
+
+## Scripts
+
+| Command                | Action                                  |
+| ----------------------- | --------------------------------------- |
+| `npm run start`         | Start the Expo dev server                |
+| `npm run android`       | Build and run on Android                 |
+| `npm run ios`           | Build and run on iOS                     |
+| `npm run web`           | Run in the browser                       |
+| `npm run lint`          | Run ESLint                               |
+| `npm run format`        | Format the codebase with Prettier        |
+| `npm run format:check`  | Check formatting without writing changes |
+| `npm run reset-project` | Reset to a blank starter project         |
